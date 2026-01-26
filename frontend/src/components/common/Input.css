@@ -1,0 +1,17 @@
+.input-field {
+    width: 100%;
+    border: 1px solid var(--color-gray-300);
+    border-radius: 0.375rem;
+    padding: 0.5rem 1rem;
+    outline: none;
+    transition: box-shadow 0.2s;
+}
+
+.input-field:focus {
+    box-shadow: 0 0 0 2px var(--color-gold);
+    border-color: var(--color-gold);
+}
+
+.input-field::placeholder {
+    color: var(--color-gray-400);
+}

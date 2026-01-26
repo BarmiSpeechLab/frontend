@@ -1,0 +1,512 @@
+/* 공통 디자인 한번에 관리하기 위한 페이지 */
+
+.subpage-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.subpage-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    color: #a67c00;
+}
+
+.tabs {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+.tab-btn {
+    padding: 0.625rem 1.25rem;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    background: #fff;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tab-btn.active {
+    background: #a67c00;
+    color: #fff;
+    border-color: #a67c00;
+}
+
+.card-grid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.card-grid.col-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.card-grid.col-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+/* 공통 카드 */
+.ui-card {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 20px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.symbol-card {
+    aspect-ratio: 1/1.1;
+}
+
+.symbol-text {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #4a90e2;
+    margin-bottom: 0.5rem;
+}
+
+.example-word {
+    font-size: 1rem;
+    color: #333;
+    margin-bottom: 0.25rem;
+}
+
+.example-mean {
+    font-size: 0.875rem;
+    color: #888;
+    margin-bottom: 1rem;
+}
+
+.audio-icon {
+    font-size: 1.25rem;
+    color: #666;
+    cursor: pointer;
+}
+
+.word-card {
+    align-items: flex-start;
+    text-align: left;
+    padding: 2rem;
+}
+
+.card-top {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+}
+
+.level-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #666;
+}
+
+.bookmark-icon {
+    color: #ccc;
+    font-size: 1.25rem;
+    cursor: pointer;
+}
+
+.word-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.symbol-sub {
+    font-size: 0.875rem;
+    color: #888;
+    margin-bottom: 0.5rem;
+}
+
+.mean-text {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 2rem;
+}
+
+.card-bottom {
+    width: 100%;
+}
+
+.listen-btn {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    background: #fff;
+    color: #555;
+    font-size: 0.875rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: background 0.2s;
+}
+
+.listen-btn:hover {
+    background: #f8f9fa;
+}
+
+/* 문장, 회화, 튜터 공통 리스트 스타일 */
+.sentence-list,
+.conversation-list,
+.tutor-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.subpage-desc {
+    color: #888;
+    margin-bottom: 2rem;
+}
+
+/* 문장 카드 */
+.sentence-card {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    text-align: left !important;
+    padding: 1.5rem 2rem !important;
+}
+
+.card-side-icons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 60px;
+}
+
+.category-tag {
+    background: #e3f2fd;
+    color: #d6c9a2;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.sentence-content {
+    flex: 1;
+    padding-left: 1rem;
+    text-align: left;
+}
+
+.sentence-text-main {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 0.25rem;
+}
+
+.mean-text-sub {
+    font-size: 0.9rem;
+    color: #888;
+}
+
+/* 회화 카드 */
+.conversation-card {
+    text-align: left;
+    align-items: flex-start !important;
+    padding: 2.5rem 2rem !important;
+}
+
+.scene-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0.75rem 0 0.5rem;
+}
+
+.scene-desc {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.tutor-card {
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
+    padding: 1.5rem 2rem;
+    gap: 1.5rem !important;
+}
+
+.tutor-avatar {
+    width: 60px;
+    height: 60px;
+    background: #e3f2fd;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1976d2;
+    font-size: 1.5rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.tutor-info {
+    flex: 1;
+}
+
+.tutor-name {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin-right: 0.75rem;
+}
+
+.tutor-rating {
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.tutor-specialty {
+    color: #888;
+    font-size: 0.9rem;
+    margin: 0.25rem 0 0.75rem;
+}
+
+.lang-tag {
+    background: #f5f5f5;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    margin-right: 0.5rem;
+    color: #666;
+}
+
+.tutor-action {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+}
+
+.status-online {
+    color: #4caf50;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.status-busy {
+    color: #9e9e9e;
+    font-size: 0.8rem;
+}
+
+.enter-btn {
+    background: #4a90e2;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+}
+
+.profile-container {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.profile-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    color: #a67c00;
+}
+
+.profile-top-layout {
+    display: grid;
+    grid-template-columns: 1.8fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.profile-card {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.card-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    color: #a67c00;
+}
+
+/* 기본 정보 */
+.info-content {
+    display: flex;
+    gap: 2.5rem;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.avatar-circle {
+    width: 100px;
+    height: 100px;
+    background: #d6c9a2;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #a67c00;
+}
+
+.info-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.field label {
+    display: block;
+    font-size: 0.8rem;
+    color: #999;
+    margin-bottom: 0.25rem;
+}
+
+.field .value {
+    font-size: 1rem;
+    color: #333;
+    font-weight: 500;
+}
+
+.button-group {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.edit-btn {
+    padding: 0.6rem 2rem;
+    background: #ffffff;
+    color: #a67c00;
+    border: 1px solid #a67c00;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.withdraw-btn {
+    padding: 0.6rem 1.5rem;
+    background: #ffffff;
+    color: #a67c00;
+    border: 1px solid #a67c00;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* 학습 통계 */
+.stats-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.main-stat,
+.streak-stat {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+}
+
+.streak-stat {
+    background: #ebf3ff;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: #888;
+}
+
+.sub-stats {
+    display: flex;
+    gap: 1rem;
+}
+
+.sub-stat {
+    flex: 1;
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+}
+
+.sub-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #a67c00;
+}
+
+.sub-label {
+    font-size: 0.7rem;
+    color: #888;
+}
+
+.streak-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #4a90e2;
+}
+
+.streak-label {
+    font-size: 0.75rem;
+    color: #a67c00;
+    font-weight: 600;
+}
+
+/* 계정 관리 */
+.management-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.management-item {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    padding: 1rem 1.5rem;
+    font-size: 0.95rem;
+    color: #333;
+    cursor: pointer;
+}

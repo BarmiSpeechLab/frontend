@@ -1,0 +1,81 @@
+.dashboard-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.dashboard-header {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.dashboard-mascot {
+    width: 100px;
+    height: auto;
+}
+
+.welcome-text {
+    font-size: 1.75rem;
+    color: #a67c00;
+    font-weight: 700;
+}
+
+.section-title {
+    font-size: 1.25rem;
+    color: #a67c00;
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+}
+
+.status-section,
+.report-section,
+.analysis-section {
+    background: #ffffff;
+    border: 1px solid #eee;
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.status-cards {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.status-card {
+    flex: 1;
+    background: #f8f9fa;
+    border-radius: 16px;
+    padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.card-value {
+    font-size: 2rem;
+    font-weight: 800;
+}
+
+.highlight-blue {
+    color: #a67c00;
+}
+
+.card-label {
+    font-size: 0.875rem;
+    color: #888;
+}
+
+.placeholder-box {
+    height: 100px;
+    background: #fdfdfd;
+    border: 1px dashed #ddd;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+}
