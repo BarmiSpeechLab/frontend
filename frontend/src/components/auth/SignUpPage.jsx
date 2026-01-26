@@ -9,8 +9,8 @@ import './LoginPage.css';
 const SignUpPage = () => {
     const navigate = useNavigate();
 
-    // role -> 튜티 / 튜터
-    const [role, setRole] = useState('tutee');
+    // role -> 튜티(USER) / 튜터
+    const [role, setRole] = useState('USER');
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
