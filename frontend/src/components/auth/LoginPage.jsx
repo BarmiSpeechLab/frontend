@@ -1,16 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Input from '../common/Input';
 import Button from '../common/Button';
 import rmiImg from '../../assets/img/rmi.png';
 import { useNavigate } from 'react-router-dom';
 import './LoginPage.css';
 
-import { login, signup } from '../../api/auth';
+import { login } from '../../api/auth';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
+
+    // 앱 시작 시 또는 로그인 페이지 진입 시 이미 토큰이 있다면 메인으로 자동 이동
+    useEffect(() => {
+        if (localStorage.getItem('accessToken')) {
+            navigate('/main');
+        }
+    }, [navigate]);
 
     const handleLogin = async (e) => {
         e.preventDefault();

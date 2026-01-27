@@ -1,16 +1,12 @@
-import axios from 'axios';
-
-// 백엔드 기본 URL
-const API_BASE_URL = 'http://localhost:8080/api';
+import api from './index';
 
 /**
  * 로그인
- * POST /api/users/login
  */
 export const login = async (email, password) => {
     console.log(`[API 요청] 로그인 -> 이메일: ${email}`);
     try {
-        const response = await axios.post(`${API_BASE_URL}/users/login`, {
+        const response = await api.post(`/users/login`, {
             email,
             password
         });
@@ -25,15 +21,15 @@ export const login = async (email, password) => {
 
 /**
  * 회원가입
- * POST /api/users/signup
  */
 export const signup = async (email, password, nickname) => {
     console.log(`[API 요청] 회원가입 -> 이메일: ${email}, 닉네임: ${nickname}`);
     try {
-        const response = await axios.post(`${API_BASE_URL}/users/signup`, {
+        const response = await api.post(`/users/signup`, {
             email,
             password,
-            nickname
+            nickname,
+            role
         });
         console.log('[API 응답 성공]', response.data);
         return response.data;
@@ -46,12 +42,11 @@ export const signup = async (email, password, nickname) => {
 
 /**
  * 로그아웃
- * POST /api/users/logout
  */
 export const logout = async () => {
     console.log(`[API 요청] 로그아웃`);
     try {
-        const response = await axios.post(`${API_BASE_URL}/users/logout`);
+        const response = await api.post(`/users/logout`);
         console.log('[API 응답 성공]', response.data);
         return response.data;
     } catch (error) {
@@ -63,12 +58,11 @@ export const logout = async () => {
 
 /**
  * 회원탈퇴
- * DELETE /api/users
  */
 export const withdraw = async () => {
     console.log(`[API 요청] 회원탈퇴`);
     try {
-        const response = await axios.delete(`${API_BASE_URL}/users`);
+        const response = await api.delete(`/users`);
         console.log('[API 응답 성공]', response.data);
         return response.data;
     } catch (error) {
