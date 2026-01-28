@@ -4,15 +4,15 @@ import Button from '../common/Button';
 import rmiImg from '../../assets/img/rmi.png';
 import { useNavigate } from 'react-router-dom';
 import './LoginPage.css';
-
 import { login } from '../../api/auth';
+// import { getUserProfile } from '../../api/user'; -> 나중에 연동 시 주석 해제 필요
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
 
-    // 앱 시작 시 또는 로그인 페이지 진입 시 이미 토큰이 있다면 메인으로 자동 이동
+    // 앱 시작 시 or 로그인 페이지 진입 시 이미 토큰 있으면 메인으로 이동
     useEffect(() => {
         if (localStorage.getItem('accessToken')) {
             navigate('/main');
@@ -26,8 +26,27 @@ const LoginPage = () => {
             // 로그인 요청
             const response = await login(email, password);
 
-            // 받은 토큰 저장
+            // 받은 토큰 저장 + 이메일 저장
             localStorage.setItem('accessToken', response.token);
+            localStorage.setItem('userEmail', email); // 튜토리얼 완료 여부 확인 위해 저장
+
+            /*
+            // 나중에 연동 시 주석 해제 필요
+            const userProfile = await getUserProfile();
+            console.log('User Profile:', userProfile);
+            localStorage.setItem('userRole', userProfile.role); // 서버에서 던져준 역할 저장
+            */
+
+            // 테스트용 - 백엔드 연동 전 role 테스트 위해 임시 생성
+            // 이메일에 'tutor' 포함되면 튜터 권한 부여
+            // 나중에 연동 시 삭제 필요
+            if (email.includes('tutor')) {
+                localStorage.setItem('userRole', 'TUTOR');
+                console.log('테스트 - 튜터 로그인');
+            } else {
+                localStorage.setItem('userRole', 'USER');
+                console.log('테스트 - 유저(학생) 로그인');
+            }
 
             navigate('/main');
         } catch (error) {
