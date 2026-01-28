@@ -3,10 +3,10 @@ import { Navigate, Outlet } from 'react-router-dom';
 
 /**
  * ProtectedRoute
- * 로그인 안되어있는 유저가 접근하려 할 때 로그인 페이지로 튕겨짐
+ * 로그인 X 유저가 접근 시도 시 로그인 페이지로 튕겨짐
  */
 const ProtectedRoute = () => {
-    // 로컬 스토리지에 토큰이 있는지 확인
+    // 로컬 스토리지에 토큰 있는지 확인
     const isAuthenticated = !!localStorage.getItem('accessToken');
 
     if (!isAuthenticated) {
