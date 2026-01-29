@@ -62,17 +62,17 @@ const SignUpPage = () => {
                 <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
                     <Button
                         type="button"
-                        className={role === 'tutee' ? 'btn-gold' : 'btn-grey'}
-                        onClick={() => setRole('tutee')}
-                        style={{ opacity: role === 'tutee' ? 1 : 0.5, whiteSpace: 'nowrap' }}
+                        className={role === 'USER' ? 'btn-gold' : 'btn-grey'}
+                        onClick={() => setRole('USER')}
+                        style={{ opacity: role === 'USER' ? 1 : 0.5, whiteSpace: 'nowrap', width: 'auto' }}
                     >
                         학생
                     </Button>
                     <Button
                         type="button"
-                        className={role === 'tutor' ? 'btn-gold' : 'btn-grey'}
-                        onClick={() => setRole('tutor')}
-                        style={{ opacity: role === 'tutor' ? 1 : 0.5, whiteSpace: 'nowrap' }}
+                        className={role === 'TUTOR' ? 'btn-gold' : 'btn-grey'}
+                        onClick={() => setRole('TUTOR')}
+                        style={{ opacity: role === 'TUTOR' ? 1 : 0.5, whiteSpace: 'nowrap', width: 'auto' }}
                     >
                         선생님
                     </Button>

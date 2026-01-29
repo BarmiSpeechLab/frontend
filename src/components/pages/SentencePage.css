@@ -1,0 +1,41 @@
+.sentence-card {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    text-align: left !important;
+    padding: 1.5rem 2rem !important;
+}
+
+.card-side-icons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 60px;
+}
+
+.category-tag {
+    background: #e3f2fd;
+    color: #d6c9a2;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.sentence-content {
+    flex: 1;
+    padding-left: 1rem;
+    text-align: left;
+}
+
+.sentence-text-main {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 0.25rem;
+}
+
+.mean-text-sub {
+    font-size: 0.9rem;
+    color: #888;
+}

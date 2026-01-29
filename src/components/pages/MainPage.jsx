@@ -13,6 +13,9 @@ const MainPage = () => {
     const [user, setUser] = useState(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+    // 마스코트 이미지 (정지 상태)
+    const mascotImg = rmi;
+
     useEffect(() => {
         const checkOnboarding = () => {
             const loggedInEmail = localStorage.getItem('userEmail') || 'guest';
