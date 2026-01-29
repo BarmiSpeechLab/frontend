@@ -19,7 +19,6 @@ const SentencePage = () => {
                     </button>
                 ))}
             </div>
-
             <div className="sentence-list">
                 {/* 세부 내용은 나중에 */}
             </div>

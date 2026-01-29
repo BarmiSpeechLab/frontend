@@ -8,6 +8,7 @@ const Button = ({ children, onClick, type = 'button', className = '' }) => {
             type={type}
             onClick={onClick}
             className={`btn ${className}`}
+            style={style}
         >
             {children}
         </button>
