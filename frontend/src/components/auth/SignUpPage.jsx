@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Input from '../common/Input';
 import Button from '../common/Button';
 import rmiImg from '../../assets/img/rmi.png';
@@ -8,6 +8,13 @@ import './LoginPage.css';
 
 const SignUpPage = () => {
     const navigate = useNavigate();
+
+    // 회원가입 페이지 진입 시 기존 로그인 정보 초기화
+    useEffect(() => {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('userRole');
+    }, []);
 
     // role -> 튜티(USER) / 튜터
     const [role, setRole] = useState('USER');

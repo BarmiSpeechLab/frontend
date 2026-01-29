@@ -5,7 +5,8 @@ import rmiImg from '../../assets/img/rmi.png';
 import { useNavigate } from 'react-router-dom';
 import './LoginPage.css';
 import { login } from '../../api/auth';
-// import { getUserProfile } from '../../api/user'; -> 나중에 연동 시 주석 해제 필요
+import { getUserProfile } from '../../api/user';
+import { jwtDecode } from "jwt-decode"; // 토큰 해독용 라이브러리
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
@@ -30,22 +31,31 @@ const LoginPage = () => {
             localStorage.setItem('accessToken', response.token);
             localStorage.setItem('userEmail', email); // 튜토리얼 완료 여부 확인 위해 저장
 
-            /*
-            // 나중에 연동 시 주석 해제 필요
-            const userProfile = await getUserProfile();
-            console.log('User Profile:', userProfile);
-            localStorage.setItem('userRole', userProfile.role); // 서버에서 던져준 역할 저장
-            */
+            // API 연동 시도 -> 실패 시 토큰 해독
+            try {
+                // API 연동 시도
+                const userProfile = await getUserProfile();
+                console.log('백엔드에서 프로필 정보 수신 성공:', userProfile);
+                localStorage.setItem('userRole', userProfile.role || 'USER');
+            } catch (apiError) {
+                // 실패 시 -> 토큰 직접 해독 시도
+                console.warn('프로필 조회 실패, 토큰 해독을 시도합니다.');
 
-            // 테스트용 - 백엔드 연동 전 role 테스트 위해 임시 생성
-            // 이메일에 'tutor' 포함되면 튜터 권한 부여
-            // 나중에 연동 시 삭제 필요
-            if (email.includes('tutor')) {
-                localStorage.setItem('userRole', 'TUTOR');
-                console.log('테스트 - 튜터 로그인');
-            } else {
-                localStorage.setItem('userRole', 'USER');
-                console.log('테스트 - 유저(학생) 로그인');
+                try {
+                    const decoded = jwtDecode(response.accessToken);
+                    if (decoded && decoded.auth) {
+                        // auth 확인
+                        const role = decoded.auth.includes('TUTOR') ? 'TUTOR' : 'USER';
+                        localStorage.setItem('userRole', role);
+                        console.log(`역할 확인 완료: ${role}`);
+                    } else {
+                        localStorage.setItem('userRole', 'USER');
+                        console.log('역할 정보 없음, 기본값 적용');
+                    }
+                } catch (decodeError) {
+                    console.error('토큰 해독 실패:', decodeError);
+                    localStorage.setItem('userRole', 'USER');
+                }
             }
 
             navigate('/main');
