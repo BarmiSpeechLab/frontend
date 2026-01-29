@@ -32,3 +32,18 @@ export const updateUserProfile = async (userData) => {
         throw error;
     }
 };
+
+/**
+ * 온보딩 완료 처리 (튜토리얼)
+ */
+export const completeOnboarding = async () => {
+    console.log('[API 요청] 온보딩 완료 처리');
+    try {
+        const response = await api.put('/users/onboarding');
+        console.log('[API 응답 성공]', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('[API 응답 실패]', error);
+        throw error;
+    }
+};
