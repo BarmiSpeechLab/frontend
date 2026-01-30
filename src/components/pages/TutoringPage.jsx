@@ -68,19 +68,19 @@ const TutoringPage = () => {
 
             {/* --- 입장 전 상태 --- */}
             {!session ? (
-                <div className="tutor-list" style={{textAlign: 'center', marginTop: '50px'}}>
+                <div className="tutor-list" style={{ textAlign: 'center', marginTop: '50px' }}>
                     {/* 지금은 튜터 리스트 대신 '입장 버튼'을 보여줍니다 */}
                     <div style={{ padding: '30px', border: '2px dashed #ccc', borderRadius: '10px' }}>
                         <h3>🚀 수업 시작하기</h3>
                         <p>버튼을 누르면 화상 강의실로 입장합니다.</p>
-                        <button 
-                            onClick={joinSession} 
-                            style={{ 
-                                padding: '15px 40px', 
-                                fontSize: '18px', 
-                                backgroundColor: '#4CAF50', 
-                                color: 'white', 
-                                border: 'none', 
+                        <button
+                            onClick={joinSession}
+                            style={{
+                                padding: '15px 40px',
+                                fontSize: '18px',
+                                backgroundColor: '#4CAF50',
+                                color: 'white',
+                                border: 'none',
                                 borderRadius: '8px',
                                 cursor: 'pointer',
                                 marginTop: '10px'

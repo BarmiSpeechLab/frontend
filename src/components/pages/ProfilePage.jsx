@@ -28,7 +28,7 @@ const ProfilePage = () => {
     const handleLogout = async () => {
         if (window.confirm('로그아웃 하시겠습니까?')) {
             try {
-                await logout();
+                // await logout(); // 나중에 연동 시 주석 해제 필요
                 localStorage.removeItem('accessToken');
                 localStorage.removeItem('userEmail'); // 세션 정보 완전 삭제
                 navigate('/login');
@@ -42,7 +42,7 @@ const ProfilePage = () => {
     const handleWithdraw = async () => {
         if (window.confirm('정말 탈퇴하시겠습니까?')) {
             try {
-                // 테스트용 / 연동 시 주석 해제 필요
+                // 테스트용 / 나중에 연동 시 주석 해제 필요
                 // await withdraw();
 
                 localStorage.removeItem('accessToken');

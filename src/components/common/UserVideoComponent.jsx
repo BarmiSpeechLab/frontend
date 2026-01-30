@@ -24,7 +24,7 @@ export default function UserVideoComponent({ streamManager }) {
     };
 
     return (
-        <div style={{ position: 'relative', display: 'inline-block', margin: '5px'}}>
+        <div style={{ position: 'relative', display: 'inline-block', margin: '5px' }}>
             {streamManager ? (
                 <video
                     autoPlay={true}

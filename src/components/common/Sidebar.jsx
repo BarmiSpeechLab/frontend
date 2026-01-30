@@ -38,6 +38,28 @@ const Sidebar = () => {
                             </Link>
                         </li>
                     ))}
+                    <li className="nav-item" style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #eee' }}>
+                        <button
+                            onClick={() => {
+                                const email = localStorage.getItem('userEmail') || 'guest';
+                                const role = localStorage.getItem('userRole') || 'USER';
+                                localStorage.removeItem(`onboardingCompleted_${role}_${email}`); // 역할별 키 삭제
+                                window.location.href = '/main'; // 튜토리얼 트리거 -> 메인으로 튕기면서 새로고침
+                            }}
+                            style={{
+                                width: '100%',
+                                padding: '10px',
+                                background: '#f5f0e6',
+                                color: '#a67c00',
+                                border: 'none',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                fontWeight: 'bold'
+                            }}
+                        >
+                            튜토리얼
+                        </button>
+                    </li>
                 </ul>
             </nav>
         </aside>

@@ -1,8 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './SubPage.css';
+import './WordPage.css';
 
 const WordPage = () => {
     const [activeFilter, setActiveFilter] = useState('전체');
+
+    useEffect(() => {
+        localStorage.setItem('lastStudy', JSON.stringify({
+            title: '단어 학습',
+            path: '/word'
+        }));
+    }, []);
 
     return (
         <div className="subpage-container">

@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import LoginPage from './components/auth/LoginPage';
 import SignUpPage from './components/auth/SignUpPage';
 import MainLayout from './components/common/MainLayout';
-import ProtectedRoute from './components/auth/ProtectedRoute'; // 로그인 한 유저만 접근 가능하게 하기 위해 추가
+import ProtectedRoute from './components/auth/ProtectedRoute'; // 로그인한 유저만 접근 가능하게 하기 위함
 import PronunciationPage from './components/pages/PronunciationPage';
 import WordPage from './components/pages/WordPage';
 import SentencePage from './components/pages/SentencePage';

@@ -13,7 +13,7 @@ const LoginPage = () => {
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
 
-    // 앱 시작 시 or 로그인 페이지 진입 시 이미 토큰 있으면 메인으로 이동
+    // 앱 시작 시 or 로그인 페이지 진입 시 이미 토큰 있으면 메인으로 자동 이동
     useEffect(() => {
         if (localStorage.getItem('accessToken')) {
             navigate('/main');
@@ -24,21 +24,21 @@ const LoginPage = () => {
         e.preventDefault();
 
         try {
-            // 로그인 요청
+            // 1. 로그인 요청
             const response = await login(email, password);
 
-            // 받은 토큰 저장 + 이메일 저장
-            localStorage.setItem('accessToken', response.token);
+            // 2. 토큰 및 이메일 저장
+            localStorage.setItem('accessToken', response.accessToken);
             localStorage.setItem('userEmail', email); // 튜토리얼 완료 여부 확인 위해 저장
 
-            // API 연동 시도 -> 실패 시 토큰 해독
+            // 3. API 시도 -> 실패 시 토큰 해독
             try {
-                // API 연동 시도
+                // (1) 백엔드 API 연동 시도
                 const userProfile = await getUserProfile();
                 console.log('백엔드에서 프로필 정보 수신 성공:', userProfile);
                 localStorage.setItem('userRole', userProfile.role || 'USER');
             } catch (apiError) {
-                // 실패 시 -> 토큰 직접 해독 시도
+                // (2) API 실패 시 -> 토큰 직접 해독 시도
                 console.warn('프로필 조회 실패, 토큰 해독을 시도합니다.');
 
                 try {

@@ -1,0 +1,228 @@
+.onboarding-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.onboarding-modal {
+    background: white;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 24px;
+    padding: 2.5rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    position: relative;
+    animation: modalFadeUp 0.3s ease-out;
+}
+
+@keyframes modalFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.onboarding-progress {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 2rem;
+}
+
+.progress-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #eee;
+    transition: all 0.2s;
+}
+
+.progress-dot.active {
+    width: 24px;
+    background: #a67c00;
+    border-radius: 4px;
+}
+
+.onboarding-body {
+    height: 380px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    width: 100%;
+}
+
+.onboarding-step {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+}
+
+.onboarding-step h2 {
+    font-size: 1.5rem;
+    color: #a67c00;
+    margin-bottom: 1rem;
+}
+
+.onboarding-step h3 {
+    font-size: 1.25rem;
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.onboarding-step p {
+    color: #666;
+    line-height: 1.6;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+}
+
+.mascot-container {
+    margin-bottom: 1.5rem;
+}
+
+.onboarding-mascot {
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+    margin: 0 auto;
+}
+
+.feature-desc {
+    color: #555;
+    font-size: 1rem;
+    line-height: 1.5;
+    margin-bottom: 2rem;
+    font-weight: 500;
+}
+
+.usage-guide {
+    text-align: left;
+    background: #fdfaf3;
+    padding: 1.5rem;
+    border-radius: 16px;
+    border: 1px solid #f5e6cc;
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.usage-guide h4 {
+    font-size: 0.95rem;
+    color: #a67c00;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+.usage-guide ul {
+    margin: 0;
+    padding-left: 1.25rem;
+    list-style-type: decimal;
+}
+
+.usage-guide li {
+    font-size: 0.9rem;
+    color: #444;
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+}
+
+.usage-guide li:last-child {
+    margin-bottom: 0;
+}
+
+.roadmap-list {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+    width: 100%;
+}
+
+.roadmap-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #fff9e6;
+    padding: 0.8rem 1.2rem;
+    border-radius: 12px;
+}
+
+.roadmap-item .level {
+    font-weight: 800;
+    color: #a67c00;
+    font-size: 0.8rem;
+    min-width: 50px;
+}
+
+.roadmap-item .desc {
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.feature-icons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.icon-box {
+    padding: 0.5rem 1rem;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.onboarding-footer {
+    display: flex;
+    gap: 12px;
+    margin-top: 2rem;
+}
+
+.onboarding-btn {
+    flex: 1;
+    padding: 1rem;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.onboarding-btn.primary {
+    background: #a67c00;
+    color: white;
+}
+
+.onboarding-btn.primary:hover {
+    background: #8b6800;
+}
+
+.onboarding-btn.secondary {
+    background: #f5f5f5;
+    color: #666;
+}
+
+.onboarding-btn.secondary:hover {
+    background: #eee;
+}

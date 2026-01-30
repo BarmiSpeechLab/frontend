@@ -1,8 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './SubPage.css';
+import './SentencePage.css';
 
 const SentencePage = () => {
     const [activeTab, setActiveTab] = useState('전체');
+
+    useEffect(() => {
+        localStorage.setItem('lastStudy', JSON.stringify({
+            title: '문장 학습',
+            path: '/sentence'
+        }));
+    }, []);
 
     return (
         <div className="subpage-container">
@@ -19,6 +27,7 @@ const SentencePage = () => {
                     </button>
                 ))}
             </div>
+
             <div className="sentence-list">
                 {/* 세부 내용은 나중에 */}
             </div>
