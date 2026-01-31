@@ -1,0 +1,94 @@
+.lobby-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 50px 20px;
+    font-family: 'Noto Sans KR', sans-serif;
+}
+
+.lobby-title {
+    text-align: center;
+    color: #333;
+    margin-bottom: 40px;
+}
+
+.appointment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* 카드 스타일 */
+.appointment-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s;
+    border: 1px solid #eee;
+}
+
+.appointment-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* 카드 정보 */
+.card-date {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.time-badge {
+    background-color: #e3f2fd;
+    color: #1976d2;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: bold;
+    margin-left: 5px;
+}
+
+.teacher-name {
+    margin: 5px 0;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+.class-topic {
+    margin: 0;
+    font-size: 14px;
+    color: #888;
+}
+
+/* 버튼 스타일 */
+.join-btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s;
+    min-width: 160px;
+}
+
+/* 활성화 상태 (파란색) */
+.join-btn.active {
+    background-color: #4CAF50; /* 바르미 느낌의 초록색 추천 */
+    color: white;
+}
+
+.join-btn.active:hover {
+    background-color: #45a049;
+}
+
+/* 비활성화 상태 (회색) */
+.join-btn.disabled {
+    background-color: #e0e0e0;
+    color: #999;
+    cursor: not-allowed;
+}
