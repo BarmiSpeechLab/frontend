@@ -1,45 +1,75 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { OpenVidu } from 'openvidu-browser';
-import { createSession, createToken } from '../../api/openviduApi'; // API 경로
-import UserVideoComponent from '../common/UserVideoComponent'; // 컴포넌트 경로
+import { createSession, createToken } from '../../api/openviduApi';
+import { getUserProfile } from '../../api/user';
+import UserVideoComponent from '../common/UserVideoComponent';
 import './SubPage.css';
 
 const TutoringPage = () => {
-    // 1. 상태 관리 (OpenVidu 관련)
+    const { roomId } = useParams();
+    const navigate = useNavigate();
+    
     const [session, setSession] = useState(undefined);
     const [mainStreamManager, setMainStreamManager] = useState(undefined);
     const [publisher, setPublisher] = useState(undefined);
     const [subscribers, setSubscribers] = useState([]);
-    const [OV, setOV] = useState(undefined);
+    const [currentMember, setCurrentMember] = useState(null);
 
-    // 2. OpenVidu 객체 생성
+    // Refs
+    const hasJoined = useRef(false);
+    const publisherRef = useRef(undefined);
+    const sessionRef = useRef(undefined); // 세션 Ref 추가
+
+    // 세션 상태 동기화
     useEffect(() => {
-        const newOV = new OpenVidu();
-        setOV(newOV);
+        sessionRef.current = session;
+    }, [session]);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const response = await getUserProfile();
+                setCurrentMember(response.data || { nickname: '익명' });
+            } catch (error) {
+                console.error("유저 정보 조회 실패", error);
+                setCurrentMember({ nickname: 'Guest' });
+            }
+        };
+        fetchUser();
     }, []);
 
-    // 3. 화상 채팅 입장 로직
+    useEffect(() => {
+        if (roomId && currentMember && !hasJoined.current) {
+            hasJoined.current = true;
+            joinSession();
+        }
+    }, [roomId, currentMember]);
+
     const joinSession = async () => {
+        const OV = new OpenVidu();
         const mySession = OV.initSession();
         setSession(mySession);
+        sessionRef.current = mySession; // 즉시 할당
 
-        // 상대방이 들어왔을 때
         mySession.on('streamCreated', (event) => {
             const subscriber = mySession.subscribe(event.stream, undefined);
             setSubscribers((prev) => [...prev, subscriber]);
         });
 
+        mySession.on('streamDestroyed', (event) => {
+            setSubscribers((prev) => prev.filter(sub => sub !== event.stream.streamManager));
+        });
+
+        mySession.on('exception', (exception) => {
+            console.warn(exception);
+        });
+
         try {
-            const mySessionId = 'TutoringSession'; // 고정 세션 ID
+            await createSession(roomId);
+            const token = await createToken(roomId);
+            await mySession.connect(token, { clientData: currentMember.nickname });
 
-            // API 호출
-            await createSession(mySessionId);
-            const token = await createToken(mySessionId);
-
-            // 세션 접속
-            await mySession.connect(token, { clientData: 'MyNickname' }); // 닉네임 설정
-
-            // 내 카메라 송출
             const newPublisher = await OV.initPublisherAsync(undefined, {
                 audioSource: undefined,
                 videoSource: undefined,
@@ -54,64 +84,168 @@ const TutoringPage = () => {
             mySession.publish(newPublisher);
             setMainStreamManager(newPublisher);
             setPublisher(newPublisher);
+            publisherRef.current = newPublisher;
 
         } catch (error) {
-            console.error('세션 접속 실패:', error);
-            alert('화상 연결 실패했습니다.(백엔드/도커 확인 필요)');
+            console.error('입장 실패:', error);
+            alert('입장에 실패했습니다.');
+            navigate('/tutoring');
         }
     };
 
+    const leaveSession = (navigateExit = true) => {
+        // 1. 카메라 끄기
+        if (publisherRef.current) {
+            const stream = publisherRef.current.stream.getMediaStream();
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            publisherRef.current = undefined;
+        }
+
+        // 2. 세션 끊기 (Ref 사용)
+        if (sessionRef.current) {
+            sessionRef.current.disconnect();
+        }
+
+        // 3. 상태 초기화
+        setSession(undefined);
+        setSubscribers([]);
+        setMainStreamManager(undefined);
+        setPublisher(undefined);
+        hasJoined.current = false;
+        sessionRef.current = undefined;
+
+        // 4. 페이지 이동은 버튼 클릭 시에만 수행
+        if (navigateExit) {
+            navigate('/tutoring');
+        }
+    };
+
+    // 페이지 이동 시에는 리소스만 정리
+    useEffect(() => {
+        const onBeforeUnload = () => leaveSession(false); // 새로고침 시 이동 X
+        window.addEventListener('beforeunload', onBeforeUnload);
+
+        return () => {
+            window.removeEventListener('beforeunload', onBeforeUnload);
+            leaveSession(false); // 컴포넌트 해제 시 이동 X
+        };
+    }, []);
+
     return (
-        <div className="subpage-container">
-            <h1 className="subpage-title">튜터링</h1>
-            <p className="subpage-desc">1:1 화상 채팅으로 실시간 발음 교정을 받아보세요.</p>
-
-            {/* --- 입장 전 상태 --- */}
-            {!session ? (
-                <div className="tutor-list" style={{ textAlign: 'center', marginTop: '50px' }}>
-                    {/* 지금은 튜터 리스트 대신 '입장 버튼'을 보여줍니다 */}
-                    <div style={{ padding: '30px', border: '2px dashed #ccc', borderRadius: '10px' }}>
-                        <h3>🚀 수업 시작하기</h3>
-                        <p>버튼을 누르면 화상 강의실로 입장합니다.</p>
-                        <button
-                            onClick={joinSession}
-                            style={{
-                                padding: '15px 40px',
-                                fontSize: '18px',
-                                backgroundColor: '#4CAF50',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                marginTop: '10px'
-                            }}
-                        >
-                            강의실 입장
-                        </button>
-                    </div>
-                </div>
-            ) : null}
-
-            {/* --- 입장 후 상태 (화상 화면) --- */}
+        <div className="subpage-container" style={{ position: 'relative' }}>
+            
             {session && (
-                <div style={{ marginTop: '30px', display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                    {/* 1. 내 화면 */}
-                    <div style={{ width: '400px' }}>
-                        <div style={{ marginBottom: '10px', fontWeight: 'bold' }}>👱 나 (학생)</div>
-                        <UserVideoComponent streamManager={mainStreamManager} />
+                <button onClick={leaveSession} style={styles.exitBtn}>
+                    나가기 🚪
+                </button>
+            )}
+
+            <h1 className="subpage-title">
+                {session ? "💻 1:1 튜터링" : "강의실 입장 중..."}
+            </h1>
+            
+            {!session ? (
+                <div style={styles.loadingContainer}>
+                    <div className="spinner"></div>
+                    <h3>🚀 강의실에 입장하고 있습니다...</h3>
+                    <p>잠시만 기다려 주세요.</p>
+                </div>
+            ) : (
+                <div className="video-grid" style={styles.videoGrid}>
+                    
+                    {/* 나 */}
+                    <div className="video-wrapper" style={styles.videoWrapper}>
+                        <h3 className="video-label">나 ({currentMember?.nickname})</h3>
+                        {mainStreamManager ? (
+                            <UserVideoComponent streamManager={mainStreamManager} />
+                        ) : (
+                            <div className="video-placeholder">카메라 로딩중...</div>
+                        )}
                     </div>
 
-                    {/* 2. 상대방 화면 (반복문) */}
-                    {subscribers.map((sub, i) => (
-                        <div key={i} style={{ width: '400px' }}>
-                            <div style={{ marginBottom: '10px', fontWeight: 'bold' }}>👩‍🏫 선생님</div>
-                            <UserVideoComponent streamManager={sub} />
-                        </div>
-                    ))}
+                    {/* 상대방 */}
+                    <div className="video-wrapper" style={styles.videoWrapper}>
+                        <h3 className="video-label">선생님(상대방)</h3>
+                        {subscribers.length === 0 ? (
+                            <div style={styles.waitingBox}>
+                                ⏳ 선생님을 기다리는 중...
+                            </div>
+                        ) : (
+                            subscribers.map((sub, i) => (
+                                <UserVideoComponent key={i} streamManager={sub} />
+                            ))
+                        )}
+                    </div>
                 </div>
             )}
         </div>
     );
+};
+
+// 스타일
+const styles = {
+    loadingContainer: {
+        textAlign: 'center',
+        marginTop: '100px',
+        color: '#666',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '20px'
+    },
+    videoGrid: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        alignItems: 'flex-start',
+        gap: '40px',
+        marginTop: '30px',
+        width: '100%',
+        maxWidth: '1200px',
+        margin: '30px auto'
+    },
+    
+    videoWrapper: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        flex: '1 1 400px', 
+        maxWidth: '600px',
+        minWidth: '320px',
+        padding: '10px',
+        boxSizing: 'border-box'
+    },
+
+    waitingBox: {
+        width: '100%',
+        height: '240px',
+        minHeight: '240px',
+        backgroundColor: '#f0f0f0',
+        border: '2px dashed #ccc',
+        borderRadius: '10px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#aaa',
+        fontWeight: 'bold'
+    },
+    
+    exitBtn: {
+        position: 'absolute',
+        top: '20px',
+        right: '20px',
+        padding: '8px 16px',
+        backgroundColor: '#ff4444',
+        color: 'white',
+        border: 'none',
+        borderRadius: '20px',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+        zIndex: 1000,
+        boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
+    }
 };
 
 export default TutoringPage;

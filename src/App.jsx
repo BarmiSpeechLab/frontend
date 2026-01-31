@@ -8,6 +8,7 @@ import WordPage from './components/pages/WordPage';
 import SentencePage from './components/pages/SentencePage';
 import ConversationPage from './components/pages/ConversationPage';
 import TutoringPage from './components/pages/TutoringPage';
+import TutoringLobby from './components/pages/TutoringLobby'; // 👈 이거 딱 한 줄 추가!
 import MainPage from './components/pages/MainPage';
 import ProfilePage from './components/pages/ProfilePage';
 
@@ -28,7 +29,8 @@ function App() {
                         <Route path="/word" element={<WordPage />} />
                         <Route path="/sentence" element={<SentencePage />} />
                         <Route path="/conversation" element={<ConversationPage />} />
-                        <Route path="/tutoring" element={<TutoringPage />} />
+                        <Route path="/tutoring" element={<TutoringLobby />} />
+                        <Route path="/tutoring/:roomId" element={<TutoringPage />} />
                         <Route path="/profile" element={<ProfilePage />} />
                     </Route>
                 </Route>
