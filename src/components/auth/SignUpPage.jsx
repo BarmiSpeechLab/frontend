@@ -32,8 +32,14 @@ const SignUpPage = () => {
             return;
         }
 
+        // 이메일 가입
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            alert('유효한 이메일 형식을 입력해주세요.');
+            return;
+        }
+
         try {
-            // role 정보도 함께 전송 (API 수정 필요 시 반영 !)
             await signup(email, password, nickname, role);
             alert('회원가입이 완료되었습니다. 로그인해주세요.');
             navigate('/login');
@@ -81,6 +87,7 @@ const SignUpPage = () => {
 
             <form onSubmit={handleSignup} className="login-form">
                 <Input
+                    type="email"
                     placeholder="이메일 주소"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}

@@ -31,34 +31,26 @@ const LoginPage = () => {
             localStorage.setItem('accessToken', response.accessToken);
             localStorage.setItem('userEmail', email); // 튜토리얼 완료 여부 확인 위해 저장
 
-            // 3. API 시도 -> 실패 시 토큰 해독
+            // 3. 토큰 해독 후 바로 메인으로
             try {
-                // (1) 백엔드 API 연동 시도
-                const userProfile = await getUserProfile();
-                console.log('백엔드에서 프로필 정보 수신 성공:', userProfile);
-                localStorage.setItem('userRole', userProfile.role || 'USER');
-            } catch (apiError) {
-                // (2) API 실패 시 -> 토큰 직접 해독 시도
-                console.warn('프로필 조회 실패, 토큰 해독을 시도합니다.');
+                const decoded = jwtDecode(response.accessToken);
+                console.log('해독된 토큰:', decoded);
+                console.log('sub ID:', decoded.sub);
+                console.log('sub 값 데이터 타입:', typeof decoded.sub);
 
-                try {
-                    const decoded = jwtDecode(response.accessToken);
-                    if (decoded && decoded.auth) {
-                        // auth 확인
-                        const role = decoded.auth.includes('TUTOR') ? 'TUTOR' : 'USER';
-                        localStorage.setItem('userRole', role);
-                        console.log(`역할 확인 완료: ${role}`);
-                    } else {
-                        localStorage.setItem('userRole', 'USER');
-                        console.log('역할 정보 없음, 기본값 적용');
-                    }
-                } catch (decodeError) {
-                    console.error('토큰 해독 실패:', decodeError);
+                if (decoded && decoded.auth) {
+                    const role = decoded.auth.includes('TUTOR') ? 'TUTOR' : 'USER';
+                    localStorage.setItem('userRole', role);
+                    console.log(`역할 확인 완료: ${role}`);
+                } else {
                     localStorage.setItem('userRole', 'USER');
                 }
+            } catch (decodeError) {
+                console.error('토큰 해독 실패:', decodeError);
+                localStorage.setItem('userRole', 'USER');
             }
-
             navigate('/main');
+
         } catch (error) {
             console.error('로그인 에러:', error);
             alert(error.message || '로그인에 실패했습니다.');

@@ -28,7 +28,7 @@ const ProfilePage = () => {
     const handleLogout = async () => {
         if (window.confirm('로그아웃 하시겠습니까?')) {
             try {
-                // await logout(); // 나중에 연동 시 주석 해제 필요
+                await logout();
                 localStorage.removeItem('accessToken');
                 localStorage.removeItem('userEmail'); // 세션 정보 완전 삭제
                 navigate('/login');
@@ -42,12 +42,11 @@ const ProfilePage = () => {
     const handleWithdraw = async () => {
         if (window.confirm('정말 탈퇴하시겠습니까?')) {
             try {
-                // 테스트용 / 나중에 연동 시 주석 해제 필요
-                // await withdraw();
+                await withdraw();
 
                 localStorage.removeItem('accessToken');
                 localStorage.removeItem('userEmail'); // 세션 정보 완전 삭제
-                alert("회원 탈퇴가 완료되었습니다. (임시)");
+                alert("회원 탈퇴가 완료되었습니다.");
                 navigate('/login');
             } catch (err) {
                 console.error("회원탈퇴 실패", err);
@@ -73,11 +72,10 @@ const ProfilePage = () => {
             // 나중에 연동 시 -> setImageFile(file); // 실제 파일 객체 저장
 
             const reader = new FileReader();
-            reader.onloadend = () => {
-                setProfileImage(reader.result);
-                alert("이미지가 선택되었습니다. (임시)");
-            };
-            reader.readAsDataURL(file);
+            // reader.onloadend = () => {
+            //     setProfileImage(reader.result);
+            // };
+            // reader.readAsDataURL(file);
         }
     };
 
@@ -94,17 +92,11 @@ const ProfilePage = () => {
         }
 
         try {
-            // 나중에 연동 시 갱신 필요
-            /*
-            const formData = new FormData();
-            formData.append('nickname', editedNickname);
-            if (fileInputRef.current.files[0]) {
-                formData.append('profileImage', fileInputRef.current.files[0]);
-            }
-            await updateUserProfile(formData);
-            */
+            await updateUserProfile({
+                nickname: editedNickname,
+                profileImage: null
+            });
 
-            // 프론트엔드 로컬 상태만 업데이트
             setUser(prev => ({ ...prev, nickname: editedNickname }));
             setIsEditing(false);
 
@@ -120,7 +112,6 @@ const ProfilePage = () => {
             try {
                 setLoading(true);
 
-                /* 나중에 연동 시 주석 해제 필요
                 // 1. 프로필 조회
                 const userData = await getUserProfile();
 
@@ -131,6 +122,7 @@ const ProfilePage = () => {
                 });
 
                 // 2. 학습 현황 조회
+                /*
                 try {
                     const statsData = await getUserStats();
                     setStats({
@@ -142,18 +134,6 @@ const ProfilePage = () => {
                     console.warn("통계 정보를 가져오는데 실패했습니다", e);
                 }
                 */
-
-                // 테스트용 더미 데이터
-                setUser({
-                    nickname: '바르미',
-                    email: 'barmi@barmi.com',
-                    joinDate: '2007-01-27',
-                });
-                setStats({
-                    totalLearningTime: 148,
-                    completedLearning: 148,
-                    averageAccuracy: 148,
-                });
 
             } catch (err) {
                 console.error("프로필 로딩 실패", err);
