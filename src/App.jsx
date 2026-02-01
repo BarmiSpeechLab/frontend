@@ -4,7 +4,7 @@ import SignUpPage from './components/auth/SignUpPage';
 import MainLayout from './components/common/MainLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute'; // 로그인한 유저만 접근 가능하게 하기 위함
 import TutoringPage from './components/pages/TutoringPage';
-import TutoringLobby from './components/pages/TutoringLobby'; // 👈 이거 딱 한 줄 추가!
+import TutoringLobby from './components/pages/TutoringLobby';
 import MainPage from './components/pages/MainPage';
 import ProfilePage from './components/pages/ProfilePage';
 
