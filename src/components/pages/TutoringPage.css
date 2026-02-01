@@ -1,0 +1,158 @@
+/* 전체 컨테이너 */
+.subpage-container {
+    position: relative;
+    width: 100%;
+    min-height: 100vh; /* 화면 꽉 차게 */
+}
+
+/* 로딩 화면 */
+.loading-container {
+    text-align: center;
+    margin-top: 100px;
+    color: #666;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+/* 비디오 그리드 레이아웃 */
+.video-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 40px;
+    margin-top: 30px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 30px auto;
+}
+
+.video-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1 1 400px;
+    max-width: 600px;
+    min-width: 320px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.video-label {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.video-placeholder {
+    width: 100%;
+    aspect-ratio: 4/3;
+    background-color: #000;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 대기 박스 */
+.waiting-box {
+    width: 100%;
+    height: 240px;
+    min-height: 240px;
+    background-color: #f0f0f0;
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+    font-weight: bold;
+}
+
+/* --- 컨트롤 패널 (버튼 영역) --- */
+.control-panel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    z-index: 1000;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+/* 언어 선택 토글 박스 */
+.lang-toggle-box {
+    display: flex;
+    gap: 5px;
+    background-color: #eee;
+    padding: 5px;
+    border-radius: 20px;
+}
+
+/* 버튼 공통 스타일 */
+.lang-btn, .action-btn {
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* 언어 버튼 */
+.lang-btn {
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+    background-color: #ddd;
+    color: #333;
+}
+
+.lang-btn.active.ko { background-color: #2196F3; color: white; }
+.lang-btn.active.en { background-color: #FF9800; color: white; }
+
+/* 액션 버튼 (자막, 나가기) */
+.action-btn {
+    padding: 8px 16px;
+    border-radius: 20px;
+    color: white;
+}
+
+.action-btn.stt-on { background-color: #4CAF50; }
+.action-btn.stt-off { background-color: #666; }
+.action-btn.exit { background-color: #ff4444; }
+
+/* --- 자막 오버레이 (중요!) --- */
+.subtitle-overlay {
+    position: fixed;
+    bottom: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 20px;
+    font-weight: 600;
+    z-index: 9999; /* 최상단 노출 */
+    text-align: center;
+    white-space: pre-wrap;
+    pointer-events: none;
+    max-width: 80vw;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.lang-badge {
+    font-size: 14px;
+    background-color: #FFD700;
+    color: #000;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    flex-shrink: 0;
+}
