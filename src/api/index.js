@@ -1,7 +1,6 @@
 import axios from 'axios';
 
 // 백엔드 기본 URL 설정
-// API_BASE_URL = 'http://localhost:8080/api';
 const API_BASE_URL = '/api';
 
 // 공통 Axios 인스턴스 생성 -> 한 번에 관리하기 위함 !

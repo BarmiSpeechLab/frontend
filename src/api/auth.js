@@ -44,8 +44,6 @@ export const signup = async (email, password, nickname, role) => {
  * 로그아웃
  */
 export const logout = async () => {
-    // [실제 API 연동 코드 - 나중에 주석 해제해서 사용]
-    /*
     console.log(`[API 요청] 로그아웃`);
     try {
         const response = await api.post('/users/logout');
@@ -56,16 +54,6 @@ export const logout = async () => {
         console.error('[API 응답 실패]', errorData || error.message);
         throw new Error(errorData?.error?.message || error.message || '로그아웃 실패');
     }
-    */
-
-    // [현재 사용 중: 더미 데이터 (Mock)]
-    console.log(`[API 요청] 로그아웃 (Mock)`);
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            console.log('[Mock] 로그아웃 성공 처리');
-            resolve({ message: "로그아웃 성공" });
-        }, 100);
-    });
 };
 
 /**

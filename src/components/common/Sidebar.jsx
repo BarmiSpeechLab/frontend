@@ -9,9 +9,7 @@ const Sidebar = () => {
     const menuItems = [
         { name: '홈', path: '/main' },
         { name: '발음기호', path: '/pronunciation' },
-        { name: '단어', path: '/word' },
-        { name: '문장', path: '/sentence' },
-        { name: '회화', path: '/conversation' },
+        { name: '학습하기', path: '/learning' },
         { name: '튜터링', path: '/tutoring' },
         { name: '프로필', path: '/profile' },
     ];

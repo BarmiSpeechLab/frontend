@@ -13,7 +13,6 @@ const MainPage = () => {
     const [user, setUser] = useState(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-    // 마스코트 이미지 (정지 상태)
     const mascotImg = rmi;
 
     useEffect(() => {
@@ -25,8 +24,6 @@ const MainPage = () => {
             const storageKey = `onboardingCompleted_${userRole}_${loggedInEmail}`;
             const status = localStorage.getItem(storageKey);
 
-            console.log(`테스트용! - User: ${loggedInEmail}, Role: ${userRole}, Status: ${status}`);
-
             if (status !== 'true') {
                 setShowOnboarding(true);
             }
@@ -35,21 +32,23 @@ const MainPage = () => {
         checkOnboarding();
 
         const fetchData = async () => {
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                navigate('/login');
+                return;
+            }
+
             try {
-                // 나중에 연동 시 주석 해제 필요
-                /*
+                // 토큰 기반 프로필 정보 가져오기
                 const userData = await getUserProfile();
                 setUser({
                     nickname: userData.nickname,
                     email: userData.email,
                     role: userData.role // 역할 정보도 설정
                 });
-                */
 
-                // 테스트용
-                const loggedInEmail = localStorage.getItem('userEmail') || 'guest';
-                const userRole = localStorage.getItem('userRole') || 'USER';
-                setUser({ nickname: '바르미', email: loggedInEmail, role: userRole });
+                // 역할 정보 로컬스토리지 최신화 (혹시 모르니까)
+                localStorage.setItem('userRole', userData.role);
 
                 const saved = localStorage.getItem('lastStudy');
                 if (saved) {
@@ -76,13 +75,13 @@ const MainPage = () => {
         if (window.confirm('로그아웃 하시겠습니까?')) {
             try {
                 await logout();
+            } catch (err) {
+                console.error("로그아웃 API 요청 실패", err);
+            } finally {
                 localStorage.removeItem('accessToken');
                 localStorage.removeItem('userEmail');
                 localStorage.removeItem('userRole'); // 역할 정보 삭제
                 navigate('/login');
-            } catch (err) {
-                console.error("로그아웃 실패", err);
-                alert("로그아웃 중 오류가 발생했습니다.");
             }
         }
     };
@@ -95,8 +94,7 @@ const MainPage = () => {
 
     const handleOnboardingComplete = async () => {
         try {
-            // 나중에 연동 시 주석 해제 필요 -> 서버에 온보딩 완료 사실 전송
-            // await completeOnboarding();
+            await completeOnboarding();
 
             const loggedInEmail = localStorage.getItem('userEmail') || 'guest';
             const userRole = localStorage.getItem('userRole') || 'USER';
@@ -157,7 +155,7 @@ const MainPage = () => {
                             <div className="status-item-large" style={{ cursor: 'default' }}>
                                 <span className="card-label">담당 학생 수</span>
                                 <span className="card-value highlight-gold">-명</span>
-                                <span className="click-hint">학생 확인 확인</span>
+                                <span className="click-hint">학생 정보 확인</span>
                             </div>
                         </div>
                     </section>
@@ -184,7 +182,7 @@ const MainPage = () => {
                                 <span className="card-value highlight-gold">
                                     {lastStudy ? lastStudy.title : '아직 진행 중인 학습이 없습니다.'}
                                 </span>
-                                {lastStudy && <span className="click-hint">이어서 학습하기 〉</span>}
+                                {lastStudy && <span className="click-hint">이어서 학습하기</span>}
                             </div>
                         </div>
                     </section>
@@ -194,14 +192,6 @@ const MainPage = () => {
                         <h2 className="section-title">학습 리포트</h2>
                         <div className="placeholder-box">
                             {/* 그래프 영역 */}
-                        </div>
-                    </section>
-
-                    {/* 취약점 분석 */}
-                    <section className="analysis-section">
-                        <h2 className="section-title">취약점 분석</h2>
-                        <div className="placeholder-box">
-                            {/* 진행바 영역 */}
                         </div>
                     </section>
                 </>
