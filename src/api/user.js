@@ -34,9 +34,7 @@ export const updateUserProfile = async (userData) => {
     }
 };
 
-/**
- * 학습 현황 조회
- */
+// 학습 현황 조회
 export const getUserStats = async () => {
     console.log('[API 요청] 유저 학습 현황 조회');
     try {
@@ -49,13 +47,11 @@ export const getUserStats = async () => {
     }
 };
 
-/**
- * 온보딩 완료 처리
- */
+// 온보딩 완료 처리
 export const completeOnboarding = async () => {
     console.log('[API 요청] 온보딩 완료 처리');
     try {
-        const response = await api.put('/users/tutorial');
+        const response = await api.patch('/users/tutorial');
         console.log('[API 응답 성공]', response.data.data);
         return response.data.data;
     } catch (error) {

@@ -3,6 +3,7 @@ import axios from 'axios';
 // 백엔드 기본 URL 설정
 const API_BASE_URL = '/api';
 
+
 // 공통 Axios 인스턴스 생성 -> 한 번에 관리하기 위함 !
 const api = axios.create({
     baseURL: API_BASE_URL,

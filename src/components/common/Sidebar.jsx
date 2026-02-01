@@ -5,7 +5,6 @@ import './Sidebar.css';
 const Sidebar = () => {
     const location = useLocation();
 
-    // 메뉴
     const menuItems = [
         { name: '홈', path: '/main' },
         { name: '발음기호', path: '/pronunciation' },
@@ -16,14 +15,12 @@ const Sidebar = () => {
 
     return (
         <aside className="sidebar">
-            {/* 로고 */}
             <div className="sidebar-logo">
                 <span className="logo-char">바</span>
                 <span className="logo-char">르</span>
                 <span className="logo-char">미</span>
             </div>
 
-            {/* 메뉴 */}
             <nav className="sidebar-nav">
                 <ul className="nav-list">
                     {menuItems.map((item) => (

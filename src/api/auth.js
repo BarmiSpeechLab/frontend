@@ -56,9 +56,7 @@ export const logout = async () => {
     }
 };
 
-/**
- * 회원탈퇴
- */
+// 회원탈퇴
 export const withdraw = async () => {
     console.log(`[API 요청] 회원탈퇴`);
     try {

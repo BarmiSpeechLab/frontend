@@ -32,7 +32,7 @@ const SignUpPage = () => {
             return;
         }
 
-        // 이메일 가입
+        // 이메일
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             alert('유효한 이메일 형식을 입력해주세요.');
