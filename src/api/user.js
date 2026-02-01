@@ -25,7 +25,7 @@ export const getUserProfile = async () => {
 export const updateUserProfile = async (userData) => {
     console.log('[API 요청] 유저 프로필 수정', userData);
     try {
-        const response = await api.put('/users/me', userData);
+        const response = await api.patch('/users/me', userData);
         console.log('[API 응답 성공]', response.data.data);
         return response.data.data;
     } catch (error) {

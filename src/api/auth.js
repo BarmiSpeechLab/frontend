@@ -60,7 +60,7 @@ export const logout = async () => {
 export const withdraw = async () => {
     console.log(`[API 요청] 회원탈퇴`);
     try {
-        const response = await api.delete('/users');
+        const response = await api.delete('/users/me');
         console.log('[API 응답 성공]', response.data);
         return response.data;
     } catch (error) {
