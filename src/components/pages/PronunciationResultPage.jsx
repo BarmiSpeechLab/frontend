@@ -1,0 +1,297 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import './PronunciationResultPage.css';
+
+const PronunciationResultPage = () => {
+    const location = useLocation();
+    const navigate = useNavigate();
+    const canvasRef = useRef(null);
+    // 전달받은 분석 결과 데이터
+    const resultData = location.state || {
+        item: { symbol: '?', word: '...', meaning: '' },
+        grade: 'PENDING',
+        feedback: '데이터를 불러오는 중입니다.',
+        standardPitch: [],
+        userPitch: []
+    };
+
+    const item = resultData.item || { symbol: '?', word: '?', meaning: '' };
+
+    const [showCelebration, setShowCelebration] = useState(false);
+
+    useEffect(() => {
+        if (resultData.grade === 'EXCELLENT') {
+            setShowCelebration(true);
+        }
+    }, [resultData.grade]);
+
+    // 억양 그래프 (임시)
+    useEffect(() => {
+        const drawGraph = (canvas, isWaveform) => {
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            // 1. 표준 그래프
+            ctx.beginPath();
+            ctx.strokeStyle = '#e24a4aff';
+            ctx.lineWidth = 3;
+            ctx.moveTo(0, height / 2);
+            for (let i = 0; i < width; i++) {
+                ctx.lineTo(i, height / 2 + Math.sin(i * 0.05) * 40);
+            }
+            ctx.stroke();
+
+            // 2. 유저 그래프
+            ctx.beginPath();
+            ctx.strokeStyle = '#00ff22ff';
+            ctx.lineWidth = 3;
+            ctx.moveTo(0, height / 2);
+            for (let i = 0; i < width; i++) {
+                ctx.lineTo(i, height / 2 + Math.sin(i * 0.05 + 0.2) * 35);
+            }
+            ctx.stroke();
+        };
+
+        drawGraph(canvasRef.current, false);
+    }, []);
+
+    const handlePlayWord = (word) => {
+        if (resultData.userAudioUrl) {
+            const audio = new Audio(resultData.userAudioUrl);
+            audio.onerror = (e) => console.error("오디오 재생 에러:", e);
+            audio.play().catch(e => console.error("재생 메서드 실패:", e));
+        } else {
+            console.warn('재생할 오디오 URL이 없습니다.');
+            alert(`'${word}' 다시 듣기`);
+        }
+    };
+
+    return (
+        <div className="result-container">
+            <div className="result-header">
+                <div>
+                    <h1 className="subpage-title">학습 결과</h1>
+                    <p style={{ color: '#ccc' }}>발음 정확도와 교정 가이드를 확인하세요.</p>
+                </div>
+                <div className="score-badge">
+                    {resultData.grade}
+                </div>
+            </div>
+
+            {/* 학습 대상 정보 (원래 있던 곳) */}
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                <h1 style={{ fontSize: '3rem', color: '#a67c00', fontWeight: 800, marginBottom: '0.5rem' }}>
+                    {item.word || item.symbol}
+                </h1>
+                <p style={{ fontSize: '1.2rem', color: '#666' }}>
+                    <strong>
+                        {item.ipa ? `[${item.ipa}]` : (item.pronunciation ? `[${item.pronunciation}]` : '')}
+                        {item.korPronunciation ? ` ${item.korPronunciation}` : ''}
+                    </strong>
+                    <span style={{ color: '#888', fontWeight: 400 }}> {item.meaning ? `- ${item.meaning}` : ''}</span>
+                </p>
+            </div>
+
+            {/* 1. 억양 분석 (그래프) */}
+            <div className="visual-section">
+                <div className="graph-card">
+                    <div className="graph-title">
+                        <span>억양 분석</span>
+                        <div style={{ fontSize: '0.8rem', marginLeft: 'auto' }}>
+                            <span style={{ color: '#e24a4aff', marginRight: '10px' }}>· 표준 발음</span>
+                            <span style={{ color: '#00ff22ff' }}>· 내 발음</span>
+                        </div>
+                    </div>
+                    <div className="pitch-box">
+                        <canvas ref={canvasRef} width={800} height={150} style={{ width: '100%', height: '100%' }} />
+                    </div>
+                </div>
+            </div>
+
+            {/* 2. 상세 분석 (영상 비교) */}
+            <div className="visual-section">
+                <div className="graph-card" style={{ textAlign: 'center' }}>
+                    <div className="graph-title">상세 분석</div>
+
+                    {/* 발음 기호 */}
+                    <div className="phoneme-analysis" style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
+                        {resultData.wordSegments ? resultData.wordSegments.map((word, wIdx) => (
+                            <div key={wIdx} className="word-block" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                <div className="phoneme-row" style={{ display: 'flex', gap: '2px' }}>
+                                    {word.phonemes.map((pho, pIdx) => (
+                                        <div
+                                            key={pIdx}
+                                            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+                                        >
+                                            <span style={{
+                                                color: pho.isCorrect ? '#137333' : '#c5221f',
+                                                fontSize: '1.5rem',
+                                                fontWeight: 800,
+                                                fontFamily: 'monospace',
+                                                textDecoration: pho.isCorrect ? 'none' : 'underline',
+                                                textUnderlineOffset: '4px'
+                                            }}>
+                                                {pho.symbol}
+                                            </span>
+                                            {!pho.isCorrect && (
+                                                <span style={{ fontSize: '0.8rem', color: '#c5221f' }}>({pho.userSymbol})</span>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                                <div style={{ marginTop: '4px' }}>
+                                    <span style={{ fontSize: '0.9rem', color: '#666' }}>{word.word}</span>
+                                </div>
+                            </div>
+                        )) : (
+                            <p>분석 데이터가 없습니다.</p>
+                        )}
+                    </div>
+
+                    {/* 영상 비교 섹션 */}
+                    <div style={{ display: 'flex', gap: '2rem', justifyContent: 'center', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                        {/* 원어민 영상 */}
+                        <div style={{ flex: 1, minWidth: '300px', maxWidth: '450px' }}>
+                            <div style={{ marginBottom: '0.5rem', fontWeight: 'bold', color: '#333' }}>원어민 발음</div>
+                            <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', background: '#000', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                                {resultData.nativeVideoUrl ? (
+                                    <video
+                                        src={resultData.nativeVideoUrl}
+                                        controls
+                                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                                    />
+                                ) : (
+                                    <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                                        -
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* 정답 입모양 */}
+                        <div style={{ flex: 1, minWidth: '300px', maxWidth: '450px' }}>
+                            <div style={{ marginBottom: '0.5rem', fontWeight: 'bold', color: '#333' }}>정답 입모양</div>
+                            <div style={{
+                                position: 'relative',
+                                width: '100%',
+                                paddingTop: '56.25%',
+                                background: '#fff',
+                                borderRadius: '12px',
+                                border: '1px solid #eee',
+                                overflow: 'hidden',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                            }}>
+                                {item.mouthShapeUrl ? (
+                                    <img
+                                        src={item.mouthShapeUrl}
+                                        alt="입모양"
+                                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain' }}
+                                    />
+                                ) : (
+                                    <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ccc', fontSize: '3rem' }}>
+
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 내 녹음 */}
+                    <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center' }}>
+                        <div style={{ width: '100%', maxWidth: '500px' }}>
+                            <div style={{ marginBottom: '0.5rem', fontWeight: 'bold', color: '#333', textAlign: 'left' }}>내 발음 다시 듣기</div>
+                            <div style={{
+                                padding: '1.5rem',
+                                background: '#f8f9fa',
+                                borderRadius: '12px',
+                                border: '1px solid #eee',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '1rem',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+                            }}>
+                                <div style={{ fontSize: '2rem' }}></div>
+                                {resultData.userAudioUrl ? (
+                                    <audio
+                                        src={resultData.userAudioUrl}
+                                        controls
+                                        style={{ flex: 1 }}
+                                    />
+                                ) : (
+                                    <div style={{ color: '#aaa', flex: 1 }}>
+                                        녹음된 오디오 없음
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* 3.AI 피드백*/}
+            <div className="visual-section">
+                <div className="graph-card">
+                    <div className="graph-title">AI 피드백</div>
+                    <p style={{ fontSize: '1.2rem', color: '#555', lineHeight: '1.6', fontWeight: 500 }}>
+                        {resultData.feedback}
+                    </p>
+                </div>
+            </div>
+
+            {/* 4. 다음 단계 버튼 */}
+            <div className="practice-controls" style={{ marginTop: '2rem' }}>
+                <button
+                    className="record-btn-large"
+                    style={{
+                        borderRadius: '16px',
+                        width: '100%',
+                        fontSize: '1.2rem',
+                        height: '64px',
+                        background: '#a67c00',
+                        color: '#fff',
+                        border: 'none',
+                        boxShadow: '0 4px 12px rgba(166, 124, 0, 0.3)',
+                        cursor: 'pointer',
+                        transition: 'transform 0.2s, box-shadow 0.2s',
+                        fontWeight: 'bold'
+                    }}
+                    onMouseOver={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 6px 16px rgba(166, 124, 0, 0.4)';
+                    }}
+                    onMouseOut={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(166, 124, 0, 0.3)';
+                    }}
+                    onClick={() => {
+                        if (item.nextItem) {
+                            // 다음 단계로 이동 시에도 returnPath 유지
+                            navigate('/pronunciationPractice', {
+                                state: {
+                                    ...item.nextItem,
+                                    returnPath: item.returnPath
+                                }
+                            });
+                        } else {
+                            // 완료 시 returnPath가 있으면 거기로, 없으면 뒤로가기
+                            if (item.returnPath) {
+                                navigate(item.returnPath);
+                            } else {
+                                navigate(-1);
+                            }
+                        }
+                    }}
+                >
+                    {item.itemType === 'word' && item.nextItem
+                        ? '문장 학습하기'
+                        : (item.returnPath === '/learning' ? '주제 선택하기' : '학습 완료')
+                    }
+                </button>
+            </div>
+        </div>
+    );
+};
+
+export default PronunciationResultPage;

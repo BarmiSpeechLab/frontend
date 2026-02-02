@@ -3,7 +3,7 @@ import { Navigate, Outlet } from 'react-router-dom';
 
 /**
  * ProtectedRoute
- * 로그인 X 유저가 접근 시도 시 로그인 페이지로 튕겨짐
+ * 로그인 X 유저 접근 시도 시 로그인 페이지로 튕겨짐
  */
 const ProtectedRoute = () => {
     // 로컬 스토리지에 토큰 있는지 확인

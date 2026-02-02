@@ -13,7 +13,7 @@ const LoginPage = () => {
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
 
-    // 앱 시작 시 or 로그인 페이지 진입 시 이미 토큰 있으면 메인으로 자동 이동
+    // 앱 시작 시 또는 로그인 페이지 진입 시 이미 토큰 있으면 메인으로 자동 이동
     useEffect(() => {
         if (localStorage.getItem('accessToken')) {
             navigate('/main');
