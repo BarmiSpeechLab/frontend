@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import rmi from '../../assets/img/rmi.png';
 import './MainPage.css';
 import OnboardingModal from '../common/OnboardingModal';
+import StudyCalendar from '../common/StudyCalendar';
+import WeeklyChart from '../common/WeeklyChart';
+import PronunciationWeaknessRadar from '../common/PronunciationWeaknessRadar';
 import { completeOnboarding, getUserProfile } from '../../api/user'; // /api/users/onboarding
 import { logout } from '../../api/auth';
 
@@ -12,6 +15,9 @@ const MainPage = () => {
     const [showOnboarding, setShowOnboarding] = useState(false);
     const [user, setUser] = useState(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [studyCalendarData, setStudyCalendarData] = useState({});
+    const [weeklyChartData, setWeeklyChartData] = useState({});
+    const [weaknessStats, setWeaknessStats] = useState({});
 
     const mascotImg = rmi;
 
@@ -54,6 +60,99 @@ const MainPage = () => {
                 if (saved) {
                     setLastStudy(JSON.parse(saved));
                 }
+
+                // Mock 데이터 - 추후 API에서 받아올 데이터
+                // 달력 데이터: 날짜별 접속 여부
+                const mockCalendarData = {};
+                const today = new Date();
+                for (let i = 0; i < 365; i++) {
+                    const date = new Date(today);
+                    date.setDate(date.getDate() - i);
+                    const dateStr = date.toISOString().split('T')[0];
+                    // 50% 확률로 접속한 것처럼 표시
+                    mockCalendarData[dateStr] = Math.random() > 0.5;
+                }
+                setStudyCalendarData(mockCalendarData);
+
+                // Mock 데이터 - 주간 학습 시간 (분 단위)
+                const mockWeeklyData = {};
+                for (let i = 0; i < 7; i++) {
+                    const date = new Date(today);
+                    date.setDate(date.getDate() - i);
+                    const dateStr = date.toISOString().split('T')[0];
+                    mockWeeklyData[dateStr] = Math.floor(Math.random() * 120);
+                }
+                setWeeklyChartData(mockWeeklyData);
+
+                // Mock 데이터 - 취약점 카테고리 오답률/IPA 상세 (추후 API 연동)
+                setWeaknessStats({
+                    vowel: {
+                        wrongCount: 12,
+                        totalCount: 40,
+                        ipaStats: [
+                            { ipa: 'i', wrongCount: 5, totalCount: 14 },
+                            { ipa: 'ae', wrongCount: 4, totalCount: 12 },
+                            { ipa: 'u', wrongCount: 3, totalCount: 14 }
+                        ]
+                    },
+                    semivowel: {
+                        wrongCount: 6,
+                        totalCount: 22,
+                        ipaStats: [
+                            { ipa: 'j', wrongCount: 4, totalCount: 12 },
+                            { ipa: 'w', wrongCount: 2, totalCount: 10 }
+                        ]
+                    },
+                    plosive: {
+                        wrongCount: 9,
+                        totalCount: 28,
+                        ipaStats: [
+                            { ipa: 't', wrongCount: 4, totalCount: 10 },
+                            { ipa: 'k', wrongCount: 3, totalCount: 9 },
+                            { ipa: 'p', wrongCount: 2, totalCount: 9 }
+                        ]
+                    },
+                    affricate: {
+                        wrongCount: 7,
+                        totalCount: 18,
+                        ipaStats: [
+                            { ipa: 'tʃ', wrongCount: 4, totalCount: 9 },
+                            { ipa: 'dʒ', wrongCount: 3, totalCount: 9 }
+                        ]
+                    },
+                    fricative: {
+                        wrongCount: 14,
+                        totalCount: 30,
+                        ipaStats: [
+                            { ipa: 's', wrongCount: 5, totalCount: 9 },
+                            { ipa: 'z', wrongCount: 4, totalCount: 8 },
+                            { ipa: 'f', wrongCount: 3, totalCount: 7 },
+                            { ipa: 'v', wrongCount: 2, totalCount: 6 }
+                        ]
+                    },
+                    aspirate: {
+                        wrongCount: 6,
+                        totalCount: 16,
+                        ipaStats: [{ ipa: 'h', wrongCount: 6, totalCount: 16 }]
+                    },
+                    liquid: {
+                        wrongCount: 4,
+                        totalCount: 20,
+                        ipaStats: [
+                            { ipa: 'l', wrongCount: 3, totalCount: 10 },
+                            { ipa: 'r', wrongCount: 1, totalCount: 10 }
+                        ]
+                    },
+                    nasal: {
+                        wrongCount: 8,
+                        totalCount: 26,
+                        ipaStats: [
+                            { ipa: 'm', wrongCount: 2, totalCount: 8 },
+                            { ipa: 'n', wrongCount: 3, totalCount: 9 },
+                            { ipa: 'ŋ', wrongCount: 3, totalCount: 9 }
+                        ]
+                    }
+                });
             } catch (err) {
                 console.error("데이터 로딩 실패", err);
             }
@@ -172,26 +271,18 @@ const MainPage = () => {
                     {/* 내 학습 현황 */}
                     <section className="status-section">
                         <h2 className="section-title">내 학습 현황</h2>
-                        <div className="status-cards">
-                            <div
-                                className={`status-item-large ${lastStudy ? 'clickable' : ''}`}
-                                onClick={handleCardClick}
-                                style={{ cursor: lastStudy ? 'pointer' : 'default' }}
-                            >
-                                <span className="card-label">현재 학습 중</span>
-                                <span className="card-value highlight-gold">
-                                    {lastStudy ? lastStudy.title : '아직 진행 중인 학습이 없습니다.'}
-                                </span>
-                                {lastStudy && <span className="click-hint">이어서 학습하기</span>}
-                            </div>
+
+                        <div className="report-charts-container">
+                            <WeeklyChart weeklyStats={weeklyChartData} />
+                            <StudyCalendar studyData={studyCalendarData} />
                         </div>
                     </section>
 
                     {/* 학습 리포트 */}
                     <section className="report-section">
                         <h2 className="section-title">학습 리포트</h2>
-                        <div className="placeholder-box">
-                            {/* 그래프 영역 */}
+                        <div className="report-cards-container">
+                            <PronunciationWeaknessRadar weaknessStats={weaknessStats} />
                         </div>
                     </section>
                 </>
