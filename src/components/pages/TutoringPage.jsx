@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { OpenVidu } from 'openvidu-browser';
 import { createSession, createToken } from '../../api/openviduApi';
-import { getUserProfile } from '../../api/user';
+// import { getUserProfile } from '../../api/user';
 import UserVideoComponent from '../common/UserVideoComponent';
 import './TutoringPage.css';
 
@@ -21,42 +21,46 @@ const TutoringPage = () => {
     const [isSTTActive, setIsSTTActive] = useState(false);
     const [sttLang, setSttLang] = useState('ko-KR');
     const [showSubtitles, setShowSubtitles] = useState(true);
-    const subtitleTimerRef = useRef(null);
     
     // Refs
+    const subtitleTimerRef = useRef(null);
     const recognitionRef = useRef(null);
     const hasJoined = useRef(false);
     const publisherRef = useRef(undefined);
     const sessionRef = useRef(undefined);
 
+    // 역할 상수 (DB 값 기준)
     const ROLE = {
-        TEACHER: 'teacher',
-        STUDENT: 'student'
+        TEACHER: 'TUTOR',   
+        STUDENT: 'USER'    
     };
 
     useEffect(() => {
         sessionRef.current = session;
     }, [session]);
 
-    // 유저 정보 (더미 데이터 주입)
+    // 실제 API 호출로 사용자 정보 가져오기
     useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const searchParams = new URLSearchParams(window.location.search);
-                const urlRole = searchParams.get('role'); 
-                const TEST_ROLE = urlRole || 'teacher'; 
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            alert('로그인이 필요합니다.');
+            navigate('/login');
+            return;
+        }
 
-                setCurrentMember({
-                    nickname: `테스트 ${TEST_ROLE === ROLE.TEACHER ? '선생님' : '학생'}`,
-                    role: TEST_ROLE 
-                });
-            } catch (error) {
-                console.error("API 에러 무시:", error);
-            }
-        };
-        fetchUser();
-    }, []);
+        const storedRole = localStorage.getItem('userRole');
+        const storedNickname = localStorage.getItem('userNickname');
 
+        console.log(`로컬 정보로 입장: ${storedNickname} / ${storedRole}`);
+
+        setCurrentMember({
+            nickname: storedNickname,
+            role: storedRole
+        });
+
+    }, [navigate]);
+
+    // 방 입장 로직 (currentMember 준비되면 실행)
     useEffect(() => {
         if (roomId && currentMember && !hasJoined.current) {
             hasJoined.current = true;
@@ -64,31 +68,28 @@ const TutoringPage = () => {
         }
     }, [roomId, currentMember]);
 
-    // 📡 시그널 수신 통합 (자막 + 학생 상태 알림)
+    // 시그널 수신 통합
     useEffect(() => {
         if (session) {
-            // 1. 자막 수신
             session.on('signal:subtitle', (event) => {
                 try {
                     const data = JSON.parse(event.data);
                     if (subtitleTimerRef.current) clearTimeout(subtitleTimerRef.current);
-                    
                     setSubtitles(data.text);
-                    
                     subtitleTimerRef.current = setTimeout(() => {
                         setSubtitles('');
                     }, 3000);
                 } catch (e) { console.error(e); }
             });
 
-            // 2. 학생 상태 알림 수신 (선생님이 받음)
             session.on('signal:subtitleStatus', (event) => {
+                // 선생님(TUTOR)일 때만 알림 받음
                 if (event.data === 'OFF' && currentMember?.role === ROLE.TEACHER) {
-                    alert("⚠️ 학생이 자막 기능을 껐습니다!");
+                    alert("⚠️ 학생(admin)이 자막 기능을 껐습니다!");
                 }
             });
         }
-    }, [session]);
+    }, [session, currentMember]);
 
     // STT 시작 함수
     const startRecognition = (lang) => {
@@ -107,9 +108,7 @@ const TutoringPage = () => {
             const transcript = event.results[current][0].transcript;
 
             if (subtitleTimerRef.current) clearTimeout(subtitleTimerRef.current);
-
             setSubtitles(transcript);
-
             subtitleTimerRef.current = setTimeout(() => {
                 setSubtitles('');
             }, 3000);
@@ -127,12 +126,10 @@ const TutoringPage = () => {
         setIsSTTActive(true);
     };
 
-    // 선생님용: 마이크/자막 동시 제어
     const toggleMicSTT = () => {
         if (!publisher) return;
         const currentAudioState = publisher.stream.audioActive;
         const nextAudioState = !currentAudioState;
-
         publisher.publishAudio(nextAudioState);
 
         if (nextAudioState === true) {
@@ -144,35 +141,27 @@ const TutoringPage = () => {
         }
     };
 
-    // 🇰🇷🇺🇸 선생님용: 언어 변경
     const changeLang = (newLang) => {
         setSttLang(newLang);
         if (isSTTActive) startRecognition(newLang);
     };
 
-    // 학생용: 자막 토글 & 알림 전송
     const toggleSubtitleVisibility = () => {
         const nextState = !showSubtitles;
         setShowSubtitles(nextState);
 
         if (nextState === false && sessionRef.current) {
-            sessionRef.current.signal({
-                data: 'OFF',
-                type: 'subtitleStatus',
-            }).catch(e => console.error(e));
+            sessionRef.current.signal({ data: 'OFF', type: 'subtitleStatus' }).catch(e => console.error(e));
         }
     };
 
-    // 세션 입장
     const joinSession = async () => {
         const OV = new OpenVidu();
         const mySession = OV.initSession();
         setSession(mySession);
         sessionRef.current = mySession;
 
-        // 구독 중 에러 발생 시 목록에서 제거
         mySession.on('exception', (exception) => {
-            console.warn(exception);
             if (exception.name === 'ice-connection-failed' || exception.code === 102) {
                 setSubscribers((prev) => prev.filter(sub => sub.stream.connection.connectionId !== exception.origin.connection.connectionId));
             }
@@ -183,7 +172,7 @@ const TutoringPage = () => {
                 const subscriber = mySession.subscribe(event.stream, undefined);
                 setSubscribers((prev) => [...prev, subscriber]);
             } catch (error) {
-                console.warn("구독 실패 (유령 세션 무시):", error);
+                console.warn("구독 실패:", error);
             }
         });
 
@@ -197,14 +186,10 @@ const TutoringPage = () => {
             await mySession.connect(token, { clientData: currentMember.nickname });
 
             const newPublisher = await OV.initPublisherAsync(undefined, {
-                audioSource: undefined,
-                videoSource: undefined,
-                publishAudio: true,
-                publishVideo: true,
-                resolution: '640x480',
-                frameRate: 30,
-                insertMode: 'APPEND',
-                mirror: false,
+                audioSource: undefined, videoSource: undefined,
+                publishAudio: true, publishVideo: true,
+                resolution: '640x480', frameRate: 30,
+                insertMode: 'APPEND', mirror: false,
             });
 
             mySession.publish(newPublisher);
@@ -263,7 +248,7 @@ const TutoringPage = () => {
                         </>
                     )}
 
-                    {/* 학생 UI (복구됨) */}
+                    {/* 학생 UI */}
                     {currentMember?.role === ROLE.STUDENT && (
                         <button onClick={toggleSubtitleVisibility} className={`action-btn ${showSubtitles ? 'stt-on' : 'stt-off'}`}>
                             {showSubtitles ? '자막 보는 중 👀' : '자막 숨김 🙈'}
@@ -287,11 +272,11 @@ const TutoringPage = () => {
                         <h3 className="video-label">나 ({currentMember?.nickname})</h3>
                         {mainStreamManager ? <UserVideoComponent streamManager={mainStreamManager} /> : <div className="video-placeholder">카메라 로딩중...</div>}
                     </div>
-
                     <div className="video-wrapper">
-                        <h3 className="video-label">선생님(상대방)</h3>
+                        <h3 className="video-label">
+                            {currentMember?.role === ROLE.TEACHER ? '학생' : '선생님'}(상대방)</h3>
                         {subscribers.length === 0 ? (
-                            <div className="waiting-box">⏳ 선생님을 기다리는 중...</div>
+                            <div className="waiting-box">⏳ 상대방을 기다리는 중...</div>
                         ) : (
                             subscribers.map((sub, i) => <UserVideoComponent key={i} streamManager={sub} />)
                         )}
@@ -299,7 +284,6 @@ const TutoringPage = () => {
                 </div>
             )}
 
-            {/* 자막: 내용이 있고 + (선생님이거나 || 학생이 보기를 켰을 때) 표시 */}
             {subtitles && (currentMember?.role === ROLE.TEACHER || showSubtitles) && (
                 <div className="subtitle-overlay">
                     <span className="lang-badge">{sttLang === 'ko-KR' ? 'KO' : 'EN'}</span>

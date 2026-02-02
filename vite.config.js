@@ -16,5 +16,14 @@ export default defineConfig({
     // ],
     // // 만약 어떤 호스트든 허용하고 싶다면 아래처럼 설정할 수도 있습니다.
     allowedHosts: true,
+    // 프록시 추가
+    proxy: {
+      '/api': {
+        target: 'http://backend:8080', // 백엔드 서버 주소 (포트 확인 필수!)
+        changeOrigin: true, // 호스트 헤더 변경 (CORS 문제 방지용)
+        secure: false,      // https가 아닌 http 통신일 경우 false
+        // rewrite: (path) => path.replace(/^\/api/, '') // 만약 백엔드 url에 /api가 없다면 주석 해제
+      }
+    }
   }
 })
