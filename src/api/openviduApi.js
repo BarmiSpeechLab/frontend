@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 // 1. 백엔드 주소 (로컬 개발용)
-const BACKEND_URL = 'http://localhost:8080/';
-// const BACKEND_URL = '/';
+// const BACKEND_URL = 'http://localhost:8080/';
+const BACKEND_URL = '/';
 
 /**
  * 2. 세션(방) 생성 함수
