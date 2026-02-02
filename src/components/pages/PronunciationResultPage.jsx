@@ -230,7 +230,7 @@ const PronunciationResultPage = () => {
                 </div>
             </div>
 
-            {/* 3. AI 피드백 */}
+            {/* 3.AI 피드백*/}
             <div className="visual-section">
                 <div className="graph-card">
                     <div className="graph-title">AI 피드백</div>
