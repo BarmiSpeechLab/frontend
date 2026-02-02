@@ -1,0 +1,102 @@
+/* 화면 전환 애니메이션 */
+.fade-in {
+    animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.step-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.back-btn {
+    align-self: flex-start;
+    background: none;
+    border: none;
+    color: #a67c00;
+    cursor: pointer;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.calendar-wrapper {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.weekly-scheduler {
+    display: flex;
+    margin-top: 50px;
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.time-labels {
+    margin-top: 40px;
+    margin-right: 10px;
+}
+
+.time-label {
+    height: 30px; /* 30분당 30px 높이 */
+    font-size: 12px;
+    color: #999;
+}
+
+.days-grid {
+    display: flex;
+    flex: 1;
+    gap: 10px;
+}
+
+.day-column {
+    flex: 1;
+    text-align: center;
+}
+
+.day-header {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.time-slots-container {
+    position: relative;
+    border: 1px solid #eee;
+    height: 720px; /* 24슬롯 * 30px */
+}
+
+.slot {
+    height: 30px;
+    border-bottom: 1px solid #f9f9f9;
+}
+
+/* 옅은 초록: 수업 가능 */
+.slot.available {
+    background-color: #d4edda;
+    border-left: 4px solid #28a745;
+}
+
+/* 짙은 초록: 예약 완료 */
+.slot.booked {
+    background-color: #218838;
+    border-left: 4px solid #1e7e34;
+}
+
+/* 낮 12시 빨간 줄 */
+.noon-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #ff4d4d;
+    z-index: 10;
+}
