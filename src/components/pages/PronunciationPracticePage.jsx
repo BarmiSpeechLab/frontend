@@ -91,7 +91,7 @@ const PronunciationPracticePage = () => {
         try {
             const formData = new FormData();
             formData.append("file", audioBlob, "recording.webm");
-            formData.append("curriculumId", 1);
+            formData.append("curriculumId", item.id);
 
             const submitRes = await submitPronunciation(formData);
             taskId = submitRes.taskId;
@@ -119,17 +119,35 @@ const PronunciationPracticePage = () => {
             console.log(`[분석 진행 중] 폴링 수행 .. (TaskId: ${taskId})`);
             const statusRes = await checkAnalysisStatus(taskId);
 
-            if (statusRes.result && typeof statusRes.result === 'object') {
-                mergedResult = { ...mergedResult, ...statusRes.result };
-            }
+            if (statusRes.status === 'COMPLETED' && statusRes.result) {
+                const res = statusRes.result;
 
-            // 완료 판단 (필수 데이터 3개 -> 다 받아야 완료)
-            const isComplete = mergedResult.grade && mergedResult.standardPitch && mergedResult.feedback;
+                // IntegratedAnalysisResult 구조에서 필요한 필드 추출 및 병합
+                // 각 결과(PRON, INTON, LLM)가 독립적으로 도착할 수 있으므로 각각 체크
+                const pron = res.pronunciation || {};
+                const inton = res.intonations || {};
+                const llm = res.llmFeedback || {};
 
-            if (isComplete) {
-                console.log('%c[분석 완료] 모든 데이터를 수신 완료.', 'color: green; font-weight: bold;', mergedResult);
-                clearInterval(pollInterval);
-                navigate('/pronunciationResult', { state: mergedResult });
+                mergedResult = {
+                    ...mergedResult,
+                    taskId: res.taskId,
+                    grade: pron.grade || mergedResult.grade,
+                    feedback: pron.feedback || llm.feedback || mergedResult.feedback,
+                    standardPitch: pron.standardPitch || inton.standardPitch || mergedResult.standardPitch,
+                    userPitch: pron.userPitch || inton.userPitch || mergedResult.userPitch,
+                    wordSegments: pron.wordSegments || mergedResult.wordSegments,
+                    // 통째로 보관 (결과 페이지에서 상세 활용 가능하도록)
+                    rawResult: res
+                };
+
+                // 완료 판단: 발음(PRON), 억양(INTON), LLM 피드백(LLM) 세 가지가 모두 도착했는지 확인
+                const isAllArrived = res.pronunciation && res.intonations && res.llmFeedback;
+
+                if (isAllArrived) {
+                    console.log('%c[분석 완료] 모든 데이터를 수신 완료.', 'color: green; font-weight: bold;', mergedResult);
+                    clearInterval(pollInterval);
+                    navigate('/pronunciationResult', { state: mergedResult });
+                }
             }
         }, 1000);
 

@@ -13,9 +13,13 @@ export const submitPronunciation = async (formData) => {
         const rawData = response.data;
         let taskId = rawData;
 
-        // "저장 성공: REQ_..." 형식 파싱
+        // 1. "저장 성공: REQ_..." 형식 파싱
         if (typeof rawData === 'string' && rawData.includes('저장 성공: ')) {
             taskId = rawData.replace('저장 성공: ', '').trim();
+        }
+        // 2.ApiResponse {data}
+        else if (rawData && rawData.data) {
+            taskId = rawData.data;
         }
 
         console.log('[API 성공] Task ID 수신:', taskId);
@@ -34,33 +38,34 @@ export const checkAnalysisStatus = async (taskId) => {
         const response = await api.get(`/feedback/${taskId}`);
         const rawData = response.data;
 
-        console.log('[폴링 응답] rawData:', rawData, 'type:', typeof rawData);
+        console.log('[폴링 응답] rawData:', rawData);
 
-        // 진행 상태 체크
-        if (!rawData || rawData === '분석 진행 중' || rawData === '저장 성공: null' || rawData === 'null') {
+        // 1. 데이터 추출 (ApiResponse or 직접 데이터)
+        let content = (rawData && rawData.data !== undefined ? rawData.data : rawData);
+
+        // 2. 진행 상태 체크
+        if (!content || content === '분석 진행 중' || content === '저장 성공: null' || content === 'null') {
             return { status: 'PROCESSING', result: null };
         }
 
-        // 결과 파싱 (String 또는 JSON)
-        if (typeof rawData === 'string' && rawData.includes('저장 성공: ')) {
-            const content = rawData.replace('저장 성공: ', '').trim();
-
-            // Java toString() 형식 파싱 시도
-            if (content.includes('IntegratedAnalysisResult')) {
-                const result = parseJavaToString(content);
-                if (result) return { status: 'COMPLETED', result: { ...result, taskId } };
+        // 3. 완료된 객체인 경우 (JSON)
+        if (typeof content === 'object') {
+            const hasData = content.pronunciation || content.intonations || content.llmFeedback;
+            if (hasData) {
+                return { status: 'COMPLETED', result: content };
             }
-
-            // 일반 JSON 파싱 시도
-            try {
-                const parsed = JSON.parse(content);
-                return { status: 'COMPLETED', result: { ...parsed, taskId } };
-            } catch (e) { }
         }
 
-        // 객체로 온 경우
-        if (typeof rawData === 'object' && rawData.taskId) {
-            return { status: 'COMPLETED', result: rawData };
+        // 4. 레거시 문자열 파싱 (Java toString() 대응)
+        if (typeof content === 'string' && content.includes('IntegratedAnalysisResult')) {
+            const parsed = parseJavaToString(content);
+            if (parsed) {
+                // 발음/억양/피드백 중 하나라도 있으면 완료로 간주 (백엔드 사양에 따라)
+                const hasData = parsed.pronunciation || parsed.intonations || parsed.llmFeedback;
+                if (hasData) {
+                    return { status: 'COMPLETED', result: parsed };
+                }
+            }
         }
 
         return { status: 'PROCESSING', result: null };
@@ -70,28 +75,73 @@ export const checkAnalysisStatus = async (taskId) => {
     }
 };
 
-/**
- * 필수 데이터만 추출
- */
+// 백엔드에서 온 객체 프론트용으로 변환
+const formatResult = (raw) => {
+    // 발음 결과 추출
+    const pron = raw.pronunciation || {};
+
+    // UI에 필요한 기본 구조 생성
+    return {
+        grade: pron.grade || 'GOOD',
+        feedback: raw.llmFeedback?.recommendation || '전반적으로 훌륭한 발음입니다.',
+        // 그래프 데이터 (없으면 더미)
+        standardPitch: raw.intonations?.standard || [20, 40, 60, 40, 20],
+        userPitch: raw.intonations?.user || [22, 38, 55, 42, 25],
+        // 상세 발음 데이터
+        wordSegments: pron.segments || [
+            {
+                word: 'Result',
+                isCorrect: true,
+                phonemes: []
+            }
+        ],
+        userAudioUrl: raw.userAudioUrl // 필요 시
+    };
+};
+
+//Java의 toString() 결과물 파싱 도구
+// ex)IntegratedAnalysisResult(taskId=..., pronunciation={score=90, ...})
+
 const parseJavaToString = (str) => {
     try {
-        const extractValue = (key) => {
-            const regex = new RegExp(`${key}=([^,)]+)`, 'i');
-            const match = str.match(regex);
-            return match ? match[1].trim() : null;
+        const result = {
+            taskId: null,
+            pronunciation: null,
+            intonations: null,
+            llmFeedback: null
         };
 
-        const grade = extractValue('grade');
-        if (!grade) return null;
+        const contentMatch = str.match(/\((.*)\)/);
+        if (!contentMatch) return null;
+        const content = contentMatch[1];
 
-        return {
-            grade,
-            feedback: '분석이 완료되었습니다.',
-            standardPitch: [20, 40, 60, 40, 20],
-            userPitch: [25, 45, 55, 35, 25],
-            wordSegments: []
-        };
-    } catch (e) { return null; }
+        // 정규식으로 key=value 쌍 추출 (중첩된 {} 나 [] 고려)
+        const regex = /([a-zA-Z]+)=({.*?}|\[.*?\]|[^,]*)/g;
+        let match;
+        while ((match = regex.exec(content)) !== null) {
+            const key = match[1];
+            let value = match[2];
+
+            if (value === 'null') {
+                result[key] = null;
+            } else if (value.startsWith('{')) {
+                // 맵 파싱
+                const mapObj = {};
+                const mapContent = value.substring(1, value.length - 1);
+                mapContent.split(', ').forEach(pair => {
+                    const [mk, mv] = pair.split('=');
+                    if (mk) mapObj[mk] = mv;
+                });
+                result[key] = mapObj;
+            } else {
+                result[key] = value;
+            }
+        }
+        return result;
+    } catch (e) {
+        console.error('Java String 파싱 에러:', e);
+        return null;
+    }
 };
 
 /**
@@ -116,5 +166,4 @@ export const getLocalMockResult = (item, userAudioUrl) => {
 };
 
 export const resetAnalysisMock = () => {
-    // 분석 상태 초기화 필요 있을 때 사용 -> 지금은 기능 X
 };
