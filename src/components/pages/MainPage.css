@@ -199,3 +199,56 @@
     justify-content: center;
     color: #aaa;
 }
+
+.report-charts-container {
+    display: grid;
+    grid-template-columns: 1.1fr 1.4fr;
+    column-gap: 2.4rem;
+    row-gap: 1rem;
+    margin-top: 1.5rem;
+    max-width: 100%;
+    width: 100%;
+    align-items: stretch;
+}
+
+.report-left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding-right: 0.3rem;
+    padding-left: 1.5rem;
+    height: 100%;
+}
+
+.report-left-column .overall-stats-card {
+    margin-bottom: 0;
+    margin-top: 1rem;
+}
+
+.report-charts-container .study-calendar {
+    margin-left: 0.5rem;
+    margin-top: -5rem;
+}
+
+.report-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+@media (max-width: 1024px) {
+    .report-charts-container {
+        grid-template-columns: 1fr;
+    }
+
+    .report-charts-container .study-calendar {
+        margin-top: 0;
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .report-cards-container {
+        grid-template-columns: 1fr;
+    }
+}
