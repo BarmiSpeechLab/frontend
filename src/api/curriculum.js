@@ -8,10 +8,28 @@ import api from './index';
  */
 export const getCurriculumList = async (type, theme) => {
     try {
-        const response = await api.get(`/curriculums/${encodeURIComponent(type)}/${encodeURIComponent(theme)}`);
+        const url = `/curriculums/${encodeURIComponent(type)}/${encodeURIComponent(theme)}`;
+        console.log(`[API 요청] URL: ${url} (type: ${type}, theme: ${theme})`);
+        const response = await api.get(url);
+        console.log('[API 응답 성공]', response.data.data);
+
         return response.data.data;
     } catch (error) {
         console.error('커리큘럼 로딩 실패:', error);
+        console.error('에러:', error.response);
+        throw error;
+    }
+};
+
+export const getCurriculumDetail = async (curriculumId) => {
+    try {
+        const url = `/curriculums/${curriculumId}`;
+        console.log(`[API 요청] 상세 조회: ${url}`);
+        const response = await api.get(url);
+        console.log(`[API 응답 성공] ID ${curriculumId}:`, response.data.data);
+        return response.data.data;
+    } catch (error) {
+        console.error(`커리큘럼 상세 조회 실패 (ID: ${curriculumId}):`, error);
         throw error;
     }
 };

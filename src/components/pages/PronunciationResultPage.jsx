@@ -266,28 +266,73 @@ const PronunciationResultPage = () => {
                         e.currentTarget.style.boxShadow = '0 4px 12px rgba(166, 124, 0, 0.3)';
                     }}
                     onClick={() => {
-                        if (item.nextItem) {
-                            // 다음 단계로 이동 시에도 returnPath 유지
+                        // 1. 단어 결과 -> 예시 문장으로 이동 (있을 경우)
+                        if (item.itemType === 'word' && item.examples && item.examples.length > 0) {
                             navigate('/pronunciationPractice', {
                                 state: {
-                                    ...item.nextItem,
-                                    returnPath: item.returnPath
+                                    ...item.examples[0],
+                                    id: item.id, // 부모 단어 ID 유지 (분석용)
+                                    symbol: item.examples[0].ex_text,
+                                    word: item.examples[0].ex_text,
+                                    meaning: item.examples[0].ex_mean,
+                                    itemType: 'example', // 타입 변경
+                                    allExamples: item.examples,
+                                    currentIndex: 0,
+                                    returnPath: '/learning'
                                 }
                             });
-                        } else {
-                            // 완료 시 returnPath가 있으면 거기로, 없으면 뒤로가기
-                            if (item.returnPath) {
+                        }
+                        // 2. 예시 문장 결과 -> 다음 예시 or 종료
+                        else if (item.itemType === 'example') {
+                            const nextIdx = (item.currentIndex || 0) + 1;
+                            if (item.allExamples && nextIdx < item.allExamples.length) {
+                                // 다음 예시로
+                                navigate('/pronunciationPractice', {
+                                    state: {
+                                        ...item.allExamples[nextIdx],
+                                        id: item.id,
+                                        symbol: item.allExamples[nextIdx].ex_text,
+                                        word: item.allExamples[nextIdx].ex_text,
+                                        meaning: item.allExamples[nextIdx].ex_mean,
+                                        itemType: 'example',
+                                        allExamples: item.allExamples,
+                                        currentIndex: nextIdx,
+                                        returnPath: '/learning'
+                                    }
+                                });
+                            } else {
+                                // 예시 끝 -> 주제 선택으로
+                                navigate('/learning');
+                            }
+                        }
+                        // 3. 그 외 (문장 카드 등, 혹은 예시 끝) -> 종료
+                        else {
+                            // IPA 학습이었다면 발음기호 목록으로 이동
+                            if (item.ipa && !item.itemType) { // itemType이 없는 경우(IPA 단독 학습) 등 체크
+                                navigate('/pronunciation');
+                            }
+                            // 문장 학습이었다면 주제 목록으로 이동
+                            else if (item.returnPath) {
                                 navigate(item.returnPath);
                             } else {
-                                navigate(-1);
+                                navigate('/learning');
                             }
                         }
                     }}
                 >
-                    {item.itemType === 'word' && item.nextItem
-                        ? '문장 학습하기'
-                        : (item.returnPath === '/learning' ? '주제 선택하기' : '학습 완료')
-                    }
+                    {(() => {
+                        if (item.itemType === 'word' && item.examples && item.examples.length > 0) {
+                            return '문장 연습하기';
+                        }
+                        if (item.itemType === 'example') {
+                            const nextIdx = (item.currentIndex || 0) + 1;
+                            if (item.allExamples && nextIdx < item.allExamples.length) {
+                                return '다음 문장';
+                            }
+                            return '주제 선택하기';
+                        }
+                        return '주제 선택하기'; // 기본값
+                    })()}
                 </button>
             </div>
         </div>

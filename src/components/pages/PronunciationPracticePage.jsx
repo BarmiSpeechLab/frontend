@@ -93,6 +93,7 @@ const PronunciationPracticePage = () => {
             formData.append("file", audioBlob, "recording.webm");
             formData.append("curriculumId", item.id);
 
+            // submitPronunciation은 taskId 문자열을 직접 반환
             const submitRes = await submitPronunciation(formData);
             taskId = submitRes.taskId;
         } catch (e) {
@@ -115,53 +116,95 @@ const PronunciationPracticePage = () => {
             feedback: null
         };
 
+        let hasNavigated = false;
+
         const pollInterval = setInterval(async () => {
+            if (hasNavigated) {
+                clearInterval(pollInterval);
+                return;
+            }
             console.log(`[분석 진행 중] 폴링 수행 .. (TaskId: ${taskId})`);
             const statusRes = await checkAnalysisStatus(taskId);
+
+            console.log('[폴링 응답]', {
+                status: statusRes.status,
+                hasResult: !!statusRes.result,
+                result: statusRes.result
+            });
 
             if (statusRes.status === 'COMPLETED' && statusRes.result) {
                 const res = statusRes.result;
 
-                // IntegratedAnalysisResult 구조에서 필요한 필드 추출 및 병합
-                // 각 결과(PRON, INTON, LLM)가 독립적으로 도착할 수 있으므로 각각 체크
-                const pron = res.pronunciation || {};
-                const inton = res.intonations || {};
-                const llm = res.llmFeedback || {};
+                console.log('[결과 상세]', {
+                    pronunciation: res.pronunciation,
+                    intonations: res.intonations,
+                    llmFeedback: res.llmFeedback
+                });
 
-                mergedResult = {
-                    ...mergedResult,
-                    taskId: res.taskId,
-                    grade: pron.grade || mergedResult.grade,
-                    feedback: pron.feedback || llm.feedback || mergedResult.feedback,
-                    standardPitch: pron.standardPitch || inton.standardPitch || mergedResult.standardPitch,
-                    userPitch: pron.userPitch || inton.userPitch || mergedResult.userPitch,
-                    wordSegments: pron.wordSegments || mergedResult.wordSegments,
-                    // 통째로 보관 (결과 페이지에서 상세 활용 가능하도록)
-                    rawResult: res
-                };
+                // 백엔드 응답에서 새 데이터를 받으면 mergedResult에 누적 저장
+                if (res.pronunciation && !mergedResult.pronunciation) {
+                    console.log('[PRON 저장] 발음 데이터 수신');
+                    mergedResult.pronunciation = res.pronunciation;
 
-                // 완료 판단: 발음(PRON), 억양(INTON), LLM 피드백(LLM) 세 가지가 모두 도착했는지 확인
-                const isAllArrived = res.pronunciation && res.intonations && res.llmFeedback;
+                    const pron = res.pronunciation;
+                    mergedResult.grade = pron.grade || pron.score;
+                    mergedResult.feedback = pron.feedback || mergedResult.feedback;
+                    mergedResult.standardPitch = pron.standardPitch || mergedResult.standardPitch;
+                    mergedResult.userPitch = pron.userPitch || mergedResult.userPitch;
+                    mergedResult.wordSegments = pron.wordSegments;
+                }
 
-                if (isAllArrived) {
+                if (res.intonations && !mergedResult.intonations) {
+                    console.log('[INTON 저장] 억양 데이터 수신');
+                    mergedResult.intonations = res.intonations;
+
+                    const inton = res.intonations;
+                    mergedResult.standardPitch = mergedResult.standardPitch || inton.standardPitch;
+                    mergedResult.userPitch = mergedResult.userPitch || inton.userPitch;
+                }
+
+                if (res.llmFeedback && !mergedResult.llmFeedback) {
+                    console.log('[LLM 저장] 피드백 데이터 수신');
+                    mergedResult.llmFeedback = res.llmFeedback;
+
+                    const llm = res.llmFeedback;
+                    mergedResult.feedback = mergedResult.feedback || llm.feedback;
+                }
+
+                mergedResult.taskId = taskId;
+                mergedResult.rawResult = res;
+
+                // mergedResult 기준으로 완료 판단
+                const isAllArrived = mergedResult.pronunciation && mergedResult.intonations && mergedResult.llmFeedback;
+
+                console.log('[완료 체크]', {
+                    hasPron: !!mergedResult.pronunciation,
+                    hasInton: !!mergedResult.intonations,
+                    hasLLM: !!mergedResult.llmFeedback,
+                    isAllArrived
+                });
+
+                if (isAllArrived && !hasNavigated) {
                     console.log('%c[분석 완료] 모든 데이터를 수신 완료.', 'color: green; font-weight: bold;', mergedResult);
+                    hasNavigated = true;
                     clearInterval(pollInterval);
                     navigate('/pronunciationResult', { state: mergedResult });
+                } else if (!isAllArrived) {
+                    console.warn('[대기 중] 누적 데이터:', {
+                        pron: !!mergedResult.pronunciation,
+                        inton: !!mergedResult.intonations,
+                        llm: !!mergedResult.llmFeedback
+                    });
                 }
             }
         }, 1000);
 
-        // 타임아웃 (일단 10초 후 강제 종료 + 더미 결과 표시)
+        // 타임아웃 (30초 후 자동 종료)
         setTimeout(() => {
-            if (mergedResult.grade) return;
-
             clearInterval(pollInterval);
-            console.log("서버 응답 지연으로 더미 결과");
-
-            // 더미 결과 생성
-            const mockResult = getLocalMockResult(item, audioUrl);
-            navigate('/pronunciationResult', { state: mockResult });
-        }, 10000); // 나중에 연동 시 얼마나 걸리는지 확인 필요
+            console.warn('[타임아웃] 분석 응답 시간 초과');
+            alert('분석 시간이 초과되었습니다. 다시 시도해주세요.');
+        }, 30000);
     };
 
     const handleRecordToggle = () => {
@@ -187,6 +230,18 @@ const PronunciationPracticePage = () => {
                     </strong>
                     <span style={{ color: '#888', fontWeight: 400 }}> {item.meaning ? `- ${item.meaning}` : ''}</span>
                 </p>
+
+                {/* IPA 예시 단어 표시 (IPA 타입일 때만 노출) */}
+                {item.type === 'ipa' && item.examples && item.examples.length > 0 && (
+                    <div style={{ marginTop: '1rem', background: '#f5f5f5', padding: '0.8rem', borderRadius: '8px', display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                        {item.examples.map((ex, idx) => (
+                            <div key={idx} style={{ fontSize: '1rem', color: '#555' }}>
+                                <span style={{ fontWeight: 'bold', color: '#a67c00' }}>{ex.ex_text}</span>
+                                <span style={{ marginLeft: '6px', color: '#777' }}>{ex.ex_mean}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* 시각 자료 */}

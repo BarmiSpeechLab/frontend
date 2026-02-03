@@ -6,7 +6,7 @@ import api from './index';
 export const submitPronunciation = async (formData) => {
     console.log('[API 요청] 발음 평가 제출');
     try {
-        const response = await api.post('/feedback/submit', formData, {
+        const response = await api.post('/analysis/submit', formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         });
 
@@ -17,7 +17,7 @@ export const submitPronunciation = async (formData) => {
         if (typeof rawData === 'string' && rawData.includes('저장 성공: ')) {
             taskId = rawData.replace('저장 성공: ', '').trim();
         }
-        // 2.ApiResponse {data}
+        // 2.Api 응답 {data}
         else if (rawData && rawData.data) {
             taskId = rawData.data;
         }
@@ -33,137 +33,126 @@ export const submitPronunciation = async (formData) => {
 /**
  * 분석 상태 확인 -> 폴링
  */
-export const checkAnalysisStatus = async (taskId) => {
+export const checkAnalysisStatus = async (curriculumId, taskId) => {
     try {
-        const response = await api.get(`/feedback/${taskId}`);
-        const rawData = response.data;
+        const response = await api.get(`/analysis/${curriculumId}/${taskId}`);
+        let rawData = response.data;
 
         console.log('[폴링 응답] rawData:', rawData);
+
+        // 백엔드 응답이 "현재 데이터 : " 접두사를 포함하는 경우 제거하고 파싱 시도
+        if (typeof rawData === 'string' && rawData.startsWith('현재 데이터 : ')) {
+            const jsonPart = rawData.replace('현재 데이터 : ', '').trim();
+            if (jsonPart === 'null') {
+                return { status: 'PROCESSING', result: null };
+            }
+            rawData = jsonPart;
+        }
 
         // 1. 데이터 추출 (ApiResponse or 직접 데이터)
         let content = (rawData && rawData.data !== undefined ? rawData.data : rawData);
 
-        // 2. 진행 상태 체크
-        if (!content || content === '분석 진행 중' || content === '저장 성공: null' || content === 'null') {
-            return { status: 'PROCESSING', result: null };
-        }
+        // 2. 자바 toString 형태 파싱 처리
+        const parseJavaMapObject = (str) => {
+            if (typeof str !== 'string') return str;
 
-        // 3. 완료된 객체인 경우 (JSON)
-        if (typeof content === 'object') {
-            const hasData = content.pronunciation || content.intonations || content.llmFeedback;
-            if (hasData) {
-                return { status: 'COMPLETED', result: content };
+            try {
+                const result = {};
+
+                // pronunciation={...} 또는 pronunciation=null 추출
+                const pronMatch = str.match(/pronunciation=(\{[^}]*\}|null)/);
+                if (pronMatch) {
+                    if (pronMatch[1] === 'null') {
+                        result.pronunciation = null;
+                    } else {
+                        result.pronunciation = parseMap(pronMatch[1]);
+                    }
+                }
+
+                // intonations={...} 또는 intonations=null 추출
+                const intonMatch = str.match(/intonations=(\{[^}]*\}|null)/);
+                if (intonMatch) {
+                    if (intonMatch[1] === 'null') {
+                        result.intonations = null;
+                    } else {
+                        result.intonations = parseMap(intonMatch[1]);
+                    }
+                }
+
+                // llmFeedback={...} 또는 llmFeedback=null 추출
+                const llmMatch = str.match(/llmFeedback=(\{[^}]*\}|null)/);
+                if (llmMatch) {
+                    if (llmMatch[1] === 'null') {
+                        result.llmFeedback = null;
+                    } else {
+                        result.llmFeedback = parseMap(llmMatch[1]);
+                    }
+                }
+
+                console.log('[Java toString 파싱 결과]', result);
+                return result;
+            } catch (e) {
+                console.error('Java toString 파싱 실패:', e);
+                return null;
             }
-        }
+        };
 
-        // 4. 레거시 문자열 파싱 (Java toString() 대응)
+        // Map 파싱: {key=value, key=value} 형태를 객체로 변환
+        const parseMap = (mapStr) => {
+            const obj = {};
+            // { } 제거
+            const content = mapStr.slice(1, -1).trim();
+            if (!content) return obj;
+
+            // key=value 쌍 분리 (값에 =가 포함될 수도 있음)
+            const pairs = content.split(/,\s*(?=[a-zA-Z_][a-zA-Z0-9_]*=)/);
+
+            pairs.forEach(pair => {
+                const firstEqualIndex = pair.indexOf('=');
+                if (firstEqualIndex === -1) return;
+
+                const key = pair.substring(0, firstEqualIndex).trim();
+                let value = pair.substring(firstEqualIndex + 1).trim();
+
+                // 배열 파싱: [1, 2, 3] 형태
+                if (value.startsWith('[') && value.endsWith(']')) {
+                    const arrContent = value.slice(1, -1);
+                    value = arrContent ? arrContent.split(',').map(v => {
+                        const trimmed = v.trim();
+                        const num = parseFloat(trimmed);
+                        return isNaN(num) ? trimmed : num;
+                    }) : [];
+                }
+                // 숫자 변환 시도
+                else {
+                    const num = parseFloat(value);
+                    if (!isNaN(num) && value === num.toString()) {
+                        value = num;
+                    }
+                }
+
+                obj[key] = value;
+            });
+
+            return obj;
+        };
+
         if (typeof content === 'string' && content.includes('IntegratedAnalysisResult')) {
-            const parsed = parseJavaToString(content);
+            const parsed = parseJavaMapObject(content);
             if (parsed) {
-                // 발음/억양/피드백 중 하나라도 있으면 완료로 간주 (백엔드 사양에 따라)
                 const hasData = parsed.pronunciation || parsed.intonations || parsed.llmFeedback;
                 if (hasData) {
                     return { status: 'COMPLETED', result: parsed };
                 }
             }
+        } else if (content && typeof content === 'object') {
+            // 이미 객체인 경우
+            return { status: 'COMPLETED', result: content };
         }
 
         return { status: 'PROCESSING', result: null };
     } catch (error) {
-        console.error('[AI API] 조회 실패:', error);
-        return { status: 'PROCESSING', result: null };
+        console.error('분석 상태 확인 실패:', error);
+        return { status: 'ERROR', error };
     }
-};
-
-// 백엔드에서 온 객체 프론트용으로 변환
-const formatResult = (raw) => {
-    // 발음 결과 추출
-    const pron = raw.pronunciation || {};
-
-    // UI에 필요한 기본 구조 생성
-    return {
-        grade: pron.grade || 'GOOD',
-        feedback: raw.llmFeedback?.recommendation || '전반적으로 훌륭한 발음입니다.',
-        // 그래프 데이터 (없으면 더미)
-        standardPitch: raw.intonations?.standard || [20, 40, 60, 40, 20],
-        userPitch: raw.intonations?.user || [22, 38, 55, 42, 25],
-        // 상세 발음 데이터
-        wordSegments: pron.segments || [
-            {
-                word: 'Result',
-                isCorrect: true,
-                phonemes: []
-            }
-        ],
-        userAudioUrl: raw.userAudioUrl // 필요 시
-    };
-};
-
-//Java의 toString() 결과물 파싱 도구
-// ex)IntegratedAnalysisResult(taskId=..., pronunciation={score=90, ...})
-
-const parseJavaToString = (str) => {
-    try {
-        const result = {
-            taskId: null,
-            pronunciation: null,
-            intonations: null,
-            llmFeedback: null
-        };
-
-        const contentMatch = str.match(/\((.*)\)/);
-        if (!contentMatch) return null;
-        const content = contentMatch[1];
-
-        // 정규식으로 key=value 쌍 추출 (중첩된 {} 나 [] 고려)
-        const regex = /([a-zA-Z]+)=({.*?}|\[.*?\]|[^,]*)/g;
-        let match;
-        while ((match = regex.exec(content)) !== null) {
-            const key = match[1];
-            let value = match[2];
-
-            if (value === 'null') {
-                result[key] = null;
-            } else if (value.startsWith('{')) {
-                // 맵 파싱
-                const mapObj = {};
-                const mapContent = value.substring(1, value.length - 1);
-                mapContent.split(', ').forEach(pair => {
-                    const [mk, mv] = pair.split('=');
-                    if (mk) mapObj[mk] = mv;
-                });
-                result[key] = mapObj;
-            } else {
-                result[key] = value;
-            }
-        }
-        return result;
-    } catch (e) {
-        console.error('Java String 파싱 에러:', e);
-        return null;
-    }
-};
-
-/**
- * 서버 응답 없을 경우 -> 더미 결과로
- */
-export const getLocalMockResult = (item, userAudioUrl) => {
-    return {
-        item,
-        userAudioUrl,
-        grade: 'EXCELLENT',
-        feedback: '좋습니다.',
-        standardPitch: [10, 30, 60, 80, 60, 30, 10],
-        userPitch: [12, 28, 55, 75, 45, 35, 8],
-        wordSegments: [
-            {
-                word: item.word || item.text || 'Practice',
-                isCorrect: true,
-                phonemes: []
-            }
-        ]
-    };
-};
-
-export const resetAnalysisMock = () => {
 };
