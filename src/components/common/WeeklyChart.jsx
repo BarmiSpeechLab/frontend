@@ -1,63 +1,53 @@
 import React, { useMemo } from 'react';
 import './WeeklyChart.css';
 
-/**
- * 주간 학습 현황 막대 그래프 컴포넌트
- * 최근 7일간의 학습 시간을 시각화
- */
 const WeeklyChart = ({ weeklyStats = {} }) => {
-    const getWeekData = useMemo(() => {
+    const weekData = useMemo(() => {
         const today = new Date();
-        const weekData = [];
+        const data = [];
+        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
 
-        for (let i = 6; i >= 0; i--) {
+        for (let i = 6; i >= 0; i -= 1) {
             const date = new Date(today);
             date.setDate(date.getDate() - i);
+
             const dateStr = date.toISOString().split('T')[0];
-            const dayName = ['일', '월', '화', '수', '목', '금', '토'][date.getDay()];
-            
-            weekData.push({
+            const count = Number(weeklyStats[dateStr] || 0);
+
+            data.push({
                 date: dateStr,
-                dayName,
-                minutes: weeklyStats[dateStr] || 0,
-                displayDate: date
+                dayName: dayNames[date.getDay()],
+                count: Number.isFinite(count) ? count : 0
             });
         }
 
-        return weekData;
+        return data;
     }, [weeklyStats]);
 
-    const maxMinutes = useMemo(() => {
-        const max = Math.max(...getWeekData.map(d => d.minutes), 60);
-        return Math.ceil(max / 10) * 10;
-    }, [getWeekData]);
+    const maxCount = useMemo(() => {
+        return Math.max(...weekData.map((d) => d.count), 1);
+    }, [weekData]);
 
     return (
         <div className="weekly-chart">
-            <div className="chart-header">
-                <h3 className="chart-title">주간 학습</h3>
-            </div>
-
             <div className="chart-container">
                 <div className="chart-bars">
-                    {getWeekData.map((dayData) => {
-                        const heightPercent = (dayData.minutes / maxMinutes) * 100 || 0;
-                        let intensityClass = '';
-                        
+                    {weekData.map((dayData) => {
+                        const heightPercent = (dayData.count / maxCount) * 100;
+                        let intensityClass = 'intense-0';
                         if (heightPercent >= 80) intensityClass = 'intense-5';
                         else if (heightPercent >= 60) intensityClass = 'intense-4';
                         else if (heightPercent >= 40) intensityClass = 'intense-3';
                         else if (heightPercent >= 20) intensityClass = 'intense-2';
                         else if (heightPercent > 0) intensityClass = 'intense-1';
-                        else intensityClass = 'intense-0';
-                        
+
                         return (
                             <div key={dayData.date} className="bar-wrapper">
                                 {heightPercent > 0 && (
-                                    <div 
+                                    <div
                                         className={`bar ${intensityClass}`}
                                         style={{ height: `${heightPercent}%` }}
-                                        title={`${dayData.dayName}: ${dayData.minutes}분`}
+                                        title={`${dayData.dayName}: ${dayData.count}회`}
                                     />
                                 )}
                                 <div className="day-name">{dayData.dayName}</div>
