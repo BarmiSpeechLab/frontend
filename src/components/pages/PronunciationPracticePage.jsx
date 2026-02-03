@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-
 import './PronunciationPracticePage.css';
-import { submitPronunciation, checkAnalysisStatus, getLocalMockResult } from '../../api/ai';
+import { submitPronunciation, checkAnalysisStatus } from '../../api/ai';
 
 const PronunciationPracticePage = () => {
     const location = useLocation();
@@ -94,8 +93,8 @@ const PronunciationPracticePage = () => {
             formData.append("curriculumId", item.id);
 
             // submitPronunciation은 taskId 문자열을 직접 반환
-            const submitRes = await submitPronunciation(formData);
-            taskId = submitRes.taskId;
+            taskId = await submitPronunciation(formData);
+            console.log('[제출 성공] Task ID:', taskId);
         } catch (e) {
             console.error("서버 전송 실패:", e);
         }
@@ -116,7 +115,7 @@ const PronunciationPracticePage = () => {
             feedback: null
         };
 
-        let hasNavigated = false;
+        let hasNavigated = false;  // 중복 네비게이션 방지
 
         const pollInterval = setInterval(async () => {
             if (hasNavigated) {
@@ -124,7 +123,7 @@ const PronunciationPracticePage = () => {
                 return;
             }
             console.log(`[분석 진행 중] 폴링 수행 .. (TaskId: ${taskId})`);
-            const statusRes = await checkAnalysisStatus(taskId);
+            const statusRes = await checkAnalysisStatus(item.id, taskId);
 
             console.log('[폴링 응답]', {
                 status: statusRes.status,
@@ -204,7 +203,7 @@ const PronunciationPracticePage = () => {
             clearInterval(pollInterval);
             console.warn('[타임아웃] 분석 응답 시간 초과');
             alert('분석 시간이 초과되었습니다. 다시 시도해주세요.');
-        }, 30000);
+        }, 3000000);
     };
 
     const handleRecordToggle = () => {
@@ -215,20 +214,59 @@ const PronunciationPracticePage = () => {
         }
     };
 
+    // Windows-1252(Latin-1 Sup)로 잘못 해석된 UTF-8 복구 (PracticePage용 안전장치)
+    const fixEncoding = (str) => {
+        if (typeof str !== 'string' || !str) return str;
+        if (/[가-힣]/.test(str)) return str;
+
+        const win1252Map = {
+            0x20AC: 0x80, 0x201A: 0x82, 0x0192: 0x83, 0x201E: 0x84, 0x2026: 0x85, 0x2020: 0x86, 0x2021: 0x87,
+            0x02C6: 0x88, 0x2030: 0x89, 0x0160: 0x8A, 0x2039: 0x8B, 0x0152: 0x8C, 0x017D: 0x8E,
+            0x2018: 0x91, 0x2019: 0x92, 0x201C: 0x93, 0x201D: 0x94, 0x2022: 0x95, 0x2013: 0x96, 0x2014: 0x97,
+            0x02DC: 0x98, 0x2122: 0x99, 0x0161: 0x9A, 0x203A: 0x9B, 0x0153: 0x9C, 0x017E: 0x9E, 0x0178: 0x9F
+        };
+
+        try {
+            const bytes = [];
+            for (let i = 0; i < str.length; i++) {
+                const code = str.charCodeAt(i);
+                if (code <= 255) {
+                    bytes.push(code);
+                } else if (win1252Map[code]) {
+                    bytes.push(win1252Map[code]);
+                } else {
+                    return str; // 정상 특수문자(IPA) 보존
+                }
+            }
+            const decoded = new TextDecoder('utf-8').decode(new Uint8Array(bytes));
+
+            // !! 중복 복구 방지 !!
+            // 복구 결과에 (REPLACEMENT CHARACTER)가 포함되어 있다면, 
+            // 멀쩡한 문자를 강제로 바이트로 취급해서 깨진 것임. (예: 'æ' -> byte 230 -> invalid utf8)
+            // 이때는 원본을 반환해야 함.
+            if (decoded.includes('\uFFFD')) {
+                return str;
+            }
+            return decoded;
+        } catch (e) {
+            return str;
+        }
+    };
+
     return (
         <div
             className="practice-container"
         >
             <div className="practice-header">
                 <h1 className="practice-title">
-                    {item.word || item.symbol}
+                    {fixEncoding(item.word || item.symbol)}
                 </h1>
                 <p className="practice-subtitle" style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>
                     <strong>
-                        {item.ipa ? `[${item.ipa}]` : (item.pronunciation ? `[${item.pronunciation}]` : '')}
-                        {item.korPronunciation ? ` ${item.korPronunciation}` : ''}
+                        {item.ipa ? `[${fixEncoding(item.ipa)}]` : (item.pronunciation ? `[${fixEncoding(item.pronunciation)}]` : '')}
+                        {item.korPronunciation ? ` ${fixEncoding(item.korPronunciation)}` : ''}
                     </strong>
-                    <span style={{ color: '#888', fontWeight: 400 }}> {item.meaning ? `- ${item.meaning}` : ''}</span>
+                    <span style={{ color: '#888', fontWeight: 400 }}> {item.meaning ? `- ${fixEncoding(item.meaning)}` : ''}</span>
                 </p>
 
                 {/* IPA 예시 단어 표시 (IPA 타입일 때만 노출) */}
@@ -236,8 +274,8 @@ const PronunciationPracticePage = () => {
                     <div style={{ marginTop: '1rem', background: '#f5f5f5', padding: '0.8rem', borderRadius: '8px', display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
                         {item.examples.map((ex, idx) => (
                             <div key={idx} style={{ fontSize: '1rem', color: '#555' }}>
-                                <span style={{ fontWeight: 'bold', color: '#a67c00' }}>{ex.ex_text}</span>
-                                <span style={{ marginLeft: '6px', color: '#777' }}>{ex.ex_mean}</span>
+                                <span style={{ fontWeight: 'bold', color: '#a67c00' }}>{fixEncoding(ex.ex_text)}</span>
+                                <span style={{ marginLeft: '6px', color: '#777' }}>{fixEncoding(ex.ex_mean)}</span>
                             </div>
                         ))}
                     </div>

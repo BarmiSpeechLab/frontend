@@ -46,7 +46,8 @@ function LearningPage() {
                 } else if (win1252Map[code]) {
                     bytes.push(win1252Map[code]);
                 } else {
-                    bytes.push(0x20); // 매핑되지 않는 문자는 공백 처리
+                    // 2. [수정됨] 255보다 큰데 매핑에도 없다? => 정상적인 특수문자(IPA)일 가능성 99.9%
+                    return str;
                 }
             }
             return new TextDecoder('utf-8').decode(new Uint8Array(bytes));
@@ -59,28 +60,24 @@ function LearningPage() {
     const parseText = (textField) => {
         if (!textField) return { word: '', examples: [] };
 
-        // 인코딩 보정
-        const fixedText = fixEncoding(textField);
+        // 1. 먼저 JSON 파싱 시도 (원본 그대로)
+        try {
+            // 만약 textField가 객체라면 바로 사용
+            const parsed = typeof textField === 'string' ? JSON.parse(textField) : textField;
 
-        if (typeof fixedText === 'object') {
             return {
-                word: fixedText.word || '',
-                examples: fixedText.examples || []
+                // 파싱 후 각 필드에 대해 인코딩 복구 수행
+                word: fixEncoding(parsed.word || parsed.displayText || (typeof textField === 'string' ? textField : '')),
+                examples: (parsed.examples || []).map(ex => ({
+                    ex_text: fixEncoding(ex.ex_text),
+                    ex_mean: fixEncoding(ex.ex_mean) // 여기서 한글은 보존됨
+                }))
             };
+        } catch (e) {
+            // JSON 파싱 실패 시: 일반 문자열로 취급하여 복구 시도
+            const fixed = fixEncoding(textField);
+            return { word: fixed, examples: [] };
         }
-
-        if (typeof fixedText === 'string') {
-            try {
-                const parsed = JSON.parse(fixedText);
-                return {
-                    word: parsed.word || parsed.displayText || fixedText,
-                    examples: parsed.examples || []
-                };
-            } catch (e) {
-                return { word: fixedText, examples: [] };
-            }
-        }
-        return { word: String(fixedText), examples: [] };
     };
 
     useEffect(() => {

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './SubPage.css';
 import './PronunciationPage.css';
-import { getCurriculumList } from '../../api/curriculum';
+import { getCurriculumList, getCurriculumDetail } from '../../api/curriculum';
 
 const PronunciationPage = () => {
     // IPA 타입 매핑
@@ -48,9 +48,10 @@ const PronunciationPage = () => {
                 } else if (win1252Map[code]) {
                     bytes.push(win1252Map[code]);
                 } else {
-                    // 매핑되지 않는 고위 문자는 공백(0x20)이나 물음표(0x3F)로 대체하고 계속 진행
-                    // Abort 하지 않음으로써 나머지 문자라도 복구 시도
-                    bytes.push(0x20);
+                    // 2. [수정됨] 범인을 찾았다! 
+                    // 255보다 큰데 매핑에도 없다? => 이건 '깨진 글자'가 아니라 '원래 비싼(IPA 등) 글자'다!
+                    // 즉, 이 문자열은 복구할 필요가 없는 정상 문자열임. 원본 반환.
+                    return str;
                 }
             }
             return new TextDecoder('utf-8').decode(new Uint8Array(bytes));
@@ -74,27 +75,24 @@ const PronunciationPage = () => {
     const parseText = (textField) => {
         if (!textField) return { word: '', examples: [] };
 
-        // 인코딩 보정
-        const fixedText = fixEncoding(textField);
+        // 1. 먼저 JSON 파싱 시도 (원본 그대로)
+        try {
+            // 만약 textField가 객체라면 바로 사용
+            const parsed = typeof textField === 'string' ? JSON.parse(textField) : textField;
 
-        if (typeof fixedText === 'object') {
             return {
-                word: fixedText.word || '',
-                examples: fixedText.examples || []
+                // 파싱 후 각 필드에 대해 인코딩 복구 수행
+                word: fixEncoding(parsed.word || parsed.displayText || (typeof textField === 'string' ? textField : '')),
+                examples: (parsed.examples || []).map(ex => ({
+                    ex_text: fixEncoding(ex.ex_text),
+                    ex_mean: fixEncoding(ex.ex_mean) // 여기서 한글은 보존됨
+                }))
             };
+        } catch (e) {
+            // JSON 파싱 실패 시: 일반 문자열로 취급하여 복구 시도
+            const fixed = fixEncoding(textField);
+            return { word: fixed, examples: [] };
         }
-        if (typeof fixedText === 'string') {
-            try {
-                const parsed = JSON.parse(fixedText);
-                return {
-                    word: parsed.word || parsed.displayText || fixedText,
-                    examples: parsed.examples || []
-                };
-            } catch (e) {
-                return { word: fixedText, examples: [] };
-            }
-        }
-        return { word: String(fixedText), examples: [] };
     };
 
     useEffect(() => {
@@ -105,8 +103,12 @@ const PronunciationPage = () => {
 
         const fetchData = async () => {
             try {
-                // IPA 타입 데이터 -> 전체 테마에서 조회
-                const data = await getCurriculumList('ipa', 'ipa');
+                // 500 에러 회피: 'ipa' 문자열 검색 대신 ID 1~40번 직접 조회 (8번 데이터 손상으로 제외)
+                const ids = Array.from({ length: 40 }, (_, i) => i + 1).filter(id => id !== 8);
+                const promises = ids.map(id => getCurriculumDetail(id).catch(() => null));
+                const results = await Promise.all(promises);
+                const data = results.filter(item => item !== null);
+
                 const formattedData = (data || []).map(item => {
                     const parsed = parseText(item.text); // word와 examples 추출
                     return {
