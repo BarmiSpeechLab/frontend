@@ -3,12 +3,10 @@ import axios from 'axios';
 // 백엔드 기본 URL 설정
 const API_BASE_URL = '/api';
 
+
 // 공통 Axios 인스턴스 생성 -> 한 번에 관리하기 위함 !
 const api = axios.create({
     baseURL: API_BASE_URL,
-    headers: {
-        'Content-Type': 'application/json',
-    },
 });
 
 // Request Interceptor -> 모든 API 요청 직전에 실행
@@ -39,8 +37,7 @@ api.interceptors.response.use(
         if (error.response && error.response.status === 401) {
             console.error('인증 에러가 발생했습니다. 다시 로그인해주세요.');
             localStorage.removeItem('accessToken');
-            // 토큰 만료 시 로그인 페이지로 튕기기
-            window.location.href = '/login';
+            console.warn('로그인이 필요합니다.');
         }
         return Promise.reject(error);
     }

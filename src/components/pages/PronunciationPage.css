@@ -1,0 +1,117 @@
+.subpage-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+    color: #333;
+}
+
+.subpage-title {
+    font-size: 1.5rem;
+    color: #a67c00;
+    font-weight: 800;
+    margin-bottom: 2rem;
+}
+
+.tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.tab-btn {
+    padding: 0.8rem 2rem;
+    border-radius: 50px;
+    border: 1px solid #ddd;
+    background: #fff;
+    color: #888;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.tab-btn:hover {
+    background: #fdfaf3;
+    color: #a67c00;
+    border-color: #f5e6cc;
+}
+
+.tab-btn.active {
+    background: #a67c00;
+    color: #fff;
+    border-color: #a67c00;
+}
+
+.card-grid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.col-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.col-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.epa-card {
+    background: #fdfaf3;
+    border: 1px solid #f5e6cc;
+    border-radius: 16px;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.epa-card:hover {
+    background: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(166, 124, 0, 0.1);
+    border-color: #a67c00;
+}
+
+.epa-symbol {
+    font-size: 2.5rem;
+    color: #a67c00;
+    font-weight: 800;
+    margin: 0;
+}
+
+.epa-word {
+    font-size: 1rem;
+    color: #888;
+    margin: 0;
+}
+
+.epa-progress-bg {
+    width: 100%;
+    height: 6px;
+    background: #e0e0e0;
+    border-radius: 3px;
+    margin-top: 0.5rem;
+    overflow: hidden;
+}
+
+.epa-progress-fill {
+    height: 100%;
+    background: #a67c00;
+    border-radius: 3px;
+}

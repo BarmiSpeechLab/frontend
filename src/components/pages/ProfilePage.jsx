@@ -70,7 +70,6 @@ const ProfilePage = () => {
             }
 
             // 나중에 연동 시 -> setImageFile(file); // 실제 파일 객체 저장
-
             const reader = new FileReader();
             // reader.onloadend = () => {
             //     setProfileImage(reader.result);
@@ -250,7 +249,7 @@ const ProfilePage = () => {
                 </section>
             </div>
 
-            {/* 회원 탈퇴 버튼 */}
+            {/* 회원 탈퇴 */}
             <div style={{ marginTop: '3rem', textAlign: 'right' }}>
                 <span style={{ fontSize: '0.9rem', color: '#999', marginRight: '1rem' }}>혹시 ..</span>
                 <button className="withdraw-btn" onClick={handleWithdraw} style={{ background: '#ddd', color: '#666' }}>회원 탈퇴</button>

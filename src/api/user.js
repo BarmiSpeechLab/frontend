@@ -47,9 +47,7 @@ export const getUserStats = async () => {
     }
 };
 
-/**
- * 온보딩 완료 처리
- */
+// 온보딩 완료 처리
 export const completeOnboarding = async () => {
     console.log('[API 요청] 온보딩 완료 처리');
     try {
