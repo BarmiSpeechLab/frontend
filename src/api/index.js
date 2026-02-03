@@ -40,8 +40,7 @@ api.interceptors.response.use(
         if (error.response && error.response.status === 401) {
             console.error('인증 에러가 발생했습니다. 다시 로그인해주세요.');
             localStorage.removeItem('accessToken');
-            // 토큰 만료 시 로그인 페이지로 튕기기
-            window.location.href = '/login';
+            console.warn('로그인이 필요합니다.');
         }
         return Promise.reject(error);
     }
