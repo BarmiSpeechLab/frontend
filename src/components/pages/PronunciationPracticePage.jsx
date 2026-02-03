@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 
 import './PronunciationPracticePage.css';
-import { submitPronunciation, checkAnalysisStatus, getLocalMockResult } from '../../api/ai';
+import { submitPronunciation, checkAnalysisStatus } from '../../api/ai';
 
 const PronunciationPracticePage = () => {
     const location = useLocation();
@@ -89,12 +89,8 @@ const PronunciationPracticePage = () => {
         // 1. 서버 전송 (저장 + 분석 요청)
         let taskId = null;
         try {
-            const formData = new FormData();
-            formData.append("file", audioBlob, "recording.webm");
-            formData.append("curriculumId", item.id);
-
             // submitPronunciation은 taskId 문자열을 직접 반환
-            const submitRes = await submitPronunciation(formData);
+            const submitRes = await submitPronunciation(audioBlob, item.id);
             taskId = submitRes.taskId;
         } catch (e) {
             console.error("서버 전송 실패:", e);
@@ -124,7 +120,7 @@ const PronunciationPracticePage = () => {
                 return;
             }
             console.log(`[분석 진행 중] 폴링 수행 .. (TaskId: ${taskId})`);
-            const statusRes = await checkAnalysisStatus(taskId);
+            const statusRes = await checkAnalysisStatus(item.id, taskId);
 
             console.log('[폴링 응답]', {
                 status: statusRes.status,
