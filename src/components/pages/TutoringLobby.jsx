@@ -67,8 +67,7 @@ const TutoringLobby = () => {
 
     // 예약 페이지 이동 핸들러 (추후 구현)
     const handleBooking = () => {
-        alert("튜터링 예약 페이지로 이동합니다. (추후 구현 예정)");
-        // navigate('/tutoring/booking'); // 나중에 실제 경로로 변경
+        navigate('/tutoring/reserve');
     };
 
     return (
