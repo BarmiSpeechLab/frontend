@@ -3,31 +3,37 @@ import api from './index';
 /**
  * 발음 평가 제출
  */
-export const submitPronunciation = async (formData) => {
-    console.log('[API 요청] 발음 평가 제출');
-    try {
-        const response = await api.post('/analysis/submit', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        });
+export const submitPronunciation = async (file, curriculumId) => {
+  console.log('[API 요청] 발음 평가 제출');
 
-        const rawData = response.data;
-        let taskId = rawData;
+  try {
+    const formData = new FormData();
 
-        // 1. "저장 성공: REQ_..." 형식 파싱
-        if (typeof rawData === 'string' && rawData.includes('저장 성공: ')) {
-            taskId = rawData.replace('저장 성공: ', '').trim();
-        }
-        // 2.Api 응답 {data}
-        else if (rawData && rawData.data) {
-            taskId = rawData.data;
-        }
+    // ✅ 백엔드가 받는 키 이름이 반드시 "file"
+    // file이 Blob이면 파일명까지 주는 게 안전함
+    formData.append('file', file, file?.name ?? 'audio.webm');
 
-        console.log('[API 성공] Task ID 수신:', taskId);
-        return { taskId };
-    } catch (error) {
-        console.error('[API 실패] 제출 에러:', error);
-        throw error;
+    // ✅ @RequestParam curriculumId 필수
+    formData.append('curriculumId', String(curriculumId));
+
+    // ✅ 헤더 지정 제거 (axios가 boundary 포함해서 자동 설정)
+    const response = await api.post('/analysis/submit', formData);
+
+    const rawData = response.data;
+    let taskId = rawData;
+
+    if (typeof rawData === 'string' && rawData.includes('저장 성공: ')) {
+      taskId = rawData.replace('저장 성공: ', '').trim();
+    } else if (rawData && rawData.data) {
+      taskId = rawData.data;
     }
+
+    console.log('[API 성공] Task ID 수신:', taskId);
+    return { taskId };
+  } catch (error) {
+    console.error('[API 실패] 제출 에러:', error);
+    throw error;
+  }
 };
 
 /**

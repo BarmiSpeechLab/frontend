@@ -88,13 +88,9 @@ const PronunciationPracticePage = () => {
         // 1. 서버 전송 (저장 + 분석 요청)
         let taskId = null;
         try {
-            const formData = new FormData();
-            formData.append("file", audioBlob, "recording.webm");
-            formData.append("curriculumId", item.id);
-
             // submitPronunciation은 taskId 문자열을 직접 반환
-            taskId = await submitPronunciation(formData);
-            console.log('[제출 성공] Task ID:', taskId);
+            const submitRes = await submitPronunciation(audioBlob, item.id);
+            taskId = submitRes.taskId;
         } catch (e) {
             console.error("서버 전송 실패:", e);
         }
