@@ -35,6 +35,11 @@ const LearningResultPage = () => {
 
     if (!topic) return <div>데이터가 없습니다.</div>;
 
+    // DB 인코딩 수정 완료로 더 이상 변환 필요 없음
+    const fixEncoding = (str) => {
+        return str;
+    };
+
     return (
         <div className="result-container">
             <div className="result-header">
@@ -56,11 +61,6 @@ const LearningResultPage = () => {
                     <div style={{ fontSize: '4rem', fontWeight: 'bold', color: '#333', margin: '1rem 0' }}>
                         {totalScore}<span style={{ fontSize: '1.5rem', color: '#999' }}>점</span>
                     </div>
-                    <p style={{ color: '#666' }}>
-                        {mode === 'WORD'
-                            ? '안정적입니다 ?'
-                            : '훌륭하네요 ..'}
-                    </p>
                 </div>
             </div>
 
@@ -70,13 +70,24 @@ const LearningResultPage = () => {
                     <div className="graph-title">상세 결과</div>
                     <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                         {results.map((res, idx) => (
-                            <li key={idx} style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                padding: '1.2rem',
-                                borderBottom: idx !== results.length - 1 ? '1px solid #f0f0f0' : 'none'
-                            }}>
+                            <li key={idx}
+                                onClick={() => {
+                                    // 상세 페이지(PronunciationResultPage)로 이동해서
+                                    // 억양 그래프, AI 피드백 등 확인 가능하게
+                                    navigate('/pronunciationResult', { state: res });
+                                }}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    padding: '1.2rem',
+                                    borderBottom: idx !== results.length - 1 ? '1px solid #f0f0f0' : 'none',
+                                    cursor: 'pointer',
+                                    transition: 'background-color 0.2s'
+                                }}
+                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
+                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                            >
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                     <div style={{
                                         width: '40px', height: '40px', borderRadius: '50%',
@@ -86,10 +97,44 @@ const LearningResultPage = () => {
                                         {idx + 1}
                                     </div>
                                     <div>
-                                        <span style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#333' }}>
-                                            {res.item.word || res.item.sentence}
-                                        </span>
-                                        <div style={{ color: '#888', fontSize: '0.9rem' }}>{res.item.meaning}</div>
+                                        <div style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#333' }}>
+                                            {fixEncoding(res.item.word || res.item.sentence)}
+                                        </div>
+
+                                        {/* IPA 컬러링 피드백 */}
+                                        <div style={{ marginTop: '4px' }}>
+                                            {res.wordSegments ? (
+                                                <span style={{ fontFamily: 'monospace', fontSize: '0.9rem', background: '#f8f9fa', padding: '2px 8px', borderRadius: '4px' }}>
+
+                                                    {res.wordSegments.map((word, wIdx) => (
+                                                        <span key={wIdx}>
+                                                            {word.phonemes.map((pho, pIdx) => (
+                                                                <span
+                                                                    key={pIdx}
+                                                                    style={{
+                                                                        color: pho.isCorrect ? '#28a745' : '#dc3545',
+                                                                        fontWeight: 'bold',
+                                                                        margin: '0 1px'
+                                                                    }}
+                                                                >
+                                                                    {fixEncoding(pho.symbol)}
+                                                                </span>
+                                                            ))}
+                                                            {wIdx < res.wordSegments.length - 1 && <span>&nbsp;</span>}
+                                                        </span>
+                                                    ))}
+
+                                                </span>
+                                            ) : (
+                                                <span style={{ fontSize: '0.9rem', color: '#888' }}>
+                                                    {res.item.ipa ? `${fixEncoding(res.item.ipa)}` : ''}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <div style={{ color: '#888', fontSize: '0.9rem', marginTop: '2px' }}>
+                                            {fixEncoding(res.item.meaning)}
+                                        </div>
                                     </div>
                                 </div>
                                 <div style={{ textAlign: 'right' }}>

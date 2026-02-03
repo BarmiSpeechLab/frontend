@@ -24,40 +24,9 @@ const PronunciationPage = () => {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
-    // Windows-1252(Latin-1 Sup)로 잘못 해석된 UTF-8 복구
+    // curr.sql <- SET NAMES utf8mb4; 한 줄 넣어주니 변환 필요 X
     const fixEncoding = (str) => {
-        if (typeof str !== 'string' || !str) return str;
-
-        // 1. 이미 한글이 포함된 경우 (정상 데이터) -> 건드리지 않음
-        if (/[가-힣]/.test(str)) return str;
-
-        // Windows-1252 특수 문자 매핑 (Unicode -> Byte 0x80~0x9F)
-        const win1252Map = {
-            0x20AC: 0x80, 0x201A: 0x82, 0x0192: 0x83, 0x201E: 0x84, 0x2026: 0x85, 0x2020: 0x86, 0x2021: 0x87,
-            0x02C6: 0x88, 0x2030: 0x89, 0x0160: 0x8A, 0x2039: 0x8B, 0x0152: 0x8C, 0x017D: 0x8E,
-            0x2018: 0x91, 0x2019: 0x92, 0x201C: 0x93, 0x201D: 0x94, 0x2022: 0x95, 0x2013: 0x96, 0x2014: 0x97,
-            0x02DC: 0x98, 0x2122: 0x99, 0x0161: 0x9A, 0x203A: 0x9B, 0x0153: 0x9C, 0x017E: 0x9E, 0x0178: 0x9F
-        };
-
-        try {
-            const bytes = [];
-            for (let i = 0; i < str.length; i++) {
-                const code = str.charCodeAt(i);
-                if (code <= 255) {
-                    bytes.push(code);
-                } else if (win1252Map[code]) {
-                    bytes.push(win1252Map[code]);
-                } else {
-                    // 2. [수정됨] 범인을 찾았다! 
-                    // 255보다 큰데 매핑에도 없다? => 이건 '깨진 글자'가 아니라 '원래 비싼(IPA 등) 글자'다!
-                    // 즉, 이 문자열은 복구할 필요가 없는 정상 문자열임. 원본 반환.
-                    return str;
-                }
-            }
-            return new TextDecoder('utf-8').decode(new Uint8Array(bytes));
-        } catch (e) {
-            return str;
-        }
+        return str;
     };
 
     // meaning에서 타입 추출 (예: "AA (vowel)" -> "모음")
@@ -101,6 +70,7 @@ const PronunciationPage = () => {
             path: '/pronunciation'
         }));
 
+        // 데이터 페칭
         const fetchData = async () => {
             try {
                 // 500 에러 회피: 'ipa' 문자열 검색 대신 ID 1~40번 직접 조회 (8번 데이터 손상으로 제외)
@@ -131,6 +101,7 @@ const PronunciationPage = () => {
                 setLoading(false);
             }
         };
+
         fetchData();
     }, []);
 
@@ -174,7 +145,7 @@ const PronunciationPage = () => {
                             className="epa-card"
                             onClick={() => handleCardClick(item)}
                         >
-                            <h2 className="epa-symbol">/{item.ipa}/</h2>
+                            <h2 className="epa-symbol">{item.ipa ? item.ipa.replace(/[\/\[\]]/g, '') : ''}</h2>
                             <p className="epa-word">{item.displayText} <span className="epa-kor">{item.korPronunciation}</span></p>
 
                             <div className="epa-progress-bg">

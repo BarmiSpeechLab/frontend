@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-
+import { Mic, Square } from 'lucide-react';
 import './PronunciationPracticePage.css';
 import { submitPronunciation, checkAnalysisStatus } from '../../api/ai';
+import { convertWebMToWav } from '../../utils/audioConverter';
 
 const PronunciationPracticePage = () => {
     const location = useLocation();
@@ -83,14 +84,30 @@ const PronunciationPracticePage = () => {
     };
 
     const handleRecordingComplete = async (audioBlob) => {
-        const audioUrl = URL.createObjectURL(audioBlob);
+        // 0. WAV 변환
+        let wavBlob = audioBlob;
+        try {
+            wavBlob = await convertWebMToWav(audioBlob);
+            console.log('[Audio Format Check]');
+            console.log('Original Blob Type:', audioBlob.type);
+            console.log('Converted Blob Type:', wavBlob.type);
+            console.log('Converted Blob Size:', wavBlob.size);
+        } catch (e) {
+            console.error("WAV 변환 실패, 원본 사용:", e);
+        }
+
+        const audioUrl = URL.createObjectURL(wavBlob);
 
         // 1. 서버 전송 (저장 + 분석 요청)
         let taskId = null;
         try {
+            const formData = new FormData();
+            formData.append("file", wavBlob, `recording_${Date.now()}.wav`);
+            formData.append("curriculumId", item.id);
+
             // submitPronunciation은 taskId 문자열을 직접 반환
-            const submitRes = await submitPronunciation(audioBlob, item.id);
-            taskId = submitRes.taskId;
+            taskId = await submitPronunciation(formData);
+            console.log('[제출 성공] Task ID:', taskId);
         } catch (e) {
             console.error("서버 전송 실패:", e);
         }
@@ -210,43 +227,10 @@ const PronunciationPracticePage = () => {
         }
     };
 
-    // Windows-1252(Latin-1 Sup)로 잘못 해석된 UTF-8 복구 (PracticePage용 안전장치)
+    // Windows-1252(Latin-1 Sup)로 잘못 해석된 UTF-8 복구 (PracticePage용 안전장치) --> 삭제
+    // DB 인코딩 수정 완료로 더 이상 변환 필요 X
     const fixEncoding = (str) => {
-        if (typeof str !== 'string' || !str) return str;
-        if (/[가-힣]/.test(str)) return str;
-
-        const win1252Map = {
-            0x20AC: 0x80, 0x201A: 0x82, 0x0192: 0x83, 0x201E: 0x84, 0x2026: 0x85, 0x2020: 0x86, 0x2021: 0x87,
-            0x02C6: 0x88, 0x2030: 0x89, 0x0160: 0x8A, 0x2039: 0x8B, 0x0152: 0x8C, 0x017D: 0x8E,
-            0x2018: 0x91, 0x2019: 0x92, 0x201C: 0x93, 0x201D: 0x94, 0x2022: 0x95, 0x2013: 0x96, 0x2014: 0x97,
-            0x02DC: 0x98, 0x2122: 0x99, 0x0161: 0x9A, 0x203A: 0x9B, 0x0153: 0x9C, 0x017E: 0x9E, 0x0178: 0x9F
-        };
-
-        try {
-            const bytes = [];
-            for (let i = 0; i < str.length; i++) {
-                const code = str.charCodeAt(i);
-                if (code <= 255) {
-                    bytes.push(code);
-                } else if (win1252Map[code]) {
-                    bytes.push(win1252Map[code]);
-                } else {
-                    return str; // 정상 특수문자(IPA) 보존
-                }
-            }
-            const decoded = new TextDecoder('utf-8').decode(new Uint8Array(bytes));
-
-            // !! 중복 복구 방지 !!
-            // 복구 결과에 (REPLACEMENT CHARACTER)가 포함되어 있다면, 
-            // 멀쩡한 문자를 강제로 바이트로 취급해서 깨진 것임. (예: 'æ' -> byte 230 -> invalid utf8)
-            // 이때는 원본을 반환해야 함.
-            if (decoded.includes('\uFFFD')) {
-                return str;
-            }
-            return decoded;
-        } catch (e) {
-            return str;
-        }
+        return str;
     };
 
     return (
@@ -331,7 +315,7 @@ const PronunciationPracticePage = () => {
                     className={`record-btn-large ${isRecording ? 'recording' : ''}`}
                     onClick={handleRecordToggle}
                 >
-                    {isRecording ? '⏹' : ''}
+                    {isRecording ? <Square size={32} /> : <Mic size={32} />}
                 </button>
                 <p style={{ marginTop: '1rem', color: '#ccc' }}>
                     {isRecording ? '버튼을 눌러 종료하세요.' : '버튼을 눌러 녹음을 시작하세요.'}
