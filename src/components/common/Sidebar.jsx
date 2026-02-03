@@ -5,13 +5,19 @@ import './Sidebar.css';
 const Sidebar = () => {
     const location = useLocation();
 
-    const menuItems = [
-        { name: '홈', path: '/main' },
-        { name: '발음기호', path: '/pronunciation' },
-        { name: '학습하기', path: '/learning' },
-        { name: '튜터링', path: '/tutoring' },
-        { name: '프로필', path: '/profile' },
+    const userRole = localStorage.getItem('userRole') || 'USER';
+
+    const allmenuItems = [
+        { name: '홈', path: '/main', roles: ['USER', 'TUTOR'] },
+        { name: '발음기호', path: '/pronunciation', roles: ['USER'] },
+        { name: '학습하기', path: '/learning', roles: ['USER'] },
+        { name: '튜터링', path: '/tutoring', roles: ['USER', 'TUTOR'] },
+        { name: '일정 관리', path: '/schedule', roles: ['TUTOR'] },
+        { name: '튜티 관리', path: '/report', roles: ['TUTOR'] },
+        { name: '프로필', path: '/profile', roles: ['USER', 'TUTOR'] },
     ];
+
+    const fileteredMenuItems = allmenuItems.filter(item => item.roles.includes(userRole));
 
     return (
         <aside className="sidebar">
@@ -23,7 +29,7 @@ const Sidebar = () => {
 
             <nav className="sidebar-nav">
                 <ul className="nav-list">
-                    {menuItems.map((item) => (
+                    {fileteredMenuItems.map((item) => (
                         <li key={item.name} className="nav-item">
                             <Link
                                 to={item.path}
