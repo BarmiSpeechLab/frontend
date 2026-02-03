@@ -68,6 +68,39 @@ const PronunciationResultPage = () => {
         }
     };
 
+    // Windows-1252(Latin-1 Sup)로 잘못 해석된 UTF-8 복구 (ResultPage용 안전장치)
+    const fixEncoding = (str) => {
+        if (typeof str !== 'string' || !str) return str;
+        if (/[가-힣]/.test(str)) return str;
+
+        const win1252Map = {
+            0x20AC: 0x80, 0x201A: 0x82, 0x0192: 0x83, 0x201E: 0x84, 0x2026: 0x85, 0x2020: 0x86, 0x2021: 0x87,
+            0x02C6: 0x88, 0x2030: 0x89, 0x0160: 0x8A, 0x2039: 0x8B, 0x0152: 0x8C, 0x017D: 0x8E,
+            0x2018: 0x91, 0x2019: 0x92, 0x201C: 0x93, 0x201D: 0x94, 0x2022: 0x95, 0x2013: 0x96, 0x2014: 0x97,
+            0x02DC: 0x98, 0x2122: 0x99, 0x0161: 0x9A, 0x203A: 0x9B, 0x0153: 0x9C, 0x017E: 0x9E, 0x0178: 0x9F
+        };
+
+        try {
+            const bytes = [];
+            for (let i = 0; i < str.length; i++) {
+                const code = str.charCodeAt(i);
+                if (code <= 255) {
+                    bytes.push(code);
+                } else if (win1252Map[code]) {
+                    bytes.push(win1252Map[code]);
+                } else {
+                    return str; // 정상 특수문자(IPA) 보존
+                }
+            }
+            const decoded = new TextDecoder('utf-8').decode(new Uint8Array(bytes));
+
+            if (decoded.includes('\uFFFD')) return str;
+            return decoded;
+        } catch (e) {
+            return str;
+        }
+    };
+
     return (
         <div className="result-container">
             <div className="result-header">
@@ -83,14 +116,14 @@ const PronunciationResultPage = () => {
             {/* 학습 대상 정보 (원래 있던 곳) */}
             <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                 <h1 style={{ fontSize: '3rem', color: '#a67c00', fontWeight: 800, marginBottom: '0.5rem' }}>
-                    {item.word || item.symbol}
+                    {fixEncoding(item.word || item.symbol)}
                 </h1>
                 <p style={{ fontSize: '1.2rem', color: '#666' }}>
                     <strong>
-                        {item.ipa ? `[${item.ipa}]` : (item.pronunciation ? `[${item.pronunciation}]` : '')}
-                        {item.korPronunciation ? ` ${item.korPronunciation}` : ''}
+                        {item.ipa ? `[${fixEncoding(item.ipa)}]` : (item.pronunciation ? `[${fixEncoding(item.pronunciation)}]` : '')}
+                        {item.korPronunciation ? ` ${fixEncoding(item.korPronunciation)}` : ''}
                     </strong>
-                    <span style={{ color: '#888', fontWeight: 400 }}> {item.meaning ? `- ${item.meaning}` : ''}</span>
+                    <span style={{ color: '#888', fontWeight: 400 }}> {item.meaning ? `- ${fixEncoding(item.meaning)}` : ''}</span>
                 </p>
             </div>
 
@@ -240,8 +273,31 @@ const PronunciationResultPage = () => {
                 </div>
             </div>
 
-            {/* 4. 다음 단계 버튼 */}
-            <div className="practice-controls" style={{ marginTop: '2rem' }}>
+            {/* 4. 컨트롤 버튼 (다시하기 / 다음단계) */}
+            <div className="practice-controls" style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
+                <button
+                    className="record-btn-large"
+                    style={{
+                        flex: 1,
+                        borderRadius: '16px',
+                        fontSize: '1.2rem',
+                        height: '64px',
+                        background: '#f8f9fa',
+                        color: '#666',
+                        border: '1px solid #ddd',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        transition: 'all 0.2s'
+                    }}
+                    onClick={() => {
+                        // "다시 학습하기" -> 연습 페이지로 현재 데이터 들고 복귀
+                        navigate('/pronunciationPractice', { state: { ...item, id: item.id } }); // id 명시
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.background = '#e9ecef'}
+                    onMouseOut={(e) => e.currentTarget.style.background = '#f8f9fa'}
+                >
+                    다시 학습하기
+                </button>
                 <button
                     className="record-btn-large"
                     style={{
