@@ -12,6 +12,8 @@ import LearningPracticePage from './components/pages/LearningPracticePage';
 import LearningResultPage from './components/pages/LearningResultPage';
 import TutoringPage from './components/pages/TutoringPage';
 import TutoringLobby from './components/pages/TutoringLobby';
+import TutorSelection from './components/pages/TutorSelection';
+import ReservationPage from './components/pages/ReservationPage';
 import SchedulePage from './components/pages/SchedulePage';
 import ReportPage from './components/pages/ReportPage';
 import MainPage from './components/pages/MainPage';
@@ -39,6 +41,8 @@ function App() {
                         <Route path="/learning/result" element={<LearningResultPage />} />
                         <Route path="/tutoring" element={<TutoringLobby />} />
                         <Route path="/tutoring/:roomId" element={<TutoringPage />} />
+                        <Route path="/tutoring/reserve" element={<TutorSelection />} />
+                        <Route path="/tutoring/reserve/:tutorId" element={<ReservationPage />} />
                         <Route path="/schedule" element={<SchedulePage />} />
                         <Route path="/report" element={<ReportPage />} />
                         <Route path="/profile" element={<ProfilePage />} />
