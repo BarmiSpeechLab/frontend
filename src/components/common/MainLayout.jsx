@@ -1,21 +1,23 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
+import './MainLayout.css';
 
 const MainLayout = () => {
+    const location = useLocation();
+    const isMainPage = location.pathname === '/main';
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#fff' }}>
-            <Sidebar />
-            <main style={{
+        <>
+            {!isMainPage && <Sidebar />}
+            <main className={isMainPage ? '' : 'main-content-with-bg'} style={{
                 flex: 1,
-                marginLeft: '200px',
-                padding: '2rem 3rem',
-                backgroundColor: '#fff'
+                marginLeft: isMainPage ? 0 : '260px',
+                padding: isMainPage ? 0 : '2rem 3rem'
             }}>
                 <Outlet />
             </main>
-        </div>
+        </>
     );
 };
 
