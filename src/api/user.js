@@ -1,4 +1,4 @@
-﻿import { jwtDecode } from "jwt-decode";
+﻿
 import api from './index';
 
 /**
@@ -38,7 +38,15 @@ export const updateUserProfile = async (userData) => {
 export const getUserStats = async () => {
     console.log('[API 요청] 유저 학습 통계 조회');
     try {
-        const response = await api.get('/reports/my-stats');
+        const userId = localStorage.getItem('userId');
+        const response = await api.get('/reports/my-stats', { params: { userId } });
+
+        /**
+         * [백엔드 수정 후 아래 코드로 변경 필요]
+         * userId 파라미터 제거하고 아래와 같이 호출해야 보안상 안전
+         */
+        // const response = await api.get('/reports/my-stats');
+
         console.log('[API 응답 성공]', response.data.data);
         return response.data.data;
     } catch (error) {

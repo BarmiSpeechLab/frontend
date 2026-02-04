@@ -10,11 +10,11 @@ function LearningPage() {
     const [activeFilter, setActiveFilter] = useState('daily');
 
     const THEME_LABELS = {
-        daily: '일상',
+        daily: '기본표현(일상)', // DB: '기본표현(일상)'
         travel: '여행',
         food: '음식',
         shopping: '쇼핑',
-        business: '비즈니스'
+        business: '비즈니스 표현' // DB: '비즈니스 표현'
     };
 
     // 한글 현상 깨짐 해결 -> 깨짐 현상 없을 경우 삭제해도 됨. 코드 남아있어도 문제는 X
@@ -95,60 +95,23 @@ function LearningPage() {
 
                     console.log(`[Fetching] ${categoryName} (Words: ${wordBaseId}~${wordBaseId + 9}, Sentences: ${sentenceBaseId}~${sentenceBaseId + 9})`);
 
-                    /* 
-                     * !! 한글 깨짐 이슈 없을 시 아래 방식이 효율적
-                     * 현재는 안전한 ID 조회(Loop 방식)를 사용 중입니다.
-                     * 
-                     * // Bulk 조회 방식
-                     * const wordData = await getCurriculumList('단어', categoryName);
-                     * const sentenceData = await getCurriculumList('문장', categoryName);
-                     * 
-                     * if (wordData) {
-                     *    topicsList.push({
-                     *        id: categoryKey,
-                     *        title: categoryName,
-                     *        words: wordData.map(item => ({ ...item, displayText: parseText(item.text).word })),
-                     *        sentences: sentenceData ? sentenceData.map(item => ({ ...item, displayText: parseText(item.text).word })) : []
-                     *    });
-                     * }
-                     */
-
                     // =========================================================
-                    // ID 기반 반복 조회 (인코딩 문제 우회용)
+                    // Bulk 조회 방식 (성능 최적화됨)
                     // =========================================================
+                    const wordData = await getCurriculumList('단어', categoryName);
+                    const sentenceData = await getCurriculumList('문장', categoryName);
 
-                    // 1. 단어 데이터 가져오기 (10개)
-                    const wordPromises = [];
-                    for (let j = 0; j < ITEMS_PER_CATEGORY; j++) {
-                        wordPromises.push(getCurriculumDetail(wordBaseId + j).catch(() => null));
-                    }
-
-                    // 2. 문장 데이터 가져오기 (10개)
-                    const sentencePromises = [];
-                    for (let j = 0; j < ITEMS_PER_CATEGORY; j++) {
-                        sentencePromises.push(getCurriculumDetail(sentenceBaseId + j).catch(() => null));
-                    }
-                    // =========================================================================================
-
-                    const [wordsResults, sentencesResults] = await Promise.all([
-                        Promise.all(wordPromises),
-                        Promise.all(sentencePromises)
-                    ]);
-
-                    // null 제거 (실패한 요청 제외)
-                    const validWords = wordsResults.filter(item => item !== null);
-                    const validSentences = sentencesResults.filter(item => item !== null);
-
-                    if (validWords.length > 0 || validSentences.length > 0) {
-                        // 데이터 가공
-                        const processItems = (items) => {
+                    // 데이터가 있으면 리스트에 바로 매핑
+                    if (wordData && wordData.length > 0) {
+                        // 데이터 가공 (parseText 및 fixEncoding 적용)
+                        const processBulkItems = (items) => {
                             // 진행률 계산
-                            // isCompleted, score, tryCount가 item에 직접 포함됨
                             const completedCount = items.filter(item => item.isCompleted).length;
                             const progress = items.length > 0 ? Math.round((completedCount / items.length) * 100) : 0;
 
                             return {
                                 list: items.map(item => {
+                                    // text 필드가 JSON string이거나 객체일 수 있음
                                     const parsed = parseText(item.text);
                                     return {
                                         id: item.id,
@@ -169,17 +132,17 @@ function LearningPage() {
                             };
                         };
 
-                        const wordData = processItems(validWords);
-                        const sentenceData = processItems(validSentences);
+                        const processedWords = processBulkItems(wordData);
+                        const processedSentences = processBulkItems(sentenceData || []);
 
                         topicsList.push({
                             id: categoryKey,
                             title: categoryName,
-                            progress: Math.round((wordData.progress + sentenceData.progress) / 2),
-                            words: wordData.list,
-                            sentences: sentenceData.list,
-                            wordProgress: wordData.progress,
-                            sentenceProgress: sentenceData.progress
+                            progress: Math.round((processedWords.progress + processedSentences.progress) / 2),
+                            words: processedWords.list,
+                            sentences: processedSentences.list,
+                            wordProgress: processedWords.progress,
+                            sentenceProgress: processedSentences.progress
                         });
                     }
                 }
