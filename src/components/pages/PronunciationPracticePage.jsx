@@ -3,7 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Mic, Square } from 'lucide-react';
 import './PronunciationPracticePage.css';
 import { submitPronunciation, checkAnalysisStatus } from '../../api/ai';
-// import { convertWebMToWav } from '../../utils/audioConverter';
+import { convertWebMToWav } from '../../utils/audioConverter';
+import { getIpaImages } from '../../utils/ipaLoader';
 
 const PronunciationPracticePage = () => {
     const location = useLocation();
@@ -58,10 +59,18 @@ const PronunciationPracticePage = () => {
                 }
             };
 
-            mediaRecorderRef.current.onstop = () => {
+            mediaRecorderRef.current.onstop = async () => {
                 // 오디오 웹엠(webm) 포맷으로 전송
-                const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-                handleRecordingComplete(audioBlob);
+                const webmBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+
+                // [수정] WebM -> WAV 변환 (백엔드 호환성)
+                try {
+                    const wavBlob = await convertWebMToWav(webmBlob);
+                    handleRecordingComplete(wavBlob);
+                } catch (e) {
+                    console.error("오디오 변환 실패:", e);
+                    alert("오디오 변환 중 오류가 발생했습니다.");
+                }
 
                 // 마이크 끄기
                 stream.getTracks().forEach(track => track.stop());
@@ -139,7 +148,7 @@ const PronunciationPracticePage = () => {
                 return;
             }
 
-            if (statusRes.status === 'COMPLETED' && statusRes.result) {
+            if ((statusRes.status === 'COMPLETED' || statusRes.status === 'PROCESSING') && statusRes.result) {
                 const res = statusRes.result;
 
                 console.log('[결과 상세]', {
@@ -222,11 +231,14 @@ const PronunciationPracticePage = () => {
         }
     };
 
-    // Windows-1252(Latin-1 Sup)로 잘못 해석된 UTF-8 복구 (PracticePage용 안전장치) --> 삭제
-    // DB 인코딩 수정 완료로 더 이상 변환 필요 X
+    // Windows-1252(Latin-1 Sup)로 잘못 해석된 UTF-8 복구 (PracticePage용 안전장치) 
     const fixEncoding = (str) => {
         return str;
     };
+
+    // [New] 로컬 에셋 매핑 (ID 기반)
+    // DB의 item.id와 폴더명의 숫자(예: 1_ɑ)가 일치한다고 가정
+    const { mouth: localMouth, tongue: localTongue } = getIpaImages(item.id);
 
     return (
         <div className="practice-container">
@@ -283,12 +295,12 @@ const PronunciationPracticePage = () => {
                     }
                 </div>
 
-                {/* 3. 조음 위치 가이드 */}
+                {/* 3. 조음 위치 가이드 (로컬 이미지 우선) */}
                 <div className="visual-box">
                     <div className="visual-label">조음 위치</div>
                     {
-                        item.tonguePositionUrl ? (
-                            <img src={item.tonguePositionUrl} alt="조음 위치" style={{ width: '100%', height: '80%', objectFit: 'contain' }} />
+                        (localTongue || item.tonguePositionUrl) ? (
+                            <img src={localTongue || item.tonguePositionUrl} alt="조음 위치" style={{ width: '100%', height: '80%', objectFit: 'contain' }} />
                         ) : (
                             <div style={{ fontSize: '3rem', opacity: 0.3 }}>-</div>
                         )
