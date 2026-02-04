@@ -18,6 +18,7 @@ import SchedulePage from './components/pages/SchedulePage';
 import ReportPage from './components/pages/ReportPage';
 import MainPage from './components/pages/MainPage';
 import ProfilePage from './components/pages/ProfilePage';
+import ConversationPage from './components/pages/ConversationPage';
 
 function App() {
     return (
@@ -46,6 +47,7 @@ function App() {
                         <Route path="/schedule" element={<SchedulePage />} />
                         <Route path="/report" element={<ReportPage />} />
                         <Route path="/profile" element={<ProfilePage />} />
+                        <Route path="/conversation" element={<ConversationPage />} />
                     </Route>
                 </Route>
 

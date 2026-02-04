@@ -38,6 +38,11 @@ const LoginPage = () => {
                 console.log('sub ID:', decoded.sub);
                 console.log('sub 값 데이터 타입:', typeof decoded.sub);
 
+                // [Workaround] 500 에러 해결을 위해 ID 저장
+                if (decoded.sub) {
+                    localStorage.setItem('userId', decoded.sub);
+                }
+
                 if (decoded && decoded.auth) {
                     const role = decoded.auth.includes('TUTOR') ? 'TUTOR' : 'USER';
                     localStorage.setItem('userRole', role);

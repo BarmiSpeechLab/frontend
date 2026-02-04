@@ -46,6 +46,7 @@ const MainPage = () => {
             localStorage.removeItem('accessToken');
             localStorage.removeItem('userEmail');
             localStorage.removeItem('userRole');
+            localStorage.removeItem('userId'); // 추가된 userId도 삭제
             navigate('/login');
         }
     };
