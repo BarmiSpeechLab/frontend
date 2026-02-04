@@ -34,21 +34,6 @@ export const createSession = async (sessionId) => {
  * @returns {Promise<string>} - 암호화된 입장 토큰
  */
 export const createToken = async (sessionId) => {
-    try {
-        const response = await axios.post(`${BACKEND_URL}api/meetings/sessions/${sessionId}/connections`, {});
-        const raw = response.data.data.token;
-
-        // raw가 ws://...&token=tok_xxx 형태면 token만 추출
-        if (typeof raw === "string" && raw.startsWith("ws")) {
-            const url = new URL(raw.replace(/^ws/, "http")); // ws -> http 로 파싱 가능하게
-            const tok = url.searchParams.get("token");
-            if (tok) return tok;
-        }
-
-        // 이미 tok_xxx만 내려오면 그대로 사용
-        return raw;
-    } catch (error) {
-        console.error("토큰 발급 실패:", error);
-        throw error;
-    }
+    const response = await axios.post(`/api/meetings/sessions/${sessionId}/connections`, {});
+    return response.data.data.token; // 가공하지 말고 그대로 반환
 };
