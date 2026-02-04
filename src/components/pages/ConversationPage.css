@@ -1,0 +1,224 @@
+/* ConversationPage.css */
+
+/* 전체 컨테이너 */
+.conversation-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* 화면 전체 높이 사용 */
+    background-color: #f5f7fa; /* 연한 회색 배경 */
+    position: relative;
+    max-width: 600px; /* 모바일 뷰 처럼 제한 (선택사항) */
+    margin: 0 auto;
+    border-left: 1px solid #eee;
+    border-right: 1px solid #eee;
+}
+
+/* 1. 상단 주제 탭 */
+.theme-header {
+    background: #fff;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    z-index: 10;
+}
+
+.theme-scroll {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto; /* 가로 스크롤 */
+    padding-bottom: 5px;
+    -ms-overflow-style: none; /* 스크롤바 숨기기 (IE) */
+    scrollbar-width: none; /* 스크롤바 숨기기 (Firefox) */
+}
+.theme-scroll::-webkit-scrollbar {
+    display: none; /* 스크롤바 숨기기 (Chrome) */
+}
+
+.theme-chip {
+    white-space: nowrap;
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid #ddd;
+    background: #fff;
+    color: #555;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.theme-chip.active {
+    background-color: #FFD700; /* 바르미 메인 컬러 (골드) */
+    color: #fff;
+    font-weight: bold;
+    border-color: #FFD700;
+    box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+}
+
+/* 2. 채팅 영역 */
+.chat-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.message-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    max-width: 100%;
+}
+
+.ai-row {
+    justify-content: flex-start;
+}
+
+.user-row {
+    justify-content: flex-end;
+}
+
+.ai-avatar {
+    width: 36px;
+    height: 36px;
+    background: #eee;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+/* 말풍선 공통 */
+.bubble {
+    max-width: 75%;
+    padding: 12px 16px;
+    border-radius: 16px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    word-break: keep-all;
+    position: relative;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* 유저 말풍선 (STT 결과) */
+.bubble.USER {
+    background-color: #FFD700;
+    color: #333;
+    border-bottom-right-radius: 4px;
+    font-weight: 500;
+}
+
+/* AI 일반 말풍선 (다음 턴 질문 등) */
+.bubble.AI {
+    background-color: #fff;
+    color: #333;
+    border-bottom-left-radius: 4px;
+}
+
+/* AI 피드백 말풍선 (강조) */
+.bubble.AI_FEEDBACK {
+    background-color: #E3F2FD; /* 연한 파랑 */
+    color: #1565C0;
+    border: 1px solid #BBDEFB;
+    border-bottom-left-radius: 4px;
+}
+
+.feedback-label {
+    font-size: 0.75rem;
+    font-weight: bold;
+    margin-bottom: 4px;
+    color: #1976D2;
+}
+
+.bubble.processing {
+    color: #888;
+    background: #f0f0f0;
+}
+
+/* 3. 하단 컨트롤 바 */
+.control-bar {
+    background: #fff;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    border-top: 1px solid #eee;
+}
+
+.mic-button {
+    width: 100%;
+    max-width: 300px;
+    padding: 15px;
+    border-radius: 50px;
+    border: none;
+    background: #333;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.mic-button.recording {
+    background: #ff4444; /* 녹음 중일 때 빨간색 */
+    animation: pulse 1.5s infinite;
+}
+
+.mic-button.disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
+}
+
+/* 기존 CSS 아래에 추가 */
+
+/* 초기 안내 문구 (빈 화면) */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #888;
+    text-align: center;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.empty-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    animation: bounce 2s infinite;
+}
+
+.empty-state h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #555;
+    margin-bottom: 8px;
+}
+
+.empty-state p {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #aaa;
+}
+
+/* 손가락 아이콘 위아래 둥둥 애니메이션 */
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+    40% {transform: translateY(-10px);}
+    60% {transform: translateY(-5px);}
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
