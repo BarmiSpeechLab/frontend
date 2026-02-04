@@ -11,6 +11,7 @@ const Sidebar = () => {
         { name: '홈', path: '/main', roles: ['USER', 'TUTOR'] },
         { name: '발음기호', path: '/pronunciation', roles: ['USER'] },
         { name: '학습하기', path: '/learning', roles: ['USER'] },
+        { name: '회화 연습', path: '/conversation', roles: ['USER'] },
         { name: '튜터링', path: '/tutoring', roles: ['USER', 'TUTOR'] },
         { name: '일정 관리', path: '/schedule', roles: ['TUTOR'] },
         { name: '튜티 관리', path: '/report', roles: ['TUTOR'] },
