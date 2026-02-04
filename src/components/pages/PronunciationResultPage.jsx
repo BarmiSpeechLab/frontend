@@ -25,8 +25,7 @@ const PronunciationResultPage = () => {
         }
     }, [resultData.grade]);
 
-    // 억양 그래프 (임시)
-    // 억양 그래프 그리기 (실제 데이터 연동)
+    // 억양 그래프 그리기 (실제 데이터)
     useEffect(() => {
         const drawGraph = (canvas) => {
             if (!canvas) return;
@@ -37,7 +36,7 @@ const PronunciationResultPage = () => {
             // 캔버스 초기화
             ctx.clearRect(0, 0, width, height);
 
-            // 데이터가 없으면 중단
+            // 데이터 없으면 중단
             const stdPitch = resultData.standardPitch || [];
             const usrPitch = resultData.userPitch || [];
 
@@ -126,12 +125,12 @@ const PronunciationResultPage = () => {
                 <p style={{ fontSize: '1.2rem', color: '#666' }}>
                     <strong>
                         {/* 1. 분석 결과가 있으면 컬러풀한 IPA 표시 */}
-                        {resultData.wordSegments ? (
+                        {Array.isArray(resultData.wordSegments) && resultData.wordSegments.length > 0 ? (
                             <span style={{ fontFamily: 'monospace', fontSize: '1.4rem', background: '#f8f9fa', padding: '4px 12px', borderRadius: '8px' }}>
 
                                 {resultData.wordSegments.map((word, wIdx) => (
                                     <span key={wIdx}>
-                                        {word.phonemes.map((pho, pIdx) => (
+                                        {word.phonemes && Array.isArray(word.phonemes) && word.phonemes.map((pho, pIdx) => (
                                             <span
                                                 key={pIdx}
                                                 style={{
@@ -184,10 +183,10 @@ const PronunciationResultPage = () => {
 
                     {/* 발음 기호 */}
                     <div className="phoneme-analysis" style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
-                        {resultData.wordSegments ? resultData.wordSegments.map((word, wIdx) => (
+                        {Array.isArray(resultData.wordSegments) ? resultData.wordSegments.map((word, wIdx) => (
                             <div key={wIdx} className="word-block" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                 <div className="phoneme-row" style={{ display: 'flex', gap: '2px' }}>
-                                    {word.phonemes.map((pho, pIdx) => (
+                                    {word.phonemes && Array.isArray(word.phonemes) && word.phonemes.map((pho, pIdx) => (
                                         <div
                                             key={pIdx}
                                             style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}

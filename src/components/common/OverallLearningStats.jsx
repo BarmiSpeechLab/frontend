@@ -14,7 +14,7 @@ const OverallLearningStats = ({ stats }) => {
     const items = [
         { label: '총 학습 일수', value: `${totalStudyDays}일` },
         { label: '총 발음 시도', value: `${totalTryCount}회` },
-        { label: '평균 점수', value: `${averageScore}점` }
+        { label: '최고 점수', value: `${averageScore}점` }
     ];
 
     return (
