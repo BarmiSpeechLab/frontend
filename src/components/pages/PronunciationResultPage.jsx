@@ -26,36 +26,68 @@ const PronunciationResultPage = () => {
     }, [resultData.grade]);
 
     // 억양 그래프 (임시)
+    // 억양 그래프 그리기 (실제 데이터 연동)
     useEffect(() => {
-        const drawGraph = (canvas, isWaveform) => {
+        const drawGraph = (canvas) => {
             if (!canvas) return;
             const ctx = canvas.getContext('2d');
             const width = canvas.width;
             const height = canvas.height;
 
-            // 1. 표준 그래프
-            ctx.beginPath();
-            ctx.strokeStyle = '#e24a4aff';
-            ctx.lineWidth = 3;
-            ctx.moveTo(0, height / 2);
-            for (let i = 0; i < width; i++) {
-                ctx.lineTo(i, height / 2 + Math.sin(i * 0.05) * 40);
-            }
-            ctx.stroke();
+            // 캔버스 초기화
+            ctx.clearRect(0, 0, width, height);
 
-            // 2. 유저 그래프
-            ctx.beginPath();
-            ctx.strokeStyle = '#00ff22ff';
-            ctx.lineWidth = 3;
-            ctx.moveTo(0, height / 2);
-            for (let i = 0; i < width; i++) {
-                ctx.lineTo(i, height / 2 + Math.sin(i * 0.05 + 0.2) * 35);
-            }
-            ctx.stroke();
+            // 데이터가 없으면 중단
+            const stdPitch = resultData.standardPitch || [];
+            const usrPitch = resultData.userPitch || [];
+
+            if (stdPitch.length === 0 && usrPitch.length === 0) return;
+
+            // Y축 정규화를 위한 최대/최소값 계산 (여유분 10%)
+            const allValues = [...stdPitch, ...usrPitch].filter(v => v > 0); // 0(무음) 제외
+            if (allValues.length === 0) return;
+
+            const minVal = Math.min(...allValues) * 0.9;
+            const maxVal = Math.max(...allValues) * 1.1;
+            const range = maxVal - minVal || 1; // 0나누기 방지
+
+            // 헬퍼: 값 -> Y좌표 변환 (Canvas는 상단이 0이므로 반전)
+            const getY = (val) => {
+                if (val <= 0) return height; // 무음은 바닥에
+                return height - ((val - minVal) / range) * height;
+            };
+
+            // 헬퍼: 그래프 그리기 함수
+            const drawLine = (data, color) => {
+                if (!data || data.length === 0) return;
+
+                ctx.beginPath();
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+
+                const stepX = width / (data.length - 1 || 1);
+
+                data.forEach((val, idx) => {
+                    const x = idx * stepX;
+                    const y = getY(val);
+
+                    if (idx === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+            };
+
+            // 1. 표준 그래프 (빨강)
+            drawLine(stdPitch, '#e24a4aff');
+
+            // 2. 유저 그래프 (초록)
+            drawLine(usrPitch, '#00ff22ff');
         };
 
-        drawGraph(canvasRef.current, false);
-    }, []);
+        drawGraph(canvasRef.current);
+    }, [resultData]);
 
     const handlePlayWord = (word) => {
         if (resultData.userAudioUrl) {

@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Mic, Square } from 'lucide-react';
 import './PronunciationPracticePage.css';
 import { submitPronunciation, checkAnalysisStatus } from '../../api/ai';
+import { convertWebMToWav } from '../../utils/audioConverter';
 
 const PronunciationPracticePage = () => {
     const location = useLocation();
@@ -100,12 +101,9 @@ const PronunciationPracticePage = () => {
         // 1. 서버 전송 (저장 + 분석 요청)
         let taskId = null;
         try {
-            const formData = new FormData();
-            formData.append("file", wavBlob, `recording_${Date.now()}.wav`);
-            formData.append("curriculumId", item.id);
-
-            // submitPronunciation은 taskId 문자열을 직접 반환
-            taskId = await submitPronunciation(formData);
+            // submitPronunciation은 { taskId: "..." } 형태의 객체를 반환합니다.
+            const response = await submitPronunciation(wavBlob, item.id);
+            taskId = response.taskId;
             console.log('[제출 성공] Task ID:', taskId);
         } catch (e) {
             console.error("서버 전송 실패:", e);
