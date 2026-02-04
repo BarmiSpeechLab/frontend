@@ -162,6 +162,7 @@ const SignUpPage = () => {
                         하지만 사용자가 배경을 보고싶을 수 있으니 닫기는 X버튼이나 라우팅으로.
                     */}
                     <div className="login-modal" onClick={(e) => e.stopPropagation()}>
+                        <button className="close-btn" onClick={() => navigate('/login')}>✕</button>
 
                         <div className="modal-title-area">
                             <span className="modal-logo">바르미</span>

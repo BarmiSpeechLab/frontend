@@ -142,7 +142,7 @@ const LoginPage = () => {
             {/* 섹션 2: 청각장애인을 위한 학습 */}
             <section className="section feature-section reverse" ref={addToRefs}>
                 <div className="feature-img-wrapper anim-target delay-1">
-                    <img src={login2} alt="Pronunciation" className="feature-img" />
+                    <img src={login3} alt="Pronunciation" className="feature-img" />
                 </div>
                 <div className="feature-text anim-target delay-2">
                     <h2 className="feature-title">청각장애인을 위해</h2>
@@ -157,7 +157,7 @@ const LoginPage = () => {
             {/* 섹션 3: 발음 교정 */}
             <section className="section feature-section" ref={addToRefs}>
                 <div className="feature-img-wrapper anim-target delay-1">
-                    <img src={login3} alt="Accessibility" className="feature-img" />
+                    <img src={login2} alt="Accessibility" className="feature-img" />
                 </div>
                 <div className="feature-text anim-target delay-2">
                     <h2 className="feature-title">정확한 입모양 교정</h2>
