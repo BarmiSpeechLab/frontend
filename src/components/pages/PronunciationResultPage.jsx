@@ -68,6 +68,12 @@ const PronunciationResultPage = () => {
         }
     };
 
+    // Windows-1252(Latin-1 Sup)로 잘못 해석된 UTF-8 복구 (ResultPage용 안전장치) --> 삭제
+    // DB 인코딩 수정 완료로 더 이상 변환 필요 X
+    const fixEncoding = (str) => {
+        return str;
+    };
+
     return (
         <div className="result-container">
             <div className="result-header">
@@ -83,14 +89,43 @@ const PronunciationResultPage = () => {
             {/* 학습 대상 정보 (원래 있던 곳) */}
             <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                 <h1 style={{ fontSize: '3rem', color: '#a67c00', fontWeight: 800, marginBottom: '0.5rem' }}>
-                    {item.word || item.symbol}
+                    {fixEncoding(item.word || item.symbol)}
                 </h1>
                 <p style={{ fontSize: '1.2rem', color: '#666' }}>
                     <strong>
-                        {item.ipa ? `[${item.ipa}]` : (item.pronunciation ? `[${item.pronunciation}]` : '')}
-                        {item.korPronunciation ? ` ${item.korPronunciation}` : ''}
+                        {/* 1. 분석 결과가 있으면 컬러풀한 IPA 표시 */}
+                        {resultData.wordSegments ? (
+                            <span style={{ fontFamily: 'monospace', fontSize: '1.4rem', background: '#f8f9fa', padding: '4px 12px', borderRadius: '8px' }}>
+
+                                {resultData.wordSegments.map((word, wIdx) => (
+                                    <span key={wIdx}>
+                                        {word.phonemes.map((pho, pIdx) => (
+                                            <span
+                                                key={pIdx}
+                                                style={{
+                                                    color: pho.isCorrect ? '#28a745' : '#dc3545', // Green vs Red (Bootstrapy colors)
+                                                    fontWeight: 'bold',
+                                                    margin: '0 1px'
+                                                }}
+                                            >
+                                                {fixEncoding(pho.symbol)}
+                                            </span>
+                                        ))}
+                                        {wIdx < resultData.wordSegments.length - 1 && <span>&nbsp;</span>}
+                                    </span>
+                                ))}
+
+                            </span>
+                        ) : (
+                            // 2. 결과 없으면 기존 텍스트 표시
+                            <span>
+                                {item.ipa ? `${fixEncoding(item.ipa)}` : (item.pronunciation ? `${fixEncoding(item.pronunciation)}` : '')}
+                            </span>
+                        )}
+
+                        {item.korPronunciation ? <span style={{ color: '#333' }}>{fixEncoding(item.korPronunciation)}</span> : ''}
                     </strong>
-                    <span style={{ color: '#888', fontWeight: 400 }}> {item.meaning ? `- ${item.meaning}` : ''}</span>
+                    <span style={{ color: '#888', fontWeight: 400 }}> {item.meaning ? `- ${fixEncoding(item.meaning)}` : ''}</span>
                 </p>
             </div>
 
@@ -240,22 +275,54 @@ const PronunciationResultPage = () => {
                 </div>
             </div>
 
-            {/* 4. 다음 단계 버튼 */}
-            <div className="practice-controls" style={{ marginTop: '2rem' }}>
+            {/* 4. 컨트롤 버튼 (다시하기 / 다음단계) */}
+            <div className="practice-controls" style={{ marginTop: '3rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
                 <button
                     className="record-btn-large"
                     style={{
+                        flex: 1,
+                        maxWidth: '280px', // 너무 늘어나지 않게 제한
                         borderRadius: '16px',
-                        width: '100%',
                         fontSize: '1.2rem',
-                        height: '64px',
+                        height: '60px',
+                        background: '#f1f3f5',
+                        color: '#495057',
+                        border: '1px solid #dee2e6',
+                        cursor: 'pointer',
+                        fontWeight: '700',
+                        transition: 'all 0.2s',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.05)'
+                    }}
+                    onClick={() => {
+                        // "다시 학습하기"
+                        navigate('/pronunciationPractice', { state: { ...item, id: item.id } });
+                    }}
+                    onMouseOver={(e) => {
+                        e.currentTarget.style.background = '#e9ecef';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                    }}
+                    onMouseOut={(e) => {
+                        e.currentTarget.style.background = '#f1f3f5';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                >
+                    ↺ 다시 학습하기
+                </button>
+                <button
+                    className="record-btn-large"
+                    style={{
+                        flex: 1,
+                        maxWidth: '280px',
+                        borderRadius: '16px',
+                        fontSize: '1.2rem',
+                        height: '60px',
                         background: '#a67c00',
                         color: '#fff',
                         border: 'none',
                         boxShadow: '0 4px 12px rgba(166, 124, 0, 0.3)',
                         cursor: 'pointer',
-                        transition: 'transform 0.2s, box-shadow 0.2s',
-                        fontWeight: 'bold'
+                        fontWeight: '700',
+                        transition: 'all 0.2s'
                     }}
                     onMouseOver={(e) => {
                         e.currentTarget.style.transform = 'translateY(-2px)';
@@ -271,11 +338,11 @@ const PronunciationResultPage = () => {
                             navigate('/pronunciationPractice', {
                                 state: {
                                     ...item.examples[0],
-                                    id: item.id, // 부모 단어 ID 유지 (분석용)
+                                    id: item.id,
                                     symbol: item.examples[0].ex_text,
                                     word: item.examples[0].ex_text,
                                     meaning: item.examples[0].ex_mean,
-                                    itemType: 'example', // 타입 변경
+                                    itemType: 'example',
                                     allExamples: item.examples,
                                     currentIndex: 0,
                                     returnPath: '/learning'
@@ -286,7 +353,6 @@ const PronunciationResultPage = () => {
                         else if (item.itemType === 'example') {
                             const nextIdx = (item.currentIndex || 0) + 1;
                             if (item.allExamples && nextIdx < item.allExamples.length) {
-                                // 다음 예시로
                                 navigate('/pronunciationPractice', {
                                     state: {
                                         ...item.allExamples[nextIdx],
@@ -301,11 +367,10 @@ const PronunciationResultPage = () => {
                                     }
                                 });
                             } else {
-                                // 예시 끝 -> 주제 선택으로
                                 navigate('/learning');
                             }
                         }
-                        // 3. 그 외 (문장 카드 등, 혹은 예시 끝) -> 종료
+                        // 3. 그 외 -> 종료
                         else {
                             // IPA 학습이었다면 발음기호 목록으로 이동
                             if (item.ipa && !item.itemType) { // itemType이 없는 경우(IPA 단독 학습) 등 체크

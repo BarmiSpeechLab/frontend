@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-
-
+import { Mic, Square } from 'lucide-react';
 import './PronunciationPracticePage.css';
 import { submitPronunciation, checkAnalysisStatus } from '../../api/ai';
+// import { convertWebMToWav } from '../../utils/audioConverter';
 
 const PronunciationPracticePage = () => {
     const location = useLocation();
@@ -84,14 +84,17 @@ const PronunciationPracticePage = () => {
     };
 
     const handleRecordingComplete = async (audioBlob) => {
+        console.log('[Audio Blob]', audioBlob.type, audioBlob.size);
+
         const audioUrl = URL.createObjectURL(audioBlob);
 
         // 1. 서버 전송 (저장 + 분석 요청)
         let taskId = null;
         try {
-            // submitPronunciation은 taskId 문자열을 직접 반환
-            const submitRes = await submitPronunciation(audioBlob, item.id);
-            taskId = submitRes.taskId;
+            // submitPronunciation이 { taskId } 객체를 반환
+            const response = await submitPronunciation(audioBlob, item.id);
+            taskId = response.taskId;  // ✅ 객체에서 taskId 추출
+            console.log('[제출 성공] Task ID:', taskId);
         } catch (e) {
             console.error("서버 전송 실패:", e);
         }
@@ -112,7 +115,7 @@ const PronunciationPracticePage = () => {
             feedback: null
         };
 
-        let hasNavigated = false;
+        let hasNavigated = false;  // 중복 네비게이션 방지
 
         const pollInterval = setInterval(async () => {
             if (hasNavigated) {
@@ -127,6 +130,14 @@ const PronunciationPracticePage = () => {
                 hasResult: !!statusRes.result,
                 result: statusRes.result
             });
+
+            // ERROR 상태: 폴링 중단
+            if (statusRes.status === 'ERROR') {
+                console.error('[분석 에러] 서버에서 에러 반환');
+                clearInterval(pollInterval);
+                alert('분석 중 오류가 발생했습니다.');
+                return;
+            }
 
             if (statusRes.status === 'COMPLETED' && statusRes.result) {
                 const res = statusRes.result;
@@ -200,7 +211,7 @@ const PronunciationPracticePage = () => {
             clearInterval(pollInterval);
             console.warn('[타임아웃] 분석 응답 시간 초과');
             alert('분석 시간이 초과되었습니다. 다시 시도해주세요.');
-        }, 30000);
+        }, 3000000);
     };
 
     const handleRecordToggle = () => {
@@ -211,20 +222,26 @@ const PronunciationPracticePage = () => {
         }
     };
 
+    // Windows-1252(Latin-1 Sup)로 잘못 해석된 UTF-8 복구 (PracticePage용 안전장치) --> 삭제
+    // DB 인코딩 수정 완료로 더 이상 변환 필요 X
+    const fixEncoding = (str) => {
+        return str;
+    };
+
     return (
         <div
             className="practice-container"
         >
             <div className="practice-header">
                 <h1 className="practice-title">
-                    {item.word || item.symbol}
+                    {fixEncoding(item.word || item.symbol)}
                 </h1>
                 <p className="practice-subtitle" style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>
                     <strong>
-                        {item.ipa ? `[${item.ipa}]` : (item.pronunciation ? `[${item.pronunciation}]` : '')}
-                        {item.korPronunciation ? ` ${item.korPronunciation}` : ''}
+                        {item.ipa ? `[${fixEncoding(item.ipa)}]` : (item.pronunciation ? `[${fixEncoding(item.pronunciation)}]` : '')}
+                        {item.korPronunciation ? ` ${fixEncoding(item.korPronunciation)}` : ''}
                     </strong>
-                    <span style={{ color: '#888', fontWeight: 400 }}> {item.meaning ? `- ${item.meaning}` : ''}</span>
+                    <span style={{ color: '#888', fontWeight: 400 }}> {item.meaning ? `- ${fixEncoding(item.meaning)}` : ''}</span>
                 </p>
 
                 {/* IPA 예시 단어 표시 (IPA 타입일 때만 노출) */}
@@ -232,8 +249,8 @@ const PronunciationPracticePage = () => {
                     <div style={{ marginTop: '1rem', background: '#f5f5f5', padding: '0.8rem', borderRadius: '8px', display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
                         {item.examples.map((ex, idx) => (
                             <div key={idx} style={{ fontSize: '1rem', color: '#555' }}>
-                                <span style={{ fontWeight: 'bold', color: '#a67c00' }}>{ex.ex_text}</span>
-                                <span style={{ marginLeft: '6px', color: '#777' }}>{ex.ex_mean}</span>
+                                <span style={{ fontWeight: 'bold', color: '#a67c00' }}>{fixEncoding(ex.ex_text)}</span>
+                                <span style={{ marginLeft: '6px', color: '#777' }}>{fixEncoding(ex.ex_mean)}</span>
                             </div>
                         ))}
                     </div>
@@ -293,7 +310,7 @@ const PronunciationPracticePage = () => {
                     className={`record-btn-large ${isRecording ? 'recording' : ''}`}
                     onClick={handleRecordToggle}
                 >
-                    {isRecording ? '⏹' : ''}
+                    {isRecording ? <Square size={32} /> : <Mic size={32} />}
                 </button>
                 <p style={{ marginTop: '1rem', color: '#ccc' }}>
                     {isRecording ? '버튼을 눌러 종료하세요.' : '버튼을 눌러 녹음을 시작하세요.'}
