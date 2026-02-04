@@ -7,6 +7,7 @@ import UserVideoComponent from '../common/UserVideoComponent';
 import './TutoringPage.css';
 
 const TutoringPage = () => {
+    const BYPASS_JOIN = import.meta.env.VITE_TEST_BYPASS_JOIN === 'true';
     const { roomId } = useParams();
     const navigate = useNavigate();
     
@@ -42,15 +43,19 @@ const TutoringPage = () => {
     // 실제 API 호출로 사용자 정보 가져오기
     useEffect(() => {
         const token = localStorage.getItem('accessToken');
-        if (!token) {
+        const storedRole = localStorage.getItem('userRole') || ROLE.STUDENT;
+        const fallbackNickname = `guest-${(roomId || 'room').slice(0, 6)}`;
+        const storedNickname = localStorage.getItem('userNickname') || fallbackNickname;
+
+        if (!token && !BYPASS_JOIN) {
             alert('로그인이 필요합니다.');
             navigate('/login');
             return;
         }
 
-        const storedRole = localStorage.getItem('userRole');
-        const storedNickname = localStorage.getItem('userNickname');
-
+        if (!token && BYPASS_JOIN) {
+            console.warn('[TEST_BYPASS_JOIN] 토큰 없이 테스트 입장을 진행합니다.');
+        }
         console.log(`로컬 정보로 입장: ${storedNickname} / ${storedRole}`);
 
         setCurrentMember({
@@ -58,7 +63,7 @@ const TutoringPage = () => {
             role: storedRole
         });
 
-    }, [navigate]);
+    }, [navigate, roomId, BYPASS_JOIN]);
 
     // 방 입장 로직 (currentMember 준비되면 실행)
     useEffect(() => {

@@ -12,7 +12,7 @@ const BACKEND_URL = '/';
 export const createSession = async (sessionId) => {
     try {
         // 백엔드에 세션 생성 요청
-        const response = await axios.post(`${BACKEND_URL}api/meetings/sessions`, { 
+        const response = await axios.post(`${BACKEND_URL}api/meetings/sessions`, {
             customSessionId: sessionId,
         });
 
@@ -35,11 +35,18 @@ export const createSession = async (sessionId) => {
  */
 export const createToken = async (sessionId) => {
     try {
-        // 백엔드에 토큰 발급 요청
         const response = await axios.post(`${BACKEND_URL}api/meetings/sessions/${sessionId}/connections`, {});
+        const raw = response.data.data.token;
 
-        // 성공 시 토큰 반환
-        return response.data.data.token;
+        // raw가 ws://...&token=tok_xxx 형태면 token만 추출
+        if (typeof raw === "string" && raw.startsWith("ws")) {
+            const url = new URL(raw.replace(/^ws/, "http")); // ws -> http 로 파싱 가능하게
+            const tok = url.searchParams.get("token");
+            if (tok) return tok;
+        }
+
+        // 이미 tok_xxx만 내려오면 그대로 사용
+        return raw;
     } catch (error) {
         console.error("토큰 발급 실패:", error);
         throw error;

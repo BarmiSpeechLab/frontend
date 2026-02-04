@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './TutoringLobby.css';
 
 const TutoringLobby = () => {
+    const BYPASS_JOIN = import.meta.env.VITE_TEST_BYPASS_JOIN === 'true';
     const navigate = useNavigate();
     const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -51,11 +52,18 @@ const TutoringLobby = () => {
 
     // 5분 전 입장 체크
     const isClassTime = (dateStr, timeStr) => {
+        if (BYPASS_JOIN) return true;
         const classStart = new Date(`${dateStr}T${timeStr}:00`);
         // 수업 시작 5분 전부터 입장 허용
         const entryStart = new Date(classStart.getTime() - 5 * 60 * 1000);
         // 현재 시간이 입장 가능 시간보다 지났는지 확인
         return currentTime >= entryStart;
+    };
+
+    const handleQuickJoin = () => {
+        const now = new Date();
+        const roomId = btoa(`quick_${now.toISOString()}`);
+        navigate(`/tutoring/${roomId}`);
     };
 
     // 입장 버튼 클릭
@@ -104,6 +112,11 @@ const TutoringLobby = () => {
             <section className="appointment-section">
                 {/* 제목은 일정 위에만 존재 */}
                 <h2 className="section-title">📅 나의 수업 일정</h2>
+                {BYPASS_JOIN && (
+                    <button className="more-btn" onClick={handleQuickJoin}>
+                        방 바로 입장 &gt;
+                    </button>
+                )}
                 
                 <div className="appointment-list">
                     {mockAppointments.map((appt) => {
@@ -120,10 +133,10 @@ const TutoringLobby = () => {
                                 <div className="card-action">
                                     <button
                                         onClick={() => handleJoin(appt)}
-                                        disabled={!available} 
+                                        disabled={BYPASS_JOIN ? false : !available}
                                         className={`join-btn ${available ? 'active' : 'disabled'}`}
                                     >
-                                        {available ? '입장하기' : '수업 5분 전 입장 가능'}
+                                        {available || BYPASS_JOIN ? '입장하기' : '수업 5분 전 입장 가능'}
                                     </button>
                                 </div>
                             </div>
