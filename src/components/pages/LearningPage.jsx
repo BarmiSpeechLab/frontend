@@ -10,11 +10,11 @@ function LearningPage() {
     const [activeFilter, setActiveFilter] = useState('daily');
 
     const THEME_LABELS = {
-        daily: '일상',
+        daily: '기본표현(일상)', // DB: '기본표현(일상)'
         travel: '여행',
         food: '음식',
         shopping: '쇼핑',
-        business: '비즈니스'
+        business: '비즈니스 표현' // DB: '비즈니스 표현'
     };
 
     // 한글 현상 깨짐 해결 -> 깨짐 현상 없을 경우 삭제해도 됨. 코드 남아있어도 문제는 X

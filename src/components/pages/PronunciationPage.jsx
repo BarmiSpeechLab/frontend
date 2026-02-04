@@ -73,7 +73,7 @@ const PronunciationPage = () => {
         // 데이터 페칭
         const fetchData = async () => {
             try {
-                // 500 에러 회피: 'ipa' 문자열 검색 대신 ID 1~40번 직접 조회 (8번 데이터 손상으로 제외)
+                // 500 에러 회피: 'ipa' 문자열 검색 대신 ID 1~40번 직접 조회
                 const ids = Array.from({ length: 40 }, (_, i) => i + 1).filter(id => id !== 8);
                 const promises = ids.map(id => getCurriculumDetail(id).catch(() => null));
                 const results = await Promise.all(promises);

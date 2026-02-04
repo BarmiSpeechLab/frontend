@@ -66,7 +66,7 @@ const mapIpaRadarData = (raw = {}) => {
         // 깨진 키를 정상 한글로 복구
         let normalizedType = koreanKeyMap[rawType] || String(rawType || '').trim().toLowerCase();
         const categoryKey = TYPE_TO_CATEGORY[normalizedType] || normalizedType;
-        
+
         if (!categoryKey || !symbols || typeof symbols !== 'object') return;
 
         let totalCount = 0;
@@ -169,7 +169,7 @@ const MainPage = () => {
                 // 현재 달과 이전 달 데이터 합치기
                 const allLogs = [...prevMonthLogs, ...calendarLogs];
                 const dailyCountMap = mapCalendarLogsToDailyCount(allLogs);
-                
+
                 setWeeklyChartData(dailyCountMap);
                 setStudyCountsData(dailyCountMap);
                 setStudyCalendarData(mapDailyCountToStudyFlag(dailyCountMap));
@@ -211,6 +211,7 @@ const MainPage = () => {
             localStorage.removeItem('accessToken');
             localStorage.removeItem('userEmail');
             localStorage.removeItem('userRole');
+            localStorage.removeItem('userId'); // 추가된 userId도 삭제
             navigate('/login');
         }
     };
@@ -293,8 +294,8 @@ const MainPage = () => {
                                 <OverallLearningStats stats={overallStats} />
                                 <WeeklyChart weeklyStats={weeklyChartData} />
                             </div>
-                            <StudyCalendar 
-                                studyData={studyCalendarData} 
+                            <StudyCalendar
+                                studyData={studyCalendarData}
                                 studyCounts={studyCountsData}
                                 onMonthChange={handleMonthChange}
                             />
