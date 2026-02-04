@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Mic, Square } from 'lucide-react';
 import './PronunciationPracticePage.css';
 import { submitPronunciation, checkAnalysisStatus } from '../../api/ai';
-import { convertWebMToWav } from '../../utils/audioConverter';
+// import { convertWebMToWav } from '../../utils/audioConverter';
 
 const PronunciationPracticePage = () => {
     const location = useLocation();
@@ -84,26 +84,16 @@ const PronunciationPracticePage = () => {
     };
 
     const handleRecordingComplete = async (audioBlob) => {
-        // 0. WAV 변환
-        let wavBlob = audioBlob;
-        try {
-            wavBlob = await convertWebMToWav(audioBlob);
-            console.log('[Audio Format Check]');
-            console.log('Original Blob Type:', audioBlob.type);
-            console.log('Converted Blob Type:', wavBlob.type);
-            console.log('Converted Blob Size:', wavBlob.size);
-        } catch (e) {
-            console.error("WAV 변환 실패, 원본 사용:", e);
-        }
+        console.log('[Audio Blob]', audioBlob.type, audioBlob.size);
 
-        const audioUrl = URL.createObjectURL(wavBlob);
+        const audioUrl = URL.createObjectURL(audioBlob);
 
         // 1. 서버 전송 (저장 + 분석 요청)
         let taskId = null;
         try {
-            // submitPronunciation은 { taskId: "..." } 형태의 객체를 반환합니다.
-            const response = await submitPronunciation(wavBlob, item.id);
-            taskId = response.taskId;
+            // submitPronunciation이 { taskId } 객체를 반환
+            const response = await submitPronunciation(audioBlob, item.id);
+            taskId = response.taskId;  // ✅ 객체에서 taskId 추출
             console.log('[제출 성공] Task ID:', taskId);
         } catch (e) {
             console.error("서버 전송 실패:", e);
@@ -140,6 +130,14 @@ const PronunciationPracticePage = () => {
                 hasResult: !!statusRes.result,
                 result: statusRes.result
             });
+
+            // ERROR 상태: 폴링 중단
+            if (statusRes.status === 'ERROR') {
+                console.error('[분석 에러] 서버에서 에러 반환');
+                clearInterval(pollInterval);
+                alert('분석 중 오류가 발생했습니다.');
+                return;
+            }
 
             if (statusRes.status === 'COMPLETED' && statusRes.result) {
                 const res = statusRes.result;

@@ -19,9 +19,7 @@ function LearningPage() {
 
     // 한글 현상 깨짐 해결 -> 깨짐 현상 없을 경우 삭제해도 됨. 코드 남아있어도 문제는 X
     const CATEGORIES = ['daily', 'travel', 'food', 'shopping', 'business'];
-    const ITEMS_PER_CATEGORY = 10;
-    const WORD_START_ID = 41;
-    const SENTENCE_START_ID = 91;
+
     // Windows-1252(Latin-1 Sup)로 잘못 해석된 UTF-8 복구
     const fixEncoding = (str) => {
         if (typeof str !== 'string' || !str) return str;
@@ -90,60 +88,60 @@ function LearningPage() {
                     const categoryKey = CATEGORIES[i];
                     const categoryName = THEME_LABELS[categoryKey] || categoryKey;
 
-                    const wordBaseId = WORD_START_ID + (i * ITEMS_PER_CATEGORY);
-                    const sentenceBaseId = SENTENCE_START_ID + (i * ITEMS_PER_CATEGORY);
-
-                    console.log(`[Fetching] ${categoryName} (Words: ${wordBaseId}~${wordBaseId + 9}, Sentences: ${sentenceBaseId}~${sentenceBaseId + 9})`);
+                    console.log(`[Fetching] ${categoryName} - Bulk 조회 방식`);
 
                     // =========================================================
-                    // Bulk 조회 방식 (성능 최적화됨)
+                    // Bulk 조회 방식 (효율적) - 100번 -> 10번 API 호출
                     // =========================================================
-                    const wordData = await getCurriculumList('단어', categoryName);
-                    const sentenceData = await getCurriculumList('문장', categoryName);
+                    try {
+                        const [wordData, sentenceData] = await Promise.all([
+                            getCurriculumList('단어', categoryName).catch(() => []),
+                            getCurriculumList('문장', categoryName).catch(() => [])
+                        ]);
 
-                    // 데이터가 있으면 리스트에 바로 매핑
-                    if (wordData && wordData.length > 0) {
-                        // 데이터 가공 (parseText 및 fixEncoding 적용)
-                        const processBulkItems = (items) => {
-                            // 진행률 계산
-                            const completedCount = items.filter(item => item.isCompleted).length;
-                            const progress = items.length > 0 ? Math.round((completedCount / items.length) * 100) : 0;
+                        if (wordData.length > 0 || sentenceData.length > 0) {
+                            // 데이터 가공
+                            const processItems = (items) => {
+                                const completedCount = items.filter(item => item.isCompleted).length;
+                                const progress = items.length > 0 ? Math.round((completedCount / items.length) * 100) : 0;
 
-                            return {
-                                list: items.map(item => {
-                                    // text 필드가 JSON string이거나 객체일 수 있음
-                                    const parsed = parseText(item.text);
-                                    return {
-                                        id: item.id,
-                                        itemType: fixEncoding(item.type) === '단어' ? 'word' : 'sentence',
-                                        displayText: parsed.word,
-                                        examples: parsed.examples.map(ex => ({
-                                            ex_text: fixEncoding(ex.ex_text),
-                                            ex_mean: fixEncoding(ex.ex_mean)
-                                        })),
-                                        meaning: fixEncoding(item.meaning),
-                                        ipa: fixEncoding(item.ipa),
-                                        korPronunciation: fixEncoding(item.korPronunciation),
-                                        tryCount: item.tryCount || 0,
-                                        isCompleted: item.isCompleted
-                                    };
-                                }),
-                                progress
+                                return {
+                                    list: items.map(item => {
+                                        const parsed = parseText(item.text);
+                                        return {
+                                            id: item.id,
+                                            itemType: fixEncoding(item.type) === '단어' ? 'word' : 'sentence',
+                                            displayText: parsed.word,
+                                            examples: parsed.examples.map(ex => ({
+                                                ex_text: fixEncoding(ex.ex_text),
+                                                ex_mean: fixEncoding(ex.ex_mean)
+                                            })),
+                                            meaning: fixEncoding(item.meaning),
+                                            ipa: fixEncoding(item.ipa),
+                                            korPronunciation: fixEncoding(item.korPronunciation),
+                                            tryCount: item.tryCount || 0,
+                                            isCompleted: item.isCompleted
+                                        };
+                                    }),
+                                    progress
+                                };
                             };
-                        };
 
-                        const processedWords = processBulkItems(wordData);
-                        const processedSentences = processBulkItems(sentenceData || []);
+                            const processedWords = processItems(wordData);
+                            const processedSentences = processItems(sentenceData);
 
-                        topicsList.push({
-                            id: categoryKey,
-                            title: categoryName,
-                            progress: Math.round((processedWords.progress + processedSentences.progress) / 2),
-                            words: processedWords.list,
-                            sentences: processedSentences.list,
-                            wordProgress: processedWords.progress,
-                            sentenceProgress: processedSentences.progress
-                        });
+                            topicsList.push({
+                                id: categoryKey,
+                                title: categoryName,
+                                progress: Math.round((processedWords.progress + processedSentences.progress) / 2),
+                                words: processedWords.list,
+                                sentences: processedSentences.list,
+                                wordProgress: processedWords.progress,
+                                sentenceProgress: processedSentences.progress
+                            });
+                        }
+                    } catch (error) {
+                        console.error(`${categoryName} 데이터 로딩 실패:`, error);
                     }
                 }
 
