@@ -19,9 +19,7 @@ function LearningPage() {
 
     // 한글 현상 깨짐 해결 -> 깨짐 현상 없을 경우 삭제해도 됨. 코드 남아있어도 문제는 X
     const CATEGORIES = ['daily', 'travel', 'food', 'shopping', 'business'];
-    const ITEMS_PER_CATEGORY = 10;
-    const WORD_START_ID = 41;
-    const SENTENCE_START_ID = 91;
+
     // Windows-1252(Latin-1 Sup)로 잘못 해석된 UTF-8 복구
     const fixEncoding = (str) => {
         if (typeof str !== 'string' || !str) return str;
@@ -90,97 +88,60 @@ function LearningPage() {
                     const categoryKey = CATEGORIES[i];
                     const categoryName = THEME_LABELS[categoryKey] || categoryKey;
 
-                    const wordBaseId = WORD_START_ID + (i * ITEMS_PER_CATEGORY);
-                    const sentenceBaseId = SENTENCE_START_ID + (i * ITEMS_PER_CATEGORY);
-
-                    console.log(`[Fetching] ${categoryName} (Words: ${wordBaseId}~${wordBaseId + 9}, Sentences: ${sentenceBaseId}~${sentenceBaseId + 9})`);
-
-                    /* 
-                     * !! 한글 깨짐 이슈 없을 시 아래 방식이 효율적
-                     * 현재는 안전한 ID 조회(Loop 방식)를 사용 중입니다.
-                     * 
-                     * // Bulk 조회 방식
-                     * const wordData = await getCurriculumList('단어', categoryName);
-                     * const sentenceData = await getCurriculumList('문장', categoryName);
-                     * 
-                     * if (wordData) {
-                     *    topicsList.push({
-                     *        id: categoryKey,
-                     *        title: categoryName,
-                     *        words: wordData.map(item => ({ ...item, displayText: parseText(item.text).word })),
-                     *        sentences: sentenceData ? sentenceData.map(item => ({ ...item, displayText: parseText(item.text).word })) : []
-                     *    });
-                     * }
-                     */
+                    console.log(`[Fetching] ${categoryName} - Bulk 조회 방식`);
 
                     // =========================================================
-                    // ID 기반 반복 조회 (인코딩 문제 우회용)
+                    // Bulk 조회 방식 (효율적) - 100번 -> 10번 API 호출
                     // =========================================================
+                    try {
+                        const [wordData, sentenceData] = await Promise.all([
+                            getCurriculumList('단어', categoryName).catch(() => []),
+                            getCurriculumList('문장', categoryName).catch(() => [])
+                        ]);
 
-                    // 1. 단어 데이터 가져오기 (10개)
-                    const wordPromises = [];
-                    for (let j = 0; j < ITEMS_PER_CATEGORY; j++) {
-                        wordPromises.push(getCurriculumDetail(wordBaseId + j).catch(() => null));
-                    }
+                        if (wordData.length > 0 || sentenceData.length > 0) {
+                            // 데이터 가공
+                            const processItems = (items) => {
+                                const completedCount = items.filter(item => item.isCompleted).length;
+                                const progress = items.length > 0 ? Math.round((completedCount / items.length) * 100) : 0;
 
-                    // 2. 문장 데이터 가져오기 (10개)
-                    const sentencePromises = [];
-                    for (let j = 0; j < ITEMS_PER_CATEGORY; j++) {
-                        sentencePromises.push(getCurriculumDetail(sentenceBaseId + j).catch(() => null));
-                    }
-                    // =========================================================================================
-
-                    const [wordsResults, sentencesResults] = await Promise.all([
-                        Promise.all(wordPromises),
-                        Promise.all(sentencePromises)
-                    ]);
-
-                    // null 제거 (실패한 요청 제외)
-                    const validWords = wordsResults.filter(item => item !== null);
-                    const validSentences = sentencesResults.filter(item => item !== null);
-
-                    if (validWords.length > 0 || validSentences.length > 0) {
-                        // 데이터 가공
-                        const processItems = (items) => {
-                            // 진행률 계산
-                            // isCompleted, score, tryCount가 item에 직접 포함됨
-                            const completedCount = items.filter(item => item.isCompleted).length;
-                            const progress = items.length > 0 ? Math.round((completedCount / items.length) * 100) : 0;
-
-                            return {
-                                list: items.map(item => {
-                                    const parsed = parseText(item.text);
-                                    return {
-                                        id: item.id,
-                                        itemType: fixEncoding(item.type) === '단어' ? 'word' : 'sentence',
-                                        displayText: parsed.word,
-                                        examples: parsed.examples.map(ex => ({
-                                            ex_text: fixEncoding(ex.ex_text),
-                                            ex_mean: fixEncoding(ex.ex_mean)
-                                        })),
-                                        meaning: fixEncoding(item.meaning),
-                                        ipa: fixEncoding(item.ipa),
-                                        korPronunciation: fixEncoding(item.korPronunciation),
-                                        tryCount: item.tryCount || 0,
-                                        isCompleted: item.isCompleted
-                                    };
-                                }),
-                                progress
+                                return {
+                                    list: items.map(item => {
+                                        const parsed = parseText(item.text);
+                                        return {
+                                            id: item.id,
+                                            itemType: fixEncoding(item.type) === '단어' ? 'word' : 'sentence',
+                                            displayText: parsed.word,
+                                            examples: parsed.examples.map(ex => ({
+                                                ex_text: fixEncoding(ex.ex_text),
+                                                ex_mean: fixEncoding(ex.ex_mean)
+                                            })),
+                                            meaning: fixEncoding(item.meaning),
+                                            ipa: fixEncoding(item.ipa),
+                                            korPronunciation: fixEncoding(item.korPronunciation),
+                                            tryCount: item.tryCount || 0,
+                                            isCompleted: item.isCompleted
+                                        };
+                                    }),
+                                    progress
+                                };
                             };
-                        };
 
-                        const wordData = processItems(validWords);
-                        const sentenceData = processItems(validSentences);
+                            const processedWords = processItems(wordData);
+                            const processedSentences = processItems(sentenceData);
 
-                        topicsList.push({
-                            id: categoryKey,
-                            title: categoryName,
-                            progress: Math.round((wordData.progress + sentenceData.progress) / 2),
-                            words: wordData.list,
-                            sentences: sentenceData.list,
-                            wordProgress: wordData.progress,
-                            sentenceProgress: sentenceData.progress
-                        });
+                            topicsList.push({
+                                id: categoryKey,
+                                title: categoryName,
+                                progress: Math.round((processedWords.progress + processedSentences.progress) / 2),
+                                words: processedWords.list,
+                                sentences: processedSentences.list,
+                                wordProgress: processedWords.progress,
+                                sentenceProgress: processedSentences.progress
+                            });
+                        }
+                    } catch (error) {
+                        console.error(`${categoryName} 데이터 로딩 실패:`, error);
                     }
                 }
 
