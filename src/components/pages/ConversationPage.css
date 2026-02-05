@@ -1,224 +1,489 @@
-/* ConversationPage.css */
+/* ConversationPage.css - 아바타 왼쪽 + 채팅 오른쪽 길게 */
 
 /* 전체 컨테이너 */
 .conversation-container {
     display: flex;
     flex-direction: column;
-    height: 100vh; /* 화면 전체 높이 사용 */
-    background-color: #f5f7fa; /* 연한 회색 배경 */
-    position: relative;
-    max-width: 600px; /* 모바일 뷰 처럼 제한 (선택사항) */
-    margin: 0 auto;
-    border-left: 1px solid #eee;
-    border-right: 1px solid #eee;
+    height: 100vh;
+    background: #f8f9fa;
+    overflow: hidden;
 }
 
-/* 1. 상단 주제 탭 */
-.theme-header {
+/* 헤더 (타이틀 + 주제 칩) */
+.conversation-header {
     background: #fff;
-    padding: 15px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    z-index: 10;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #ddd;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.theme-scroll {
+.header-top {
     display: flex;
-    gap: 10px;
-    overflow-x: auto; /* 가로 스크롤 */
-    padding-bottom: 5px;
-    -ms-overflow-style: none; /* 스크롤바 숨기기 (IE) */
-    scrollbar-width: none; /* 스크롤바 숨기기 (Firefox) */
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
 }
-.theme-scroll::-webkit-scrollbar {
-    display: none; /* 스크롤바 숨기기 (Chrome) */
+
+.header-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #a67c00;
+    margin: 0;
+}
+
+.header-subtitle {
+    font-size: 0.9rem;
+    color: #888;
+    margin: 4px 0 0 0;
+}
+
+/* 주제 칩 (작은 버튼들) */
+.theme-chips {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
 }
 
 .theme-chip {
-    white-space: nowrap;
-    padding: 8px 16px;
-    border-radius: 20px;
-    border: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.625rem 1.25rem;
     background: #fff;
-    color: #555;
-    font-size: 0.9rem;
+    border: 1px solid #ddd;
+    border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #666;
+}
+
+.theme-chip:hover:not(:disabled) {
+    background: #fdfaf3;
+    border-color: #a67c00;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(166, 124, 0, 0.1);
 }
 
 .theme-chip.active {
-    background-color: #FFD700; /* 바르미 메인 컬러 (골드) */
+    background: #a67c00;
     color: #fff;
-    font-weight: bold;
-    border-color: #FFD700;
-    box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+    border-color: #a67c00;
+    box-shadow: 0 4px 12px rgba(166, 124, 0, 0.2);
 }
 
-/* 2. 채팅 영역 */
-.chat-area {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.message-row {
-    display: flex;
-    align-items: flex-end;
-    gap: 8px;
-    max-width: 100%;
-}
-
-.ai-row {
-    justify-content: flex-start;
-}
-
-.user-row {
-    justify-content: flex-end;
-}
-
-.ai-avatar {
-    width: 36px;
-    height: 36px;
-    background: #eee;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-}
-
-/* 말풍선 공통 */
-.bubble {
-    max-width: 75%;
-    padding: 12px 16px;
-    border-radius: 16px;
-    font-size: 0.95rem;
-    line-height: 1.5;
-    word-break: keep-all;
-    position: relative;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-}
-
-/* 유저 말풍선 (STT 결과) */
-.bubble.USER {
-    background-color: #FFD700;
-    color: #333;
-    border-bottom-right-radius: 4px;
-    font-weight: 500;
-}
-
-/* AI 일반 말풍선 (다음 턴 질문 등) */
-.bubble.AI {
-    background-color: #fff;
-    color: #333;
-    border-bottom-left-radius: 4px;
-}
-
-/* AI 피드백 말풍선 (강조) */
-.bubble.AI_FEEDBACK {
-    background-color: #E3F2FD; /* 연한 파랑 */
-    color: #1565C0;
-    border: 1px solid #BBDEFB;
-    border-bottom-left-radius: 4px;
-}
-
-.feedback-label {
-    font-size: 0.75rem;
-    font-weight: bold;
-    margin-bottom: 4px;
-    color: #1976D2;
-}
-
-.bubble.processing {
-    color: #888;
-    background: #f0f0f0;
-}
-
-/* 3. 하단 컨트롤 바 */
-.control-bar {
-    background: #fff;
-    padding: 20px;
-    display: flex;
-    justify-content: center;
-    border-top: 1px solid #eee;
-}
-
-.mic-button {
-    width: 100%;
-    max-width: 300px;
-    padding: 15px;
-    border-radius: 50px;
-    border: none;
-    background: #333;
-    color: #fff;
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.mic-button.recording {
-    background: #ff4444; /* 녹음 중일 때 빨간색 */
-    animation: pulse 1.5s infinite;
-}
-
-.mic-button.disabled {
-    background: #ccc;
+.theme-chip:disabled {
+    opacity: 0.5;
     cursor: not-allowed;
 }
 
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(255, 68, 68, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
+.chip-emoji {
+    font-size: 1.1rem;
 }
 
-/* 기존 CSS 아래에 추가 */
+.chip-label {
+    font-weight: 700;
+}
 
-/* 초기 안내 문구 (빈 화면) */
-.empty-state {
+/* 메인 컨텐츠 (2열: 아바타 왼쪽 + 채팅 오른쪽) */
+.conversation-main {
+    flex: 1;
+    display: flex;
+    gap: 1.5rem;
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 2rem;
+    overflow: hidden;
+}
+
+/* 왼쪽: Avatar 사이드바 */
+.avatar-sidebar {
+    width: 280px;
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
-    align-items: center;
+}
+
+.avatar-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
     justify-content: center;
+    align-items: center;
+    padding: 2rem 1.5rem;
+    background: #fdfaf3;
+    border: 1px solid #f5e6cc;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
     height: 100%;
-    color: #888;
+}
+
+.avatar-image {
+    width: 200px;
+    height: 200px;
+    object-fit: contain;
+    transition: all 0.5s ease;
+}
+
+.avatar-image.waiting {
+    animation: float 3s ease-in-out infinite;
+}
+
+.avatar-image.success {
+    animation: bounce-success 0.6s ease;
+}
+
+.avatar-image.thinking {
+    animation: thinking-pulse 1.5s ease-in-out infinite;
+}
+
+.avatar-image.fail {
+    animation: shake 0.5s ease;
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes bounce-success {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.15);
+    }
+}
+
+@keyframes thinking-pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.7;
+        transform: scale(1.05);
+    }
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-10px);
+    }
+
+    75% {
+        transform: translateX(10px);
+    }
+}
+
+/* Fail 메시지 */
+.fail-message {
+    position: absolute;
+    bottom: 1.5rem;
+    background: #ff5252;
+    color: #fff;
+    padding: 0.6rem 1.2rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(255, 82, 82, 0.3);
+    animation: fadeInUp 0.3s ease;
     text-align: center;
-    animation: fadeIn 0.5s ease-in-out;
 }
 
-.empty-icon {
-    font-size: 3rem;
-    margin-bottom: 15px;
-    animation: bounce 2s infinite;
-}
-
-.empty-state h3 {
+.fail-message p {
     margin: 0;
-    font-size: 1.2rem;
-    color: #555;
-    margin-bottom: 8px;
 }
 
-.empty-state p {
-    font-size: 0.95rem;
-    line-height: 1.5;
-    color: #aaa;
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-/* 손가락 아이콘 위아래 둥둥 애니메이션 */
-@keyframes bounce {
-    0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
-    40% {transform: translateY(-10px);}
-    60% {transform: translateY(-5px);}
+/* 오른쪽: 채팅 영역 */
+.chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* 채팅 메시지 영역 (길게) */
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background: #fff;
+    border: 1px solid #f5e6cc;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.empty-state {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    text-align: center;
+    color: #888;
+    font-size: 1.1rem;
+    line-height: 1.8;
+}
+
+/* 메시지 */
+.message {
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn 0.4s ease;
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.message.user {
+    align-items: flex-end;
+}
+
+.message.ai,
+.message.ai_feedback {
+    align-items: flex-start;
+}
+
+.feedback-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #a67c00;
+    background: rgba(166, 124, 0, 0.1);
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    margin-bottom: 6px;
+    display: inline-block;
+    align-self: flex-start;
+}
+
+.message-bubble {
+    max-width: 75%;
+    padding: 1rem 1.25rem;
+    border-radius: 20px;
+    font-size: 1rem;
+    line-height: 1.6;
+    word-break: keep-all;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.message.user .message-bubble {
+    background: #fdfaf3;
+    color: #333;
+    font-weight: 600;
+    border: 1px solid #f5e6cc;
+    border-bottom-right-radius: 4px;
+}
+
+.message.ai .message-bubble {
+    background: #fff;
+    color: #333;
+    border: 1px solid #eee;
+    border-bottom-left-radius: 4px;
+}
+
+.message.ai_feedback .message-bubble {
+    background: rgba(166, 124, 0, 0.05);
+    color: #a67c00;
+    border: 1px solid rgba(166, 124, 0, 0.2);
+    border-bottom-left-radius: 4px;
+    font-weight: 600;
+}
+
+.message-bubble.processing {
+    background: #f5f5f5;
+    color: #888;
+    font-style: italic;
+}
+
+/* 녹음 컨트롤 */
+.recording-controls {
+    padding: 1.5rem 2rem;
+    background: #fff;
+    border: 1px solid #f5e6cc;
+    border-top: none;
+    border-radius: 0 0 20px 20px;
+    display: flex;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.record-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 1rem 2.5rem;
+    border-radius: 30px;
+    border: none;
+    background: #a67c00;
+    color: #fff;
+    font-size: 1.125rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 15px rgba(166, 124, 0, 0.2);
+    width: 100%;
+    max-width: 400px;
+}
+
+.record-button:hover:not(:disabled) {
+    background: #8e6a00;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(166, 124, 0, 0.3);
+}
+
+.record-button.recording {
+    background: #ff5252;
+    box-shadow: 0 4px 15px rgba(255, 82, 82, 0.3);
+    animation: recording-pulse 1.5s infinite;
+}
+
+@keyframes recording-pulse {
+
+    0%,
+    100% {
+        box-shadow: 0 4px 15px rgba(255, 82, 82, 0.3);
+    }
+
+    50% {
+        box-shadow: 0 4px 25px rgba(255, 82, 82, 0.5);
+    }
+}
+
+.record-button.disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.record-icon {
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.record-icon.recording-pulse {
+    animation: pulse-dot 1s infinite;
+}
+
+@keyframes pulse-dot {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.3);
+        opacity: 0.7;
+    }
+}
+
+/* 반응형 */
+@media (max-width: 968px) {
+    .conversation-main {
+        flex-direction: column;
+        padding: 1.5rem;
+    }
+
+    .avatar-sidebar {
+        width: 100%;
+        height: auto;
+    }
+
+    .avatar-container {
+        flex-direction: row;
+        height: auto;
+        padding: 1.5rem;
+    }
+
+    .avatar-image {
+        width: 120px;
+        height: 120px;
+    }
+
+    .fail-message {
+        position: static;
+        margin-top: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .conversation-header {
+        padding: 1rem 1.5rem;
+    }
+
+    .header-title {
+        font-size: 1.3rem;
+    }
+
+    .theme-chips {
+        gap: 0.5rem;
+    }
+
+    .theme-chip {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
+
+    .chip-emoji {
+        font-size: 1rem;
+    }
+
+    .chat-messages {
+        padding: 1.5rem;
+    }
+
+    .record-button {
+        padding: 0.875rem 2rem;
+        font-size: 1rem;
+    }
 }

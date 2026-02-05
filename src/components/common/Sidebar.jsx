@@ -30,6 +30,11 @@ const Sidebar = () => {
                 { name: '회화 연습', path: '/conversation' }
             ]
         },
+        {
+            name: '회화연습',
+            path: '/conversation',
+            roles: ['USER']
+        },
         { name: '리포트', path: '/report', roles: ['USER', 'TUTOR'] },
         { name: '튜터링', path: '/tutoring', roles: ['USER', 'TUTOR'] },
         { name: '일정 관리', path: '/schedule', roles: ['TUTOR'] },
