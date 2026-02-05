@@ -66,7 +66,7 @@ const mapIpaRadarData = (raw = {}) => {
         // 깨진 키를 정상 한글로 복구
         let normalizedType = koreanKeyMap[rawType] || String(rawType || '').trim().toLowerCase();
         const categoryKey = TYPE_TO_CATEGORY[normalizedType] || normalizedType;
-        
+
         if (!categoryKey || !symbols || typeof symbols !== 'object') return;
 
         let totalCount = 0;
@@ -162,6 +162,9 @@ const ReportPage = () => {
 
                 const results = await Promise.all(apiCalls);
                 const calendarLogs = results[0];
+
+                // [테스트용] 더미 데이터 주입
+                // TODO: 실제 연동 시 아래 ipaStatsRaw를 results[1]로 복구
                 const ipaStatsRaw = results[1];
                 const userStats = results[2];
                 const prevMonthLogs = results[3] || [];
@@ -169,7 +172,7 @@ const ReportPage = () => {
                 // 현재 달과 이전 달 데이터 합치기
                 const allLogs = [...prevMonthLogs, ...calendarLogs];
                 const dailyCountMap = mapCalendarLogsToDailyCount(allLogs);
-                
+
                 setWeeklyChartData(dailyCountMap);
                 setStudyCountsData(dailyCountMap);
                 setStudyCalendarData(mapDailyCountToStudyFlag(dailyCountMap));
@@ -293,8 +296,8 @@ const ReportPage = () => {
                                 <OverallLearningStats stats={overallStats} />
                                 <WeeklyChart weeklyStats={weeklyChartData} />
                             </div>
-                            <StudyCalendar 
-                                studyData={studyCalendarData} 
+                            <StudyCalendar
+                                studyData={studyCalendarData}
                                 studyCounts={studyCountsData}
                                 onMonthChange={handleMonthChange}
                             />

@@ -50,7 +50,7 @@ export const checkAnalysisStatus = async (curriculumId, taskId) => {
         // 백엔드가 IntegratedAnalysisResult 객체를 JSON으로 직렬화하여 반환
         // status 필드로 처리 상태 확인
         if (result.status === 'PROCESSING') {
-            return { status: 'PROCESSING', result: null };
+            return { status: 'PROCESSING', result: result };
         }
 
         if (result.status === 'SUCCESS' || result.status === 'COMPLETED') {

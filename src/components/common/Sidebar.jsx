@@ -20,17 +20,14 @@ const Sidebar = () => {
 
     const allmenuItems = [
         {
-            name: '발음기호',
-            path: '/pronunciation',
-            roles: ['USER']
-        },
-        {
             name: '학습하기',
             path: '/learning',
             roles: ['USER'],
             subItems: [
-                { name: '단어 학습', path: '/learning/topic' },
-                { name: '문장 학습', path: '/learning/practice' }
+                { name: '발음기호', path: '/pronunciation' },
+                { name: '단어 학습', path: '/learning?mode=WORD' },
+                { name: '문장 학습', path: '/learning?mode=SENTENCE' },
+                { name: '회화 연습', path: '/conversation' }
             ]
         },
         { name: '리포트', path: '/report', roles: ['USER', 'TUTOR'] },
@@ -40,7 +37,7 @@ const Sidebar = () => {
     ];
 
     const fileteredMenuItems = allmenuItems.filter(item => item.roles.includes(userRole));
-    const isLearningSubActive = ['/learning/topic', '/learning/practice'].includes(location.pathname);
+    const isLearningSubActive = ['/learning/topic', '/learning/practice', '/pronunciation', '/conversation', '/learning'].includes(location.pathname) || location.pathname.startsWith('/learning');
 
     // 현재 active 메뉴 찾기 및 Y 위치 계산
     const getActiveMenuIndex = () => {
@@ -62,17 +59,17 @@ const Sidebar = () => {
     const activeMenuIndex = getActiveMenuIndex();
     const getActiveMenuY = () => {
         if (activeMenuIndex === -1 || !navListRef.current || !sidebarRef.current) return null;
-        
+
         const navRect = navListRef.current.getBoundingClientRect();
         const sidebarRect = sidebarRef.current.getBoundingClientRect();
-        
+
         // nav-list의 시작점 (sidebar 기준)
         const navListTop = navRect.top - sidebarRect.top;
-        
+
         // 각 메뉴 아이템이 약 50px (padding + gap 포함)
         const menuItemHeight = 50;
         const menuY = navListTop + (activeMenuIndex * menuItemHeight) + 25; // 25는 메뉴 중앙
-        
+
         return menuY;
     };
 
@@ -80,18 +77,18 @@ const Sidebar = () => {
     useEffect(() => {
         const handleMouseMove = (event) => {
             if (!navListRef.current || !sidebarRef.current) return;
-            
+
             const navRect = navListRef.current.getBoundingClientRect();
             const sidebarRect = sidebarRef.current.getBoundingClientRect();
-            
+
             // sidebar 기준으로 Y 좌표 계산
             const y = event.clientY - sidebarRect.top;
             const navListTop = navRect.top - sidebarRect.top;
-            
+
             // nav-list의 메뉴 아이템 부분만의 높이 (튜토리얼 제외)
             // 각 nav-item이 약 50px (padding + gap 포함) + 여유분 50px
             const estimatedMenuHeight = fileteredMenuItems.length * 50 + 50;
-            
+
             // 메뉴 영역 내에서만 보이기
             if (y >= navListTop && y <= navListTop + estimatedMenuHeight) {
                 setMascotPos({ y, visible: true });
@@ -118,7 +115,7 @@ const Sidebar = () => {
     // 프레임 애니메이션 - mascotPos.visible이 true일 때만 실행
     useEffect(() => {
         const shouldAnimate = mascotPos.visible;
-        
+
         if (!shouldAnimate) {
             setFrameIndex(0);
             return;
@@ -161,28 +158,37 @@ const Sidebar = () => {
                             onMouseEnter={() => setHoveredMenu(item.name)}
                             onMouseLeave={() => setHoveredMenu(null)}
                         >
-                            <Link
-                                to={item.path}
-                                className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
-                            >
-                                {item.name}
-                            </Link>
+                            {item.subItems ? (
+                                <div
+                                    className={`nav-link ${isLearningSubActive && item.name === '학습하기' ? 'active' : ''}`}
+                                    style={{ cursor: 'default' }}
+                                >
+                                    {item.name}
+                                </div>
+                            ) : (
+                                <Link
+                                    to={item.path}
+                                    className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
+                                >
+                                    {item.name}
+                                </Link>
+                            )}
                             {item.subItems && (
                                 item.name === '학습하기' && (hoveredMenu === item.name || isLearningSubActive)
                             ) && (
-                                <ul className="nav-submenu">
-                                    {item.subItems.map((subItem) => (
-                                        <li key={subItem.name}>
-                                            <Link
-                                                to={subItem.path}
-                                                className={`nav-sublink ${location.pathname === subItem.path ? 'active' : ''}`}
-                                            >
-                                                {subItem.name}
-                                            </Link>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
+                                    <ul className="nav-submenu">
+                                        {item.subItems.map((subItem) => (
+                                            <li key={subItem.name}>
+                                                <Link
+                                                    to={subItem.path}
+                                                    className={`nav-sublink ${location.pathname === subItem.path ? 'active' : ''}`}
+                                                >
+                                                    {subItem.name}
+                                                </Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
                         </li>
                     ))}
                     <li className="nav-item" style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #eee' }}>

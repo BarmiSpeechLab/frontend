@@ -1,13 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { getCurriculumList, getCurriculumDetail } from '../../api/curriculum';
 import './LearningPage.css';
 
 function LearningPage() {
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // URL 쿼리 파라미터에서 mode 읽기 (기본값: 'WORD')
+    const searchParams = new URLSearchParams(location.search);
+    const modeParam = searchParams.get('mode'); // 'WORD' or 'SENTENCE' or null
+
     const [topics, setTopics] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeFilter, setActiveFilter] = useState('daily');
+
+    // modeState: 'WORD' | 'SENTENCE' (기본값은 WORD, 하지만 URL 파라미터가 있으면 그것을 따름)
+    const [viewMode, setViewMode] = useState('WORD');
+
+    useEffect(() => {
+        if (modeParam === 'SENTENCE') {
+            setViewMode('SENTENCE');
+        } else {
+            setViewMode('WORD');
+        }
+    }, [modeParam]);
 
     const THEME_LABELS = {
         daily: '기본표현(일상)', // DB: '기본표현(일상)'
@@ -166,20 +183,23 @@ function LearningPage() {
             ipa: item.ipa,
             korPronunciation: item.korPronunciation,
             examples: item.examples,
-            returnPath: '/learning',
+            returnPath: `/learning${location.search}`,
         };
         navigate('/pronunciationPractice', { state: practiceItem });
     };
 
     const activeTopic = topics.find(t => t.id === activeFilter);
-    const isAllWordsDone = activeTopic?.words.length > 0 && activeTopic.words.every(w => w.tryCount > 0);
+
+    // viewMode에 따라 보여줄 아이템 결정
     const displayItems = activeTopic
-        ? (isAllWordsDone ? [...activeTopic.words, ...activeTopic.sentences] : activeTopic.words)
+        ? (viewMode === 'SENTENCE' ? (activeTopic.sentences || []) : (activeTopic.words || []))
         : [];
 
     return (
         <div className="subpage-container">
-            <h1 className="subpage-title">주제별 학습</h1>
+            <h1 className="subpage-title">
+                {viewMode === 'SENTENCE' ? '주제별 문장 학습' : '주제별 단어 학습'}
+            </h1>
 
             <div className="tabs">
                 {['daily', 'travel', 'food', 'shopping', 'business'].map(f => (
@@ -193,12 +213,14 @@ function LearningPage() {
                 ))}
             </div>
 
+
+
             <div className="card-grid col-3">
                 {loading ? (
                     <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem' }}>로딩 중...</div>
                 ) : displayItems.length === 0 ? (
                     <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem', color: '#999' }}>
-                        데이터가 없습니다.
+                        {viewMode === 'WORD' ? '단어 데이터가 없습니다.' : '문장 데이터가 없습니다.'}
                     </div>
                 ) : (
                     displayItems.map((item, idx) => (
@@ -207,7 +229,7 @@ function LearningPage() {
                             className="learning-card"
                             onClick={() => handleItemClick(item)}
                         >
-                            <h2 className="learning-text">{item.displayText}</h2>
+                            <h2 className="learning-text" style={{ fontSize: viewMode === 'SENTENCE' ? '1.2rem' : '1.8rem' }}>{item.displayText}</h2>
                             <p className="learning-sub">
                                 {item.meaning}
                                 {item.korPronunciation && <span className="kor-pron"> {item.korPronunciation}</span>}
