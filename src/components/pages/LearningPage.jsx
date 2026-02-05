@@ -96,72 +96,105 @@ function LearningPage() {
     };
 
     useEffect(() => {
-        // 데이터 페칭
+        // ✅ 데이터 페칭 with Session Storage 캐싱
         const fetchData = async () => {
             try {
-                const topicsList = [];
-
-                for (let i = 0; i < CATEGORIES.length; i++) {
-                    const categoryKey = CATEGORIES[i];
-                    const categoryName = THEME_LABELS[categoryKey] || categoryKey;
-
-                    console.log(`[Fetching] ${categoryName} - Bulk 조회 방식`);
-
-                    // =========================================================
-                    // Bulk 조회 방식 (효율적) - 100번 -> 10번 API 호출
-                    // =========================================================
+                // ✅ 캐시 확인 (5분간 유효)
+                const cached = sessionStorage.getItem('curriculum_data');
+                if (cached) {
                     try {
-                        const [wordData, sentenceData] = await Promise.all([
-                            getCurriculumList('단어', categoryName).catch(() => []),
-                            getCurriculumList('문장', categoryName).catch(() => [])
-                        ]);
+                        const { data, timestamp } = JSON.parse(cached);
+                        const cacheAge = Date.now() - timestamp;
+                        const CACHE_DURATION = 5 * 60 * 1000;  // 5분
 
-                        if (wordData.length > 0 || sentenceData.length > 0) {
-                            // 데이터 가공
-                            const processItems = (items) => {
-                                const completedCount = items.filter(item => item.isCompleted).length;
-                                const progress = items.length > 0 ? Math.round((completedCount / items.length) * 100) : 0;
-
-                                return {
-                                    list: items.map(item => {
-                                        const parsed = parseText(item.text);
-                                        return {
-                                            id: item.id,
-                                            itemType: fixEncoding(item.type) === '단어' ? 'word' : 'sentence',
-                                            displayText: parsed.word,
-                                            examples: parsed.examples.map(ex => ({
-                                                ex_text: fixEncoding(ex.ex_text),
-                                                ex_mean: fixEncoding(ex.ex_mean)
-                                            })),
-                                            meaning: fixEncoding(item.meaning),
-                                            ipa: fixEncoding(item.ipa),
-                                            korPronunciation: fixEncoding(item.korPronunciation),
-                                            tryCount: item.tryCount || 0,
-                                            score: item.score || 0,
-                                            isCompleted: item.isCompleted
-                                        };
-                                    }),
-                                    progress
-                                };
-                            };
-
-                            const processedWords = processItems(wordData);
-                            const processedSentences = processItems(sentenceData);
-
-                            topicsList.push({
-                                id: categoryKey,
-                                title: categoryName,
-                                progress: Math.round((processedWords.progress + processedSentences.progress) / 2),
-                                words: processedWords.list,
-                                sentences: processedSentences.list,
-                                wordProgress: processedWords.progress,
-                                sentenceProgress: processedSentences.progress
-                            });
+                        if (cacheAge < CACHE_DURATION) {
+                            console.log('[Cache Hit] Session Storage에서 커리큘럼 로드 (캐시 나이:', Math.round(cacheAge / 1000), '초)');
+                            setTopics(data);
+                            setLoading(false);
+                            return;
+                        } else {
+                            console.log('[Cache Expired] 캐시 만료, API 재조회');
                         }
-                    } catch (error) {
-                        console.error(`${categoryName} 데이터 로딩 실패:`, error);
+                    } catch (e) {
+                        console.warn('캐시 데이터 파싱 실패:', e);
                     }
                 }
+
+                console.log('[Fetching] 모든 카테고리 병렬 조회 시작');
+
+                // =========================================================
+                // 병렬 조회 방식 (최적화) - 모든 API 호출을 동시에 실행
+                // =========================================================
+                const allPromises = CATEGORIES.map(categoryKey => {
+                    const categoryName = THEME_LABELS[categoryKey] || categoryKey;
+
+                    return Promise.all([
+                        getCurriculumList('단어', categoryName).catch(() => []),
+                        getCurriculumList('문장', categoryName).catch(() => [])
+                    ]).then(([wordData, sentenceData]) => ({
+                        categoryKey,
+                        categoryName,
+                        wordData,
+                        sentenceData
+                    }));
+                });
+
+                // 모든 API 호출을 병렬로 실행
+                const results = await Promise.all(allPromises);
+
+                // 데이터 가공 함수 (✅ develop 브랜치의 score 필드 포함)
+                const processItems = (items) => {
+                    const completedCount = items.filter(item => item.isCompleted).length;
+                    const progress = items.length > 0 ? Math.round((completedCount / items.length) * 100) : 0;
+
+                    return {
+                        list: items.map(item => {
+                            const parsed = parseText(item.text);
+                            return {
+                                id: item.id,
+                                itemType: fixEncoding(item.type) === '단어' ? 'word' : 'sentence',
+                                displayText: parsed.word,
+                                examples: parsed.examples.map(ex => ({
+                                    ex_text: fixEncoding(ex.ex_text),
+                                    ex_mean: fixEncoding(ex.ex_mean)
+                                })),
+                                meaning: fixEncoding(item.meaning),
+                                ipa: fixEncoding(item.ipa),
+                                korPronunciation: fixEncoding(item.korPronunciation),
+                                tryCount: item.tryCount || 0,
+                                score: item.score || 0,  // ✅ develop 브랜치 추가 필드
+                                isCompleted: item.isCompleted
+                            };
+                        }),
+                        progress
+                    };
+                };
+
+                // 결과 처리
+                const topicsList = results
+                    .filter(({ wordData, sentenceData }) => wordData.length > 0 || sentenceData.length > 0)
+                    .map(({ categoryKey, categoryName, wordData, sentenceData }) => {
+                        const processedWords = processItems(wordData);
+                        const processedSentences = processItems(sentenceData);
+
+                        return {
+                            id: categoryKey,
+                            title: categoryName,
+                            progress: Math.round((processedWords.progress + processedSentences.progress) / 2),
+                            words: processedWords.list,
+                            sentences: processedSentences.list,
+                            wordProgress: processedWords.progress,
+                            sentenceProgress: processedSentences.progress
+                        };
+                    });
+
+                console.log('[Fetching] 모든 카테고리 병렬 조회 완료');
+
+                // ✅ Session Storage에 캐싱
+                sessionStorage.setItem('curriculum_data', JSON.stringify({
+                    data: topicsList,
+                    timestamp: Date.now()
+                }));
 
                 setTopics(topicsList);
             } catch (error) {
@@ -213,8 +246,6 @@ function LearningPage() {
                     </button>
                 ))}
             </div>
-
-
 
             <div className="card-grid col-3">
                 {loading ? (

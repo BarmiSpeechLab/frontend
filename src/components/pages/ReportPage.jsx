@@ -149,25 +149,18 @@ const ReportPage = () => {
                 const prevMonth = sevenDaysAgo.getMonth() + 1;
                 const prevYear = sevenDaysAgo.getFullYear();
 
-                // 두 달에 걸쳐있으면 이전 달 데이터도 가져오기
-                const apiCalls = [
+                // ✅ 이전 달 데이터 먼저 조회 (조건부)
+                let prevMonthLogs = [];
+                if (prevMonth !== month || prevYear !== year) {
+                    prevMonthLogs = await getCalendarLogs(prevYear, prevMonth).catch(() => []);
+                }
+
+                // ✅ 현재 달 데이터 병렬 조회
+                const [calendarLogs, ipaStatsRaw, userStats] = await Promise.all([
                     getCalendarLogs(year, month).catch(() => []),
                     getIpaRadarStats().catch(() => ({})),
                     getUserStats().catch(() => null)
-                ];
-
-                if (prevMonth !== month || prevYear !== year) {
-                    apiCalls.push(getCalendarLogs(prevYear, prevMonth).catch(() => []));
-                }
-
-                const results = await Promise.all(apiCalls);
-                const calendarLogs = results[0];
-
-                // [테스트용] 더미 데이터 주입
-                // TODO: 실제 연동 시 아래 ipaStatsRaw를 results[1]로 복구
-                const ipaStatsRaw = results[1];
-                const userStats = results[2];
-                const prevMonthLogs = results[3] || [];
+                ]);
 
                 // 현재 달과 이전 달 데이터 합치기
                 const allLogs = [...prevMonthLogs, ...calendarLogs];
