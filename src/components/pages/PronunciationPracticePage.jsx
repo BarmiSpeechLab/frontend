@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Mic, Square } from 'lucide-react';
+import { Mic, Square, Play } from 'lucide-react';
 import './PronunciationPracticePage.css';
 import { submitPronunciation, checkAnalysisStatus } from '../../api/ai';
 import { convertWebMToWav } from '../../utils/audioConverter';
@@ -12,20 +12,21 @@ const PronunciationPracticePage = () => {
     const item = location.state || {
         symbol: 'ɑ',
         word: 'car',
-        // nativeVideoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
-        // mouthShapeUrl: '/itachi.jpg',
-        // tonguePositionUrl: '/itachi.jpg'
-    }; // 기본값
+    };
 
     const [isRecording, setIsRecording] = useState(false);
     const [cameraStream, setCameraStream] = useState(null);
     const canvasRef = useRef(null);
+    const graphCanvasRef = useRef(null);
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
 
     // [New] 분석 대기 상태 (로딩 & 취소)
     const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [analysisResult, setAnalysisResult] = useState(null);
+    const [userAudioUrl, setUserAudioUrl] = useState(null);
     const pollIntervalRef = useRef(null);
+    const audioRef = useRef(null);
 
     const handleCancelAnalysis = () => {
         if (pollIntervalRef.current) {
@@ -35,61 +36,78 @@ const PronunciationPracticePage = () => {
         setIsAnalyzing(false);
     };
 
-    // 목표 억양 시각화
+    // 억양 그래프 그리기
     useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        const width = canvas.width;
-        const height = canvas.height;
+        const drawGraph = (canvas, standardPitch, userPitch) => {
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
 
-        ctx.clearRect(0, 0, width, height);
+            ctx.clearRect(0, 0, width, height);
 
-        // 목표 그래프 (실제 데이터 사용)
-        const stdData = item.inton || item.intonData;
-        let pitchData = [];
+            const stdPitch = standardPitch || [];
+            const usrPitch = userPitch || [];
 
-        // 데이터 파싱
-        if (Array.isArray(stdData)) {
-            stdData.forEach(p => {
-                if (p && Array.isArray(p.curve_pitch)) {
-                    pitchData = [...pitchData, ...p.curve_pitch];
-                }
-            });
-        }
+            if (stdPitch.length === 0 && usrPitch.length === 0) return;
 
-        if (pitchData.length > 0) {
-            // 정규화 (최솟값 0 처리)
-            const minVal = Math.min(...pitchData.filter(v => v > 0));
-            const maxVal = Math.max(...pitchData);
+            // Y축 정규화
+            const allValues = [...stdPitch, ...usrPitch].filter(v => v > 0);
+            if (allValues.length === 0) return;
+
+            const minVal = Math.min(...allValues) * 0.9;
+            const maxVal = Math.max(...allValues) * 1.1;
             const range = maxVal - minVal || 1;
 
-            ctx.beginPath();
-            ctx.strokeStyle = '#e24a4aff';
-            ctx.lineWidth = 3;
-            // 둥근 선 처리
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
+            const getY = (val) => {
+                if (val <= 0) return height;
+                return height - ((val - minVal) / range) * height;
+            };
 
-            const stepX = width / (pitchData.length - 1 || 1);
+            const drawLine = (data, color) => {
+                if (!data || data.length === 0) return;
 
-            pitchData.forEach((val, idx) => {
-                const x = idx * stepX;
-                // 무음(0이하)이면 바닥에, 아니면 값에 비례해서 위로
-                const y = val <= 0 ? height : height - ((val - minVal) / range) * (height * 0.8) - (height * 0.1);
+                ctx.beginPath();
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
 
-                if (idx === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            });
-            ctx.stroke();
+                const stepX = width / (data.length - 1 || 1);
+
+                data.forEach((val, idx) => {
+                    const x = idx * stepX;
+                    const y = getY(val);
+
+                    if (idx === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+            };
+
+            drawLine(stdPitch, '#e24a4aff');
+            drawLine(usrPitch, '#00ff22ff');
+        };
+
+        // 초기 로드: 목표 억양만 그리기
+        if (!analysisResult) {
+            const stdData = item.inton || item.intonData;
+            let pitchData = [];
+            if (Array.isArray(stdData)) {
+                stdData.forEach(p => {
+                    if (p && Array.isArray(p.curve_pitch)) {
+                        pitchData = [...pitchData, ...p.curve_pitch];
+                    }
+                });
+            }
+            if (pitchData.length > 0) {
+                drawGraph(graphCanvasRef.current, pitchData, []);
+            }
         } else {
-            // 데이터가 없을 경우 안내 텍스트 표시
-            ctx.font = '14px Arial';
-            ctx.fillStyle = '#ccc';
-            ctx.textAlign = 'center';
-            ctx.fillText('표준 억양 데이터가 없습니다.', width / 2, height / 2);
+            // 분석 결과 있을 때: 표준 + 사용자 억양 그리기
+            drawGraph(graphCanvasRef.current, analysisResult.standardPitch, analysisResult.userPitch || []);
         }
-    }, []);
+    }, [analysisResult, item]);
 
     const startRecording = async () => {
         try {
@@ -139,10 +157,19 @@ const PronunciationPracticePage = () => {
         }
     };
 
+    const handleRecordToggle = () => {
+        if (!isRecording) {
+            startRecording();
+        } else {
+            stopRecording();
+        }
+    };
+
     const handleRecordingComplete = async (audioBlob) => {
         console.log('[Audio Blob]', audioBlob.type, audioBlob.size);
 
         const audioUrl = URL.createObjectURL(audioBlob);
+        setUserAudioUrl(audioUrl);
 
         // 1. 서버 전송 (저장 + 분석 요청)
         let taskId = null;
@@ -173,40 +200,96 @@ const PronunciationPracticePage = () => {
             feedback: null
         };
 
-        let hasNavigated = false;  // 중복 네비게이션 방지
-        let pollCount = 0;  // ✅ 폴링 횟수 카운트
+        let hasUpdated = false;
+        let pollCount = 0;
 
-        // 기존 인터벌 제거 (안전장치)
         if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
 
         pollIntervalRef.current = setInterval(async () => {
-            if (hasNavigated) {
-                clearInterval(pollIntervalRef.current);
-                return;
-            }
-
             pollCount++;
-            // ✅ Exponential Backoff: 처음 5초는 1초, 이후 2초 간격
+
             if (pollCount > 5) {
-                clearInterval(pollInterval);
-                setTimeout(poll, 2000);  // 2초 간격으로 재실행
+                // Exponential backoff: 2초 간격으로 계속 폴링
+                clearInterval(pollIntervalRef.current);
+                pollIntervalRef.current = setInterval(async () => {
+                    console.log(`[분석 진행 중] 폴링 수행 ${pollCount}회 (TaskId: ${taskId})`);
+                    const statusRes = await checkAnalysisStatus(item.id, taskId);
+
+                    if (statusRes.status === 'ERROR') {
+                        clearInterval(pollIntervalRef.current);
+                        setIsAnalyzing(false);
+                        alert('분석 중 오류가 발생했습니다.');
+                        return;
+                    }
+
+                    if ((statusRes.status === 'COMPLETED' || statusRes.status === 'PROCESSING') && statusRes.result) {
+                        const res = statusRes.result;
+
+                        if (res.pronunciation && !mergedResult.pronunciation) {
+                            mergedResult.pronunciation = res.pronunciation;
+                            const pronData = res.pronunciation.analysisResult;
+                            if (Array.isArray(pronData)) {
+                                mergedResult.wordSegments = pronData;
+                                const totalScore = pronData.reduce((acc, cur) => acc + (cur.score || (100 - (cur.error_rate || 0)) || 0), 0);
+                                const avgScore = pronData.length > 0 ? totalScore / pronData.length : 0;
+                                mergedResult.grade = avgScore >= 80 ? 'EXCELLENT' : (avgScore >= 50 ? 'GOOD' : 'BAD');
+                            }
+                        }
+
+                        if (res.intonations && !mergedResult.intonations) {
+                            mergedResult.intonations = res.intonations;
+                            const intonData = res.intonations.analysisResult;
+                            if (Array.isArray(intonData)) {
+                                let combinedUserPitch = [];
+                                intonData.forEach(itm => {
+                                    if (itm.curve_pitch && Array.isArray(itm.curve_pitch)) {
+                                        combinedUserPitch = [...combinedUserPitch, ...itm.curve_pitch];
+                                    }
+                                });
+                                mergedResult.userPitch = combinedUserPitch;
+
+                                const stdData = item.inton || item.intonData;
+                                if (stdData && Array.isArray(stdData)) {
+                                    let combinedStdPitch = [];
+                                    stdData.forEach(p => {
+                                        if (p && p.curve_pitch) {
+                                            combinedStdPitch = [...combinedStdPitch, ...p.curve_pitch];
+                                        }
+                                    });
+                                    mergedResult.standardPitch = combinedStdPitch;
+                                }
+                            }
+                        }
+
+                        if (res.llmFeedback && !mergedResult.llmFeedback) {
+                            mergedResult.llmFeedback = res.llmFeedback;
+                            const llm = res.llmFeedback;
+                            mergedResult.feedback = llm.analysisResult || mergedResult.feedback;
+                        }
+
+                        if (!hasUpdated && (mergedResult.pronunciation || mergedResult.intonations || mergedResult.llmFeedback)) {
+                            hasUpdated = true;
+                            setAnalysisResult(mergedResult);
+                        }
+
+                        const isAllArrived = mergedResult.pronunciation && mergedResult.intonations && mergedResult.llmFeedback;
+                        if (isAllArrived) {
+                            clearInterval(pollIntervalRef.current);
+                            pollIntervalRef.current = null;
+                            setIsAnalyzing(false);
+                        }
+                    }
+                }, 2000);
                 return;
             }
 
             console.log(`[분석 진행 중] 폴링 수행 ${pollCount}회 (TaskId: ${taskId})`);
             const statusRes = await checkAnalysisStatus(item.id, taskId);
 
-            console.log('[폴링 응답]', {
-                status: statusRes.status,
-                hasResult: !!statusRes.result,
-                result: statusRes.result
-            });
-
-            // ERROR 상태: 폴링 중단
             if (statusRes.status === 'ERROR') {
                 console.error('[분석 에러] 서버에서 에러 반환');
                 clearInterval(pollIntervalRef.current);
-                setIsAnalyzing(false); // 분석 종료
+                setIsAnalyzing(false);
                 alert('분석 중 오류가 발생했습니다.');
                 return;
             }
@@ -214,17 +297,11 @@ const PronunciationPracticePage = () => {
             if ((statusRes.status === 'COMPLETED' || statusRes.status === 'PROCESSING') && statusRes.result) {
                 const res = statusRes.result;
 
-                // 백엔드 응답에서 새 데이터를 받으면 mergedResult에 누적 저장
                 if (res.pronunciation && !mergedResult.pronunciation) {
                     mergedResult.pronunciation = res.pronunciation;
-                    const pronRaw = res.pronunciation;
-
-                    // [Fix] analysisResult is an Array of word objects
-                    const pronData = pronRaw.analysisResult;
+                    const pronData = res.pronunciation.analysisResult;
                     if (Array.isArray(pronData)) {
                         mergedResult.wordSegments = pronData;
-
-                        // Calculate average grade
                         const totalScore = pronData.reduce((acc, cur) => acc + (cur.score || (100 - (cur.error_rate || 0)) || 0), 0);
                         const avgScore = pronData.length > 0 ? totalScore / pronData.length : 0;
                         mergedResult.grade = avgScore >= 80 ? 'EXCELLENT' : (avgScore >= 50 ? 'GOOD' : 'BAD');
@@ -233,27 +310,21 @@ const PronunciationPracticePage = () => {
 
                 if (res.intonations && !mergedResult.intonations) {
                     mergedResult.intonations = res.intonations;
-                    const intonRaw = res.intonations;
-                    const intonData = intonRaw.analysisResult; // Array of items
-
-                    // [Fix] Aggregate curve_pitch for userPitch
+                    const intonData = res.intonations.analysisResult;
                     if (Array.isArray(intonData)) {
                         let combinedUserPitch = [];
-                        intonData.forEach(item => {
-                            if (item.curve_pitch && Array.isArray(item.curve_pitch)) {
-                                combinedUserPitch = [...combinedUserPitch, ...item.curve_pitch];
+                        intonData.forEach(itm => {
+                            if (itm.curve_pitch && Array.isArray(itm.curve_pitch)) {
+                                combinedUserPitch = [...combinedUserPitch, ...itm.curve_pitch];
                             }
                         });
                         mergedResult.userPitch = combinedUserPitch;
 
-                        mergedResult.userPitch = combinedUserPitch;
-
-                        // [Fix] Load standard pitch from item.intonData (DB) or item.inton (DTO)
                         const stdData = item.inton || item.intonData;
                         if (stdData && Array.isArray(stdData)) {
                             let combinedStdPitch = [];
                             stdData.forEach(p => {
-                                if (p && p.curve_pitch) { // DB uses snake_case keys
+                                if (p && p.curve_pitch) {
                                     combinedStdPitch = [...combinedStdPitch, ...p.curve_pitch];
                                 }
                             });
@@ -267,20 +338,21 @@ const PronunciationPracticePage = () => {
                 if (res.llmFeedback && !mergedResult.llmFeedback) {
                     mergedResult.llmFeedback = res.llmFeedback;
                     const llm = res.llmFeedback;
-                    // Fix: llmFeedback returns 'analysisResult', not 'feedback'
                     mergedResult.feedback = llm.analysisResult || mergedResult.feedback;
                 }
 
                 mergedResult.taskId = taskId;
                 mergedResult.rawResult = res;
 
-                // mergedResult 기준으로 완료 판단
-                // [Fix] intonations might be missing standardPitch in AnalysisResult, but we use DB data
+                // 결과 업데이트 (화면에 표시)
+                if (!hasUpdated && (mergedResult.pronunciation || mergedResult.intonations || mergedResult.llmFeedback)) {
+                    hasUpdated = true;
+                    setAnalysisResult(mergedResult);
+                }
+
                 const isAllArrived = mergedResult.pronunciation && mergedResult.intonations && mergedResult.llmFeedback;
 
-                if (isAllArrived && !hasNavigated) {
-                    // Ensure standardPitch is populated if it wasn't already (double check)
-                    // [Fix] Backend DTO field is 'inton', Entity is 'intonData'. Check both.
+                if (isAllArrived) {
                     const stdData = item.inton || item.intonData;
                     if ((!mergedResult.standardPitch || mergedResult.standardPitch.length === 0) && stdData) {
                         let combinedStdPitch = [];
@@ -292,163 +364,178 @@ const PronunciationPracticePage = () => {
                             });
                         }
                         mergedResult.standardPitch = combinedStdPitch;
+                        setAnalysisResult(mergedResult);
                     }
 
-                    console.log('%c[분석 완료] 모든 데이터를 수신 완료.', 'color: green; font-weight: bold;', mergedResult);
-                    hasNavigated = true;
-                    // [Fix] 성공 시 Ref를 null로 초기화하여 타임아웃 방지
+                    console.log('%c[분석 완료]', 'color: green; font-weight: bold;', mergedResult);
                     clearInterval(pollIntervalRef.current);
                     pollIntervalRef.current = null;
-                    setIsAnalyzing(false); // 분석 완료
-                    navigate('/pronunciationResult', { state: mergedResult });
+                    setIsAnalyzing(false);
                 }
             }
         }, 1000);
 
-        // 타임아웃 (30초 후 자동 종료)
         setTimeout(() => {
-            // ✅ 이미 완료되어 pollIntervalRef가 null이거나 네비게이션 된 경우 무시
-            if (pollIntervalRef.current && !hasNavigated) {
+            if (pollIntervalRef.current) {
                 clearInterval(pollIntervalRef.current);
                 pollIntervalRef.current = null;
                 setIsAnalyzing(false);
                 console.warn('[타임아웃] 분석 응답 시간 초과');
                 alert('분석 시간이 초과되었습니다. 다시 시도해주세요.');
             }
-        }, 30000);  // ✅ 30초로 변경 (기존: 3000000ms = 50분)
+        }, 30000);
     };
 
-    const handleRecordToggle = () => {
-        if (!isRecording) {
-            startRecording();
-        } else {
-            stopRecording();
-        }
-    };
-
-    // Windows-1252(Latin-1 Sup)로 잘못 해석된 UTF-8 복구 (PracticePage용 안전장치) 
     const fixEncoding = (str) => {
         return str;
     };
 
-    // [New] 로컬 에셋 매핑 (Symbol -> ID 순서로 검색)
-    // 1. Symbol 기반 검색 (가장 정확함)
-    // 2. ID 기반 검색 (Legacy)
     const getBestImages = () => {
-        // 검색 키: symbol 우선 -> ipa -> word(한 글자인 경우)
         let key = item.symbol || item.ipa || (item.word && item.word.length === 1 ? item.word : null);
-
-        // 대괄호/슬래시 제거 ([a] -> a, /a/ -> a)
         if (key && typeof key === 'string') {
             key = key.replace(/[\[\]\/]/g, '').trim();
         }
-
         const bySymbol = getIpaImagesBySymbol(key);
         if (bySymbol.mouth || bySymbol.tongue) {
             return bySymbol;
         }
-
-        // ID 기반 Fallback
         return getIpaImages(item.id);
     };
 
     const { mouth: localMouth, tongue: localTongue } = getBestImages();
 
+    const handlePlayAudio = () => {
+        if (userAudioUrl && audioRef.current) {
+            audioRef.current.src = userAudioUrl;
+            audioRef.current.play();
+        }
+    };
+
+    const handleBack = () => {
+        if (item.returnPath) {
+            navigate(item.returnPath);
+            return;
+        }
+        navigate(-1);
+    };
+
     return (
-        <div className="practice-container">
+        <div className="practice-container-merged">
+            {/* 헤더 */}
             <div className="practice-header">
-                <h1 className="practice-title">
-                    {fixEncoding(item.word || item.symbol)}
-                </h1>
-                <p className="practice-subtitle" style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>
-                    <strong>
-                        {item.ipa ? `[${fixEncoding(item.ipa)}]` : (item.pronunciation ? `[${fixEncoding(item.pronunciation)}]` : '')}
-                        {item.korPronunciation ? ` ${fixEncoding(item.korPronunciation)}` : ''}
-                    </strong>
-                    <span style={{ color: '#888', fontWeight: 400 }}> {item.meaning ? `- ${fixEncoding(item.meaning)}` : ''}</span>
-                </p>
-
-                {/* IPA 예시 단어 표시 (IPA 타입일 때만 노출) */}
-                {
-                    item.type === 'ipa' && item.examples && item.examples.length > 0 && (
-                        <div style={{ marginTop: '1rem', background: '#f5f5f5', padding: '0.8rem', borderRadius: '8px', display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-                            {item.examples.map((ex, idx) => (
-                                <div key={idx} style={{ fontSize: '1rem', color: '#555' }}>
-                                    <span style={{ fontWeight: 'bold', color: '#a67c00' }}>{fixEncoding(ex.ex_text)}</span>
-                                    <span style={{ marginLeft: '6px', color: '#777' }}>{fixEncoding(ex.ex_mean)}</span>
-                                </div>
-                            ))}
+                <div className="header-top">
+                    <button className="back-button" onClick={handleBack}>
+                        뒤로가기
+                    </button>
+                </div>
+                <div className="header-row">
+                    <div className="header-text">
+                        <h1 className="practice-title">
+                            {fixEncoding(item.word || item.symbol)}
+                        </h1>
+                        <div className="practice-subtitle">
+                            <div className="subtitle-row">
+                                <span className="subtitle-ipa">
+                                    {item.ipa ? `[${fixEncoding(item.ipa)}]` : (item.pronunciation ? `[${fixEncoding(item.pronunciation)}]` : '')}
+                                </span>
+                                {item.korPronunciation && (
+                                    <span className="subtitle-kor">{fixEncoding(item.korPronunciation)}</span>
+                                )}
+                            </div>
+                            {item.meaning && (
+                                <div className="subtitle-meaning">{fixEncoding(item.meaning)}</div>
+                            )}
                         </div>
-                    )
-                }
+                        {((item.examples && item.examples.length > 0) || (item.text && item.text.examples && item.text.examples.length > 0)) && (
+                            <div className="examples-panel">
+                                {(item.examples || item.text.examples).map((ex, idx) => (
+                                    <div key={idx} className="example-chip">
+                                        <span className="example-text">{fixEncoding(ex.ex_text)}</span>
+                                        <span className="example-meaning">{fixEncoding(ex.ex_mean)}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                    <div className="header-video">
+                        <div className="visual-label">원어민 발음</div>
+                        {item.nativeVideoUrl ? (
+                            <video src={item.nativeVideoUrl} controls />
+                        ) : (
+                            <div style={{ fontSize: '2.5rem', opacity: 0.3 }}>-</div>
+                        )}
+                    </div>
+                </div>
             </div>
 
-            {/* 시각 자료 */}
-            <div className="practice-visuals">
-                {/* 1. 원어민 영상 */}
-                <div className="visual-box">
-                    <div className="visual-label">원어민 영상</div>
-                    {
-                        item.nativeVideoUrl ? (
-                            <video src={item.nativeVideoUrl} controls style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        ) : (
-                            <div style={{ fontSize: '1.5rem', opacity: 0.3 }}>-</div>
-                        )
-                    }
-                </div>
-
-                {/* 2. 입모양 가이드 */}
-                <div className="visual-box">
-                    <div className="visual-label">입모양</div>
-                    {
-                        item.mouthShapeUrl ? (
-                            <img src={item.mouthShapeUrl} alt="입모양" style={{ width: '100%', height: '80%', objectFit: 'contain' }} />
+            {/* 4행 레이아웃 */}
+            <div className="merged-layout">
+                {/* Row 1: 내 발음 + 조음 위치 */}
+                <div className="row-2-myrecording">
+                    <div className="record-section">
+                        <div className="record-title">내 발음 녹음</div>
+                        <div className="record-controls">
+                            <button
+                                className={`record-btn-merged ${isRecording ? 'recording' : ''}`}
+                                onClick={handleRecordToggle}
+                                disabled={isAnalyzing}
+                            >
+                                {isRecording ? <Square size={40} /> : <Mic size={40} />}
+                            </button>
+                            <div className="record-status">
+                                <p className="status-text">
+                                    {isRecording ? '🔴 녹음 중...' : '준비 완료'}
+                                </p>
+                                {userAudioUrl && (
+                                    <button className="play-btn" onClick={handlePlayAudio} disabled={isAnalyzing}>
+                                        <Play size={20} /> 다시 듣기
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="visual-card visual-card-compact">
+                        <div className="visual-label">조음 위치</div>
+                        {(localTongue || item.tonguePositionUrl) ? (
+                            <img src={localTongue || item.tonguePositionUrl} alt="조음 위치" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                         ) : (
                             <div style={{ fontSize: '3rem', opacity: 0.3 }}>-</div>
-                        )
-                    }
+                        )}
+                    </div>
                 </div>
 
-                {/* 3. 조음 위치 가이드 (로컬 이미지 우선) */}
-                <div className="visual-box">
-                    <div className="visual-label">조음 위치</div>
-                    {
-                        (localTongue || item.tonguePositionUrl) ? (
-                            <img src={localTongue || item.tonguePositionUrl} alt="조음 위치" style={{ width: '100%', height: '80%', objectFit: 'contain' }} />
-                        ) : (
-                            <div style={{ fontSize: '3rem', opacity: 0.3 }}>-</div>
-                        )
-                    }
-                </div>
+                <div className="analysis-grid">
+                    {/* Row 3: 억양 그래프 */}
+                    <div className="row-3-intonation">
+                        <div className="graph-card">
+                            <div className="graph-title">
+                                <span>억양 분석</span>
+                                <div style={{ fontSize: '0.8rem', marginLeft: 'auto' }}>
+                                    <span style={{ color: '#e24a4aff', marginRight: '10px' }}>· 표준</span>
+                                    <span style={{ color: '#00ff22ff' }}>· 내 발음</span>
+                                </div>
+                            </div>
+                            <canvas ref={graphCanvasRef} width={800} height={150} style={{ width: '100%', height: 'auto' }} />
+                        </div>
+                    </div>
 
-                {/* 4. 목표 억양 가이드 */}
-                <div className="visual-box">
-                    <div className="visual-label">목표 억양 그래프</div>
-                    <canvas ref={canvasRef} width={400} height={150} style={{ width: '90%', height: '50%' }} />
+                    {/* Row 4: AI 피드백 */}
+                    <div className="row-4-feedback">
+                        <div className="feedback-card">
+                            <div className="feedback-title">AI 피드백</div>
+                            <div className="feedback-content">
+                                {analysisResult && analysisResult.feedback ? (
+                                    <p>{analysisResult.feedback}</p>
+                                ) : (
+                                    <p style={{ color: '#999', fontStyle: 'italic' }}>발음 분석 중...피드백을 기다리는 중입니다.</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {/* 녹음 버튼 */}
-            <div className="practice-controls">
-                <div className="waveform-display">
-                    {isRecording ? (
-                        <span style={{ color: '#ff4444' }}>녹음중</span>
-                    ) : (
-                        <span>녹음 준비 완료!</span>
-                    )}
-                </div>
-
-                <button
-                    className={`record-btn-large ${isRecording ? 'recording' : ''}`}
-                    onClick={handleRecordToggle}
-                >
-                    {isRecording ? <Square size={32} /> : <Mic size={32} />}
-                </button>
-                <p style={{ marginTop: '1rem', color: '#ccc' }}>
-                    {isRecording ? '버튼을 눌러 종료하세요.' : '버튼을 눌러 녹음을 시작하세요.'}
-                </p>
-            </div>
-            {/* Loading Overlay */}
+            {/* 분석 중 오버레이 */}
             {isAnalyzing && (
                 <div className="analysis-overlay">
                     <div className="analysis-spinner-box">
@@ -460,6 +547,9 @@ const PronunciationPracticePage = () => {
                     </div>
                 </div>
             )}
+
+            {/* 숨겨진 오디오 엘리먼트 */}
+            <audio ref={audioRef} />
         </div>
     );
 };
