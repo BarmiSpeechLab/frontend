@@ -111,8 +111,11 @@ const ProfilePage = () => {
             try {
                 setLoading(true);
 
-                // 1. 프로필 조회
-                const userData = await getUserProfile();
+                // ✅ 프로필과 통계를 병렬로 조회 (기존: 순차 → 개선: 병렬)
+                const [userData, statsData] = await Promise.all([
+                    getUserProfile(),
+                    getUserStats().catch(() => null)  // 통계 실패해도 프로필은 표시
+                ]);
 
                 setUser({
                     nickname: userData.nickname || '알 수 없음',
@@ -120,16 +123,13 @@ const ProfilePage = () => {
                     joinDate: userData.createdAt ? userData.createdAt.split('T')[0] : '2024-01-01',
                 });
 
-                // 2. 학습 현황 조회
-                try {
-                    const statsData = await getUserStats();
+                // 통계 데이터가 있으면 설정
+                if (statsData) {
                     setStats({
-                        totalLearningTime: statsData.totalStudyDays || 0, // days로 매핑
-                        completedLearning: statsData.totalTryCount || 0,   // try count로 매핑
+                        totalLearningTime: statsData.totalStudyDays || 0,
+                        completedLearning: statsData.totalTryCount || 0,
                         averageAccuracy: statsData.averageScore || 0,
                     });
-                } catch (e) {
-                    console.warn("통계 정보를 가져오는데 실패했습니다", e);
                 }
 
             } catch (err) {

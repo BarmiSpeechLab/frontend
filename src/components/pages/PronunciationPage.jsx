@@ -70,9 +70,32 @@ const PronunciationPage = () => {
             path: '/pronunciation'
         }));
 
-        // 데이터 페칭
+        // ✅ 데이터 페칭 with Session Storage 캐싱
         const fetchData = async () => {
             try {
+                // 캐시 확인 (5분간 유효)
+                const cached = sessionStorage.getItem('pronunciation_data');
+                if (cached) {
+                    try {
+                        const { data, timestamp } = JSON.parse(cached);
+                        const cacheAge = Date.now() - timestamp;
+                        const CACHE_DURATION = 5 * 60 * 1000;  // 5분
+
+                        if (cacheAge < CACHE_DURATION) {
+                            console.log('[Cache Hit] Session Storage에서 발음기호 로드 (캐시 나이:', Math.round(cacheAge / 1000), '초)');
+                            setIpaItems(data);
+                            setLoading(false);
+                            return;
+                        } else {
+                            console.log('[Cache Expired] 캐시 만료, API 재조회');
+                        }
+                    } catch (e) {
+                        console.warn('캐시 데이터 파싱 실패:', e);
+                    }
+                }
+
+                console.log('[Fetching] 발음기호 데이터 조회 시작 (39개 API 호출)');
+
                 // 500 에러 회피: 'ipa' 문자열 검색 대신 ID 1~40번 직접 조회
                 const ids = Array.from({ length: 40 }, (_, i) => i + 1).filter(id => id !== 8);
                 const promises = ids.map(id => getCurriculumDetail(id).catch(() => null));
@@ -94,6 +117,15 @@ const PronunciationPage = () => {
                         korType: getKorType(fixEncoding(item.meaning))
                     };
                 });
+
+                console.log('[Fetching] 발음기호 데이터 조회 완료');
+
+                // ✅ Session Storage에 캐싱
+                sessionStorage.setItem('pronunciation_data', JSON.stringify({
+                    data: formattedData,
+                    timestamp: Date.now()
+                }));
+
                 setIpaItems(formattedData);
             } catch (error) {
                 console.error('데이터 로딩 실패:', error);

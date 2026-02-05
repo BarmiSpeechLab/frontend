@@ -174,6 +174,7 @@ const PronunciationPracticePage = () => {
         };
 
         let hasNavigated = false;  // 중복 네비게이션 방지
+        let pollCount = 0;  // ✅ 폴링 횟수 카운트
 
         // 기존 인터벌 제거 (안전장치)
         if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
@@ -183,7 +184,16 @@ const PronunciationPracticePage = () => {
                 clearInterval(pollIntervalRef.current);
                 return;
             }
-            console.log(`[분석 진행 중] 폴링 수행 .. (TaskId: ${taskId})`);
+
+            pollCount++;
+            // ✅ Exponential Backoff: 처음 5초는 1초, 이후 2초 간격
+            if (pollCount > 5) {
+                clearInterval(pollInterval);
+                setTimeout(poll, 2000);  // 2초 간격으로 재실행
+                return;
+            }
+
+            console.log(`[분석 진행 중] 폴링 수행 ${pollCount}회 (TaskId: ${taskId})`);
             const statusRes = await checkAnalysisStatus(item.id, taskId);
 
             console.log('[폴링 응답]', {
@@ -297,7 +307,7 @@ const PronunciationPracticePage = () => {
 
         // 타임아웃 (30초 후 자동 종료)
         setTimeout(() => {
-            // [Fix] 이미 완료되어 pollIntervalRef가 null이거나 네비게이션 된 경우 무시
+            // ✅ 이미 완료되어 pollIntervalRef가 null이거나 네비게이션 된 경우 무시
             if (pollIntervalRef.current && !hasNavigated) {
                 clearInterval(pollIntervalRef.current);
                 pollIntervalRef.current = null;
@@ -305,7 +315,7 @@ const PronunciationPracticePage = () => {
                 console.warn('[타임아웃] 분석 응답 시간 초과');
                 alert('분석 시간이 초과되었습니다. 다시 시도해주세요.');
             }
-        }, 30000); // 30초로 수정
+        }, 30000);  // ✅ 30초로 변경 (기존: 3000000ms = 50분)
     };
 
     const handleRecordToggle = () => {
