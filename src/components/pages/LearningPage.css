@@ -23,7 +23,11 @@
     transition: all 0.2s;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
     text-align: center;
+    position: relative;
+    /* Added for absolute badges */
 }
+
+/* ... existing hover ... */
 
 .learning-card:hover {
     background: #fff;
@@ -31,6 +35,8 @@
     box-shadow: 0 8px 16px rgba(166, 124, 0, 0.1);
     border-color: #a67c00;
 }
+
+/* ... existing text styles ... */
 
 .learning-text {
     font-size: 1.8rem;
@@ -65,4 +71,37 @@
     background: #a67c00;
     border-radius: 3px;
     transition: width 0.3s ease;
+}
+
+/* New Stats Badges */
+.card-badge-left {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(4px);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #666;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    border: 1px solid #eee;
+    z-index: 10;
+}
+
+.card-badge-right {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #d4af37;
+    /* Gold */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f2dfb6;
+    z-index: 10;
 }

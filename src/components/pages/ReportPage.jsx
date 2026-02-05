@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import rmi from '../../assets/img/rmi.png';
-import './MainPage.css';
+import './ReportPage.css';
 import OnboardingModal from '../common/OnboardingModal';
 import StudyCalendar from '../common/StudyCalendar';
 import WeeklyChart from '../common/WeeklyChart';
@@ -238,31 +238,34 @@ const ReportPage = () => {
         <div className="dashboard-container">
             <header className="dashboard-header">
                 <div className="header-left">
-                    <div className="mascot-wrapper">
-                        <img src={rmi} alt="마스코트" className="dashboard-mascot" />
-                    </div>
                     <h1 className="welcome-text">
                         {user ? `${user.nickname}님, 안녕하세요!` : '안녕하세요!'}
                     </h1>
                 </div>
 
+                <div className="header-center" onClick={() => navigate('/main')}>
+                    <span className="header-logo-text">바르미</span>
+                </div>
+
                 <div className="header-right">
                     <div
                         className="profile-widget"
-                        onClick={() => setIsDropdownOpen((prev) => !prev)}
-                        title="메뉴 열기"
+                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     >
-                        <div className="profile-circle-small">{user?.nickname?.charAt(0) || 'B'}</div>
-                        <span className="profile-name-small">{user?.nickname || '사용자'}님</span>
+                        <div className="profile-circle-small">
+                            <img src={rmi} alt="프로필" className="profile-img-small" />
+                        </div>
+                        <span className="profile-name-small">
+                            {user ? user.nickname : '게스트'}
+                        </span>
                     </div>
-
                     {isDropdownOpen && (
                         <div className="profile-dropdown">
                             <div className="dropdown-item" onClick={handleProfileClick}>
-                                내 프로필
+                                👤 마이페이지
                             </div>
                             <div className="dropdown-item logout-item" onClick={handleLogout}>
-                                로그아웃
+                                🔓 로그아웃
                             </div>
                         </div>
                     )}

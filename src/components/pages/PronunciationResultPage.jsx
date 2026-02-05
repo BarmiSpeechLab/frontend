@@ -119,41 +119,27 @@ const PronunciationResultPage = () => {
 
             {/* 학습 대상 정보 (원래 있던 곳) */}
             <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                <h1 style={{ fontSize: '3rem', color: '#a67c00', fontWeight: 800, marginBottom: '0.5rem' }}>
-                    {fixEncoding(item.word || item.symbol)}
+                <h1 style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '0.5rem' }}>
+                    {Array.isArray(resultData.wordSegments) && resultData.wordSegments.length > 0 ? (
+                        resultData.wordSegments.map((word, wIdx) => {
+                            // Score based coloring: >=80 Green, else Red
+                            const isGood = (word.score || 0) >= 80;
+                            const color = isGood ? '#28a745' : '#dc3545';
+                            return (
+                                <span key={wIdx} style={{ color: color, marginRight: '0.5rem' }}>
+                                    {fixEncoding(word.word)}
+                                </span>
+                            );
+                        })
+                    ) : (
+                        <span style={{ color: '#a67c00' }}>
+                            {fixEncoding(item.word || item.symbol)}
+                        </span>
+                    )}
                 </h1>
                 <p style={{ fontSize: '1.2rem', color: '#666' }}>
                     <strong>
-                        {/* 1. 분석 결과가 있으면 컬러풀한 IPA 표시 */}
-                        {Array.isArray(resultData.wordSegments) && resultData.wordSegments.length > 0 ? (
-                            <span style={{ fontFamily: 'monospace', fontSize: '1.4rem', background: '#f8f9fa', padding: '4px 12px', borderRadius: '8px' }}>
-
-                                {resultData.wordSegments.map((word, wIdx) => (
-                                    <span key={wIdx}>
-                                        {word.phonemes && Array.isArray(word.phonemes) && word.phonemes.map((pho, pIdx) => (
-                                            <span
-                                                key={pIdx}
-                                                style={{
-                                                    color: pho.isCorrect ? '#28a745' : '#dc3545', // Green vs Red (Bootstrapy colors)
-                                                    fontWeight: 'bold',
-                                                    margin: '0 1px'
-                                                }}
-                                            >
-                                                {fixEncoding(pho.symbol)}
-                                            </span>
-                                        ))}
-                                        {wIdx < resultData.wordSegments.length - 1 && <span>&nbsp;</span>}
-                                    </span>
-                                ))}
-
-                            </span>
-                        ) : (
-                            // 2. 결과 없으면 기존 텍스트 표시
-                            <span>
-                                {item.ipa ? `${fixEncoding(item.ipa)}` : (item.pronunciation ? `${fixEncoding(item.pronunciation)}` : '')}
-                            </span>
-                        )}
-
+                        {/* 1. 분석 결과가 있으면 컬러풀한 IPA 표시 -> 삭제 (헤더에 통합됨) */}
                         {item.korPronunciation ? <span style={{ color: '#333' }}>{fixEncoding(item.korPronunciation)}</span> : ''}
                     </strong>
                     <span style={{ color: '#888', fontWeight: 400 }}> {item.meaning ? `- ${fixEncoding(item.meaning)}` : ''}</span>
@@ -181,38 +167,53 @@ const PronunciationResultPage = () => {
                 <div className="graph-card" style={{ textAlign: 'center' }}>
                     <div className="graph-title">상세 분석</div>
 
-                    {/* 발음 기호 */}
-                    <div className="phoneme-analysis" style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
-                        {Array.isArray(resultData.wordSegments) ? resultData.wordSegments.map((word, wIdx) => (
-                            <div key={wIdx} className="word-block" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                <div className="phoneme-row" style={{ display: 'flex', gap: '2px' }}>
-                                    {word.phonemes && Array.isArray(word.phonemes) && word.phonemes.map((pho, pIdx) => (
-                                        <div
-                                            key={pIdx}
-                                            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-                                        >
-                                            <span style={{
-                                                color: pho.isCorrect ? '#137333' : '#c5221f',
-                                                fontSize: '1.5rem',
-                                                fontWeight: 800,
-                                                fontFamily: 'monospace',
-                                                textDecoration: pho.isCorrect ? 'none' : 'underline',
-                                                textUnderlineOffset: '4px'
-                                            }}>
-                                                {pho.symbol}
-                                            </span>
-                                            {!pho.isCorrect && (
-                                                <span style={{ fontSize: '0.8rem', color: '#c5221f' }}>({pho.userSymbol})</span>
-                                            )}
+                    {/* 발음 기호 상세 분석 (복구 및 수정) */}
+                    <div className="phoneme-analysis" style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '2rem', marginBottom: '2rem' }}>
+                        {Array.isArray(resultData.wordSegments) && resultData.wordSegments.length > 0 ? (
+                            resultData.wordSegments
+                                .filter(word => word.word && word.phonemes && word.phonemes.length > 0) // 유효한 데이터만 필터링
+                                .map((word, wIdx) => (
+                                    <div key={wIdx} className="word-block" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                        {/* 음소 나열 */}
+                                        <div className="phoneme-row" style={{ display: 'flex', gap: '4px', alignItems: 'flex-end', height: '60px' }}>
+                                            {word.phonemes.map((pho, pIdx) => (
+                                                <div
+                                                    key={pIdx}
+                                                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end' }}
+                                                >
+                                                    {/* 내 발음 (틀렸을 때만 표시, 빈 값 방지) */}
+                                                    {/* 내 발음 표시는 삭제 */}
+                                                    {/* 
+                                                    {!pho.isCorrect && pho.userSymbol && pho.userSymbol !== 'noise' && (
+                                                        <span style={{ fontSize: '0.8rem', color: '#dc3545', marginBottom: '4px' }}>
+                                                            {pho.userSymbol}
+                                                        </span>
+                                                    )}
+                                                    */}
+
+                                                    {/* 정답 발음 기호 */}
+                                                    <span style={{
+                                                        color: pho.isCorrect ? '#28a745' : '#dc3545',
+                                                        fontSize: '1.4rem',
+                                                        fontWeight: 'bold',
+                                                        fontFamily: 'monospace',
+                                                        borderBottom: pho.isCorrect ? '2px solid transparent' : '2px solid #dc3545',
+                                                        paddingBottom: '2px'
+                                                    }}>
+                                                        {pho.symbol}
+                                                    </span>
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
-                                </div>
-                                <div style={{ marginTop: '4px' }}>
-                                    <span style={{ fontSize: '0.9rem', color: '#666' }}>{word.word}</span>
-                                </div>
-                            </div>
-                        )) : (
-                            <p>분석 데이터가 없습니다.</p>
+
+                                        {/* 단어 텍스트 */}
+                                        <div style={{ marginTop: '8px', fontWeight: 600, color: '#555' }}>
+                                            {word.word}
+                                        </div>
+                                    </div>
+                                ))
+                        ) : (
+                            <p style={{ color: '#999' }}>상세 분석 데이터가 없습니다.</p>
                         )}
                     </div>
 

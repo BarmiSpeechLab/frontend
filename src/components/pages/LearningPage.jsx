@@ -137,6 +137,7 @@ function LearningPage() {
                                             ipa: fixEncoding(item.ipa),
                                             korPronunciation: fixEncoding(item.korPronunciation),
                                             tryCount: item.tryCount || 0,
+                                            score: item.score || 0,
                                             isCompleted: item.isCompleted
                                         };
                                     }),
@@ -229,6 +230,19 @@ function LearningPage() {
                             className="learning-card"
                             onClick={() => handleItemClick(item)}
                         >
+                            {/* Stats Badges */}
+                            {item.tryCount > 0 && (
+                                <div className="card-badge-left">
+                                    🔄 {item.tryCount}회
+                                </div>
+                            )}
+
+                            {item.tryCount > 0 && (
+                                <div className="card-badge-right">
+                                    🏆 {item.score || 0}점
+                                </div>
+                            )}
+
                             <h2 className="learning-text" style={{ fontSize: viewMode === 'SENTENCE' ? '1.2rem' : '1.8rem' }}>{item.displayText}</h2>
                             <p className="learning-sub">
                                 {item.meaning}

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import './StudyCalendar.css';
-import calendarIcon from '../../assets/img/calendar.png';
+import calendarIcon from '../../assets/img/calendar3.png';
 
 const StudyCalendar = ({ studyData = {}, studyCounts = {}, onMonthChange }) => {
     const [currentDate, setCurrentDate] = useState(new Date());

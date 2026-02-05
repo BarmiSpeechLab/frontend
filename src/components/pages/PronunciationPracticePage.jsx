@@ -6,10 +6,6 @@ import { submitPronunciation, checkAnalysisStatus } from '../../api/ai';
 import { convertWebMToWav } from '../../utils/audioConverter';
 import { getIpaImages, getIpaImagesBySymbol } from '../../utils/ipaLoader';
 
-// ... (existing code) ...
-
-
-
 const PronunciationPracticePage = () => {
     const location = useLocation();
     const navigate = useNavigate();
@@ -27,6 +23,18 @@ const PronunciationPracticePage = () => {
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
 
+    // [New] 분석 대기 상태 (로딩 & 취소)
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const pollIntervalRef = useRef(null);
+
+    const handleCancelAnalysis = () => {
+        if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
+        }
+        setIsAnalyzing(false);
+    };
+
     // 목표 억양 시각화
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -37,15 +45,50 @@ const PronunciationPracticePage = () => {
 
         ctx.clearRect(0, 0, width, height);
 
-        // 목표 그래프
-        ctx.beginPath();
-        ctx.strokeStyle = '#e24a4aff';
-        ctx.lineWidth = 3;
-        ctx.moveTo(0, height / 2);
-        for (let i = 0; i < width; i++) {
-            ctx.lineTo(i, height / 2 + Math.sin(i * 0.05) * 30);
+        // 목표 그래프 (실제 데이터 사용)
+        const stdData = item.inton || item.intonData;
+        let pitchData = [];
+
+        // 데이터 파싱
+        if (Array.isArray(stdData)) {
+            stdData.forEach(p => {
+                if (p && Array.isArray(p.curve_pitch)) {
+                    pitchData = [...pitchData, ...p.curve_pitch];
+                }
+            });
         }
-        ctx.stroke();
+
+        if (pitchData.length > 0) {
+            // 정규화 (최솟값 0 처리)
+            const minVal = Math.min(...pitchData.filter(v => v > 0));
+            const maxVal = Math.max(...pitchData);
+            const range = maxVal - minVal || 1;
+
+            ctx.beginPath();
+            ctx.strokeStyle = '#e24a4aff';
+            ctx.lineWidth = 3;
+            // 둥근 선 처리
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            const stepX = width / (pitchData.length - 1 || 1);
+
+            pitchData.forEach((val, idx) => {
+                const x = idx * stepX;
+                // 무음(0이하)이면 바닥에, 아니면 값에 비례해서 위로
+                const y = val <= 0 ? height : height - ((val - minVal) / range) * (height * 0.8) - (height * 0.1);
+
+                if (idx === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+        } else {
+            // 데이터가 없을 경우 안내 텍스트 표시
+            ctx.font = '14px Arial';
+            ctx.fillStyle = '#ccc';
+            ctx.textAlign = 'center';
+            ctx.fillText('표준 억양 데이터가 없습니다.', width / 2, height / 2);
+        }
     }, []);
 
     const startRecording = async () => {
@@ -67,7 +110,7 @@ const PronunciationPracticePage = () => {
                 // 오디오 웹엠(webm) 포맷으로 전송
                 const webmBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
 
-                // [수정] WebM -> WAV 변환 (백엔드 호환성)
+                // [수정] WebM -> WAV 변환
                 try {
                     const wavBlob = await convertWebMToWav(webmBlob);
                     handleRecordingComplete(wavBlob);
@@ -119,6 +162,8 @@ const PronunciationPracticePage = () => {
         }
 
         // 2. 폴링 및 분석 데이터 수집
+        setIsAnalyzing(true); // 분석 시작 상태
+
         let mergedResult = {
             item: item,
             userAudioUrl: audioUrl,
@@ -130,9 +175,12 @@ const PronunciationPracticePage = () => {
 
         let hasNavigated = false;  // 중복 네비게이션 방지
 
-        const pollInterval = setInterval(async () => {
+        // 기존 인터벌 제거 (안전장치)
+        if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+
+        pollIntervalRef.current = setInterval(async () => {
             if (hasNavigated) {
-                clearInterval(pollInterval);
+                clearInterval(pollIntervalRef.current);
                 return;
             }
             console.log(`[분석 진행 중] 폴링 수행 .. (TaskId: ${taskId})`);
@@ -147,7 +195,8 @@ const PronunciationPracticePage = () => {
             // ERROR 상태: 폴링 중단
             if (statusRes.status === 'ERROR') {
                 console.error('[분석 에러] 서버에서 에러 반환');
-                clearInterval(pollInterval);
+                clearInterval(pollIntervalRef.current);
+                setIsAnalyzing(false); // 분석 종료
                 alert('분석 중 오류가 발생했습니다.');
                 return;
             }
@@ -155,76 +204,108 @@ const PronunciationPracticePage = () => {
             if ((statusRes.status === 'COMPLETED' || statusRes.status === 'PROCESSING') && statusRes.result) {
                 const res = statusRes.result;
 
-                console.log('[결과 상세]', {
-                    pronunciation: res.pronunciation,
-                    intonations: res.intonations,
-                    llmFeedback: res.llmFeedback
-                });
-
                 // 백엔드 응답에서 새 데이터를 받으면 mergedResult에 누적 저장
                 if (res.pronunciation && !mergedResult.pronunciation) {
-                    console.log('[PRON 저장] 발음 데이터 수신');
                     mergedResult.pronunciation = res.pronunciation;
+                    const pronRaw = res.pronunciation;
 
-                    const pron = res.pronunciation;
-                    mergedResult.grade = pron.grade || pron.score;
-                    mergedResult.feedback = pron.feedback || mergedResult.feedback;
-                    mergedResult.standardPitch = pron.standardPitch || mergedResult.standardPitch;
-                    mergedResult.userPitch = pron.userPitch || mergedResult.userPitch;
-                    mergedResult.wordSegments = pron.wordSegments;
+                    // [Fix] analysisResult is an Array of word objects
+                    const pronData = pronRaw.analysisResult;
+                    if (Array.isArray(pronData)) {
+                        mergedResult.wordSegments = pronData;
+
+                        // Calculate average grade
+                        const totalScore = pronData.reduce((acc, cur) => acc + (cur.score || (100 - (cur.error_rate || 0)) || 0), 0);
+                        const avgScore = pronData.length > 0 ? totalScore / pronData.length : 0;
+                        mergedResult.grade = avgScore >= 80 ? 'EXCELLENT' : (avgScore >= 50 ? 'GOOD' : 'BAD');
+                    }
                 }
 
                 if (res.intonations && !mergedResult.intonations) {
-                    console.log('[INTON 저장] 억양 데이터 수신');
                     mergedResult.intonations = res.intonations;
+                    const intonRaw = res.intonations;
+                    const intonData = intonRaw.analysisResult; // Array of items
 
-                    const inton = res.intonations;
-                    mergedResult.standardPitch = mergedResult.standardPitch || inton.standardPitch;
-                    mergedResult.userPitch = mergedResult.userPitch || inton.userPitch;
+                    // [Fix] Aggregate curve_pitch for userPitch
+                    if (Array.isArray(intonData)) {
+                        let combinedUserPitch = [];
+                        intonData.forEach(item => {
+                            if (item.curve_pitch && Array.isArray(item.curve_pitch)) {
+                                combinedUserPitch = [...combinedUserPitch, ...item.curve_pitch];
+                            }
+                        });
+                        mergedResult.userPitch = combinedUserPitch;
+
+                        mergedResult.userPitch = combinedUserPitch;
+
+                        // [Fix] Load standard pitch from item.intonData (DB) or item.inton (DTO)
+                        const stdData = item.inton || item.intonData;
+                        if (stdData && Array.isArray(stdData)) {
+                            let combinedStdPitch = [];
+                            stdData.forEach(p => {
+                                if (p && p.curve_pitch) { // DB uses snake_case keys
+                                    combinedStdPitch = [...combinedStdPitch, ...p.curve_pitch];
+                                }
+                            });
+                            mergedResult.standardPitch = combinedStdPitch;
+                        } else {
+                            mergedResult.standardPitch = [];
+                        }
+                    }
                 }
 
                 if (res.llmFeedback && !mergedResult.llmFeedback) {
-                    console.log('[LLM 저장] 피드백 데이터 수신');
                     mergedResult.llmFeedback = res.llmFeedback;
-
                     const llm = res.llmFeedback;
-                    mergedResult.feedback = mergedResult.feedback || llm.feedback;
+                    // Fix: llmFeedback returns 'analysisResult', not 'feedback'
+                    mergedResult.feedback = llm.analysisResult || mergedResult.feedback;
                 }
 
                 mergedResult.taskId = taskId;
                 mergedResult.rawResult = res;
 
                 // mergedResult 기준으로 완료 판단
+                // [Fix] intonations might be missing standardPitch in AnalysisResult, but we use DB data
                 const isAllArrived = mergedResult.pronunciation && mergedResult.intonations && mergedResult.llmFeedback;
 
-                console.log('[완료 체크]', {
-                    hasPron: !!mergedResult.pronunciation,
-                    hasInton: !!mergedResult.intonations,
-                    hasLLM: !!mergedResult.llmFeedback,
-                    isAllArrived
-                });
-
                 if (isAllArrived && !hasNavigated) {
+                    // Ensure standardPitch is populated if it wasn't already (double check)
+                    // [Fix] Backend DTO field is 'inton', Entity is 'intonData'. Check both.
+                    const stdData = item.inton || item.intonData;
+                    if ((!mergedResult.standardPitch || mergedResult.standardPitch.length === 0) && stdData) {
+                        let combinedStdPitch = [];
+                        if (Array.isArray(stdData)) {
+                            stdData.forEach(p => {
+                                if (p && p.curve_pitch) {
+                                    combinedStdPitch = [...combinedStdPitch, ...p.curve_pitch];
+                                }
+                            });
+                        }
+                        mergedResult.standardPitch = combinedStdPitch;
+                    }
+
                     console.log('%c[분석 완료] 모든 데이터를 수신 완료.', 'color: green; font-weight: bold;', mergedResult);
                     hasNavigated = true;
-                    clearInterval(pollInterval);
+                    // [Fix] 성공 시 Ref를 null로 초기화하여 타임아웃 방지
+                    clearInterval(pollIntervalRef.current);
+                    pollIntervalRef.current = null;
+                    setIsAnalyzing(false); // 분석 완료
                     navigate('/pronunciationResult', { state: mergedResult });
-                } else if (!isAllArrived) {
-                    console.warn('[대기 중] 누적 데이터:', {
-                        pron: !!mergedResult.pronunciation,
-                        inton: !!mergedResult.intonations,
-                        llm: !!mergedResult.llmFeedback
-                    });
                 }
             }
         }, 1000);
 
         // 타임아웃 (30초 후 자동 종료)
         setTimeout(() => {
-            clearInterval(pollInterval);
-            console.warn('[타임아웃] 분석 응답 시간 초과');
-            alert('분석 시간이 초과되었습니다. 다시 시도해주세요.');
-        }, 3000000);
+            // [Fix] 이미 완료되어 pollIntervalRef가 null이거나 네비게이션 된 경우 무시
+            if (pollIntervalRef.current && !hasNavigated) {
+                clearInterval(pollIntervalRef.current);
+                pollIntervalRef.current = null;
+                setIsAnalyzing(false);
+                console.warn('[타임아웃] 분석 응답 시간 초과');
+                alert('분석 시간이 초과되었습니다. 다시 시도해주세요.');
+            }
+        }, 30000); // 30초로 수정
     };
 
     const handleRecordToggle = () => {
@@ -357,6 +438,18 @@ const PronunciationPracticePage = () => {
                     {isRecording ? '버튼을 눌러 종료하세요.' : '버튼을 눌러 녹음을 시작하세요.'}
                 </p>
             </div>
+            {/* Loading Overlay */}
+            {isAnalyzing && (
+                <div className="analysis-overlay">
+                    <div className="analysis-spinner-box">
+                        <div className="spinner-circle"></div>
+                        <p className="analysis-text">발음을 분석 중입니다...</p>
+                        <button className="analysis-cancel-btn" onClick={handleCancelAnalysis}>
+                            취소
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
