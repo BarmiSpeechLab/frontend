@@ -22,19 +22,17 @@ const ConversationPage = () => {
     const [isRecording, setIsRecording] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [lastAiQuestion, setLastAiQuestion] = useState('');
-    const [avatarState, setAvatarState] = useState('waiting'); // waiting, success, thinking, fail
+    const [avatarState, setAvatarState] = useState('waiting');
     const [showFailMessage, setShowFailMessage] = useState(false);
 
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
     const chatEndRef = useRef(null);
 
-    // 스크롤 자동 내리기
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages, isProcessing]);
 
-    // Avatar 이미지 선택
     const getAvatarImage = () => {
         switch (avatarState) {
             case 'success': return avatarSuccess;
@@ -44,7 +42,6 @@ const ConversationPage = () => {
         }
     };
 
-    // 주제 변경 핸들러
     const handleThemeChange = async (themeId) => {
         if (isRecording || isProcessing) return;
 
@@ -71,7 +68,6 @@ const ConversationPage = () => {
         }
     };
 
-    // 녹음 시작
     const startRecording = async () => {
         if (!currentTheme) {
             alert("주제를 먼저 선택해주세요!");
@@ -123,7 +119,6 @@ const ConversationPage = () => {
 
             const { transScript, nextTurn, feedback } = result.analysisResult;
 
-            // 재시도 감지
             if (nextTurn === lastAiQuestion) {
                 setAvatarState('fail');
                 setShowFailMessage(true);
@@ -136,7 +131,6 @@ const ConversationPage = () => {
                 return;
             }
 
-            // 성공
             setAvatarState('success');
             setMessages(prev => [
                 ...prev,
@@ -181,34 +175,33 @@ const ConversationPage = () => {
 
     return (
         <div className="conversation-container">
+            {/* 헤더 + 주제 선택 */}
             <div className="conversation-header">
-                <div className="header-content">
+                <div className="header-top">
                     <h1 className="header-title">바르미와 대화하기</h1>
-                    <p className="header-subtitle">
-                        자유롭게 대화하며 발음을 연습하세요
-                    </p>
+                    <p className="header-subtitle">자유롭게 대화하며 발음을 연습하세요</p>
+                </div>
+
+                {/* 주제 버튼 (작은 칩 형태) */}
+                <div className="theme-chips">
+                    {THEMES.map((theme) => (
+                        <button
+                            key={theme.id}
+                            className={`theme-chip ${currentTheme === theme.id ? 'active' : ''}`}
+                            onClick={() => handleThemeChange(theme.id)}
+                            disabled={isRecording || isProcessing}
+                        >
+                            <span className="chip-emoji">{theme.emoji}</span>
+                            <span className="chip-label">{theme.label}</span>
+                        </button>
+                    ))}
                 </div>
             </div>
 
+            {/* 메인 컨텐츠 (아바타 왼쪽 + 채팅 오른쪽) */}
             <div className="conversation-main">
-                <aside className="theme-sidebar">
-                    <h3 className="sidebar-title">주제 선택</h3>
-                    <div className="theme-list">
-                        {THEMES.map((theme) => (
-                            <button
-                                key={theme.id}
-                                className={`theme-button ${currentTheme === theme.id ? 'active' : ''}`}
-                                onClick={() => handleThemeChange(theme.id)}
-                                disabled={isRecording || isProcessing}
-                            >
-                                <span className="theme-emoji">{theme.emoji}</span>
-                                <span className="theme-label">{theme.label}</span>
-                            </button>
-                        ))}
-                    </div>
-                </aside>
-
-                <div className="chat-section">
+                {/* 왼쪽: Avatar */}
+                <div className="avatar-sidebar">
                     <div className="avatar-container">
                         <img
                             src={getAvatarImage()}
@@ -221,11 +214,14 @@ const ConversationPage = () => {
                             </div>
                         )}
                     </div>
+                </div>
 
+                {/* 오른쪽: 채팅 영역 */}
+                <div className="chat-area">
                     <div className="chat-messages">
                         {messages.length === 0 && !isProcessing && (
                             <div className="empty-state">
-                                <p>👈 왼쪽에서 주제를 선택하면<br />바르미가 먼저 말을 걸어줘요!</p>
+                                <p>👆 위에서 주제를 선택하면<br />바르미가 먼저 말을 걸어줘요!</p>
                             </div>
                         )}
 
@@ -251,6 +247,7 @@ const ConversationPage = () => {
                         <div ref={chatEndRef} />
                     </div>
 
+                    {/* 녹음 버튼 */}
                     <div className="recording-controls">
                         <button
                             className={`record-button ${isRecording ? 'recording' : ''} ${isProcessing || !currentTheme ? 'disabled' : ''}`}
