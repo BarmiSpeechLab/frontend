@@ -12,7 +12,7 @@ const Sidebar = () => {
     const sidebarRef = useRef(null);
     const navListRef = useRef(null);
     
-    // y: 위치, moving: 움직임 여부, isSub: 서브메뉴 여부 추가
+    // y: 위치, moving: 움직임 여부, isSub: 서브메뉴 여부
     const [mascotPos, setMascotPos] = useState({ y: -100, moving: false, isSub: false });
     const [frameIndex, setFrameIndex] = useState(0);
     const animationIntervalRef = useRef(null);
@@ -131,14 +131,13 @@ const Sidebar = () => {
                         transform: `translateY(${mascotPos.y}px) translateY(-50%) scaleX(-1)`,
                         position: 'absolute',
                         right: '20px',
-                        transition: 'transform 0.3s ease-in-out, height 0.2s ease-in-out', // 사이즈 변경도 부드럽게
+                        transition: 'transform 0.3s ease-in-out, height 0.2s ease-in-out',
                         pointerEvents: 'none',
                         zIndex: 10,
                         opacity: mascotPos.y < 0 ? 0 : 1,
-                        // [핵심 수정] 움직일 때는 원본 사이즈 유지, 가만히 있을 때(rmiRun)만 위치에 따라 사이즈 분기
                         height: mascotPos.moving 
-                                ? '80px' // 기어갈 때 사이즈 (원하는 크기로 고정)
-                                : (mascotPos.isSub ? '70px' : '90px'), // 서브메뉴일 땐 작게, 메인메뉴일 땐 크게
+                                ? '80px' // 기어갈 때 사이즈
+                                : (mascotPos.isSub ? '70px' : '90px'),
                         width: 'auto',
                         objectFit: 'contain'
                     }}
