@@ -1,20 +1,29 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { startConversation, sendConversationAudio } from '../../api/conversation'; // startConversation 추가
+import { startConversation, submitConversation, checkConversationStatus } from '../../api/conversation';
 import './ConversationPage.css';
 
+// Avatar 이미지 import
+import avatarWaiting from '../../assets/img/conversation_waiting.png';
+import avatarSuccess from '../../assets/img/conversation_success.png';
+import avatarThinking from '../../assets/img/conversation_thinking.png';
+import avatarFail from '../../assets/img/conversation_fail.png';
+
 const THEMES = [
-    { id: 'DAILY', label: '일상 🏠' },
-    { id: 'TRAVEL', label: '여행 ✈️' },
-    { id: 'FOOD', label: '음식 🍔' },
-    { id: 'SHOPPING', label: '쇼핑 🛍️' },
-    { id: 'BUSINESS', label: '비즈니스 💼' }
+    { id: 'DAILY', label: '일상', emoji: '🏠' },
+    { id: 'TRAVEL', label: '여행', emoji: '✈️' },
+    { id: 'FOOD', label: '음식', emoji: '🍔' },
+    { id: 'SHOPPING', label: '쇼핑', emoji: '🛍️' },
+    { id: 'BUSINESS', label: '비즈니스', emoji: '💼' }
 ];
 
 const ConversationPage = () => {
-    const [currentTheme, setCurrentTheme] = useState(null); // 초기값 null (선택 안 함)
-    const [messages, setMessages] = useState([]); 
+    const [currentTheme, setCurrentTheme] = useState(null);
+    const [messages, setMessages] = useState([]);
     const [isRecording, setIsRecording] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [lastAiQuestion, setLastAiQuestion] = useState('');
+    const [avatarState, setAvatarState] = useState('waiting'); // waiting, success, thinking, fail
+    const [showFailMessage, setShowFailMessage] = useState(false);
 
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
@@ -25,32 +34,43 @@ const ConversationPage = () => {
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages, isProcessing]);
 
-    // ⭐ 주제 변경 핸들러 (수정됨)
+    // Avatar 이미지 선택
+    const getAvatarImage = () => {
+        switch (avatarState) {
+            case 'success': return avatarSuccess;
+            case 'thinking': return avatarThinking;
+            case 'fail': return avatarFail;
+            default: return avatarWaiting;
+        }
+    };
+
+    // 주제 변경 핸들러
     const handleThemeChange = async (themeId) => {
-        if (isRecording || isProcessing) return; // 녹음/처리 중 변경 방지
+        if (isRecording || isProcessing) return;
 
         setCurrentTheme(themeId);
-        setMessages([]); // 기존 대화 초기화
-        setIsProcessing(true); // 로딩 표시
+        setMessages([]);
+        setLastAiQuestion('');
+        setAvatarState('thinking');
+        setShowFailMessage(false);
+        setIsProcessing(true);
 
         try {
-            // 1. 첫 질문 가져오기
             const response = await startConversation(themeId);
-            
-            // 2. AI 질문 메시지 추가
-            setMessages([
-                { type: 'AI', text: response.message }
-            ]);
+            const firstQuestion = response.message;
+
+            setMessages([{ type: 'AI', text: firstQuestion }]);
+            setLastAiQuestion(firstQuestion);
+            setAvatarState('waiting');
         } catch (error) {
             console.error(error);
+            setMessages([{ type: 'AI', text: '주제 시작 중 오류가 발생했습니다.' }]);
+            setAvatarState('fail');
         } finally {
             setIsProcessing(false);
         }
     };
 
-    // ... (startRecording, stopRecording 등 기존 로직 동일) ...
-    // ... 녹음 관련 코드는 이전 답변과 같습니다 ...
-    
     // 녹음 시작
     const startRecording = async () => {
         if (!currentTheme) {
@@ -89,10 +109,35 @@ const ConversationPage = () => {
 
     const handleAudioSubmit = async (audioBlob) => {
         setIsProcessing(true);
-        try {
-            const response = await sendConversationAudio(audioBlob, currentTheme);
-            const { transScript, feedback, nextTurn } = response.analysisResult;
+        setAvatarState('thinking');
+        setShowFailMessage(false);
 
+        try {
+            const { taskId } = await submitConversation(audioBlob, lastAiQuestion, currentTheme);
+            const result = await pollConversationResult(taskId, 30);
+
+            if (result.status === 'ERROR') {
+                setAvatarState('fail');
+                throw new Error(result.error || '분석 중 오류가 발생했습니다.');
+            }
+
+            const { transScript, nextTurn, feedback } = result.analysisResult;
+
+            // 재시도 감지
+            if (nextTurn === lastAiQuestion) {
+                setAvatarState('fail');
+                setShowFailMessage(true);
+
+                setTimeout(() => {
+                    setShowFailMessage(false);
+                    setAvatarState('waiting');
+                }, 3000);
+
+                return;
+            }
+
+            // 성공
+            setAvatarState('success');
             setMessages(prev => [
                 ...prev,
                 { type: 'USER', text: transScript },
@@ -100,80 +145,132 @@ const ConversationPage = () => {
                 { type: 'AI', text: nextTurn }
             ]);
 
+            setLastAiQuestion(nextTurn);
+
+            setTimeout(() => {
+                setAvatarState('waiting');
+            }, 1000);
+
         } catch (error) {
             console.error(error);
-            setMessages(prev => [...prev, { type: 'AI', text: "오류가 발생했습니다." }]);
+            setAvatarState('fail');
+            setMessages(prev => [...prev, { type: 'AI', text: "오류가 발생했습니다. 다시 시도해주세요." }]);
+
+            setTimeout(() => {
+                setAvatarState('waiting');
+            }, 2000);
         } finally {
             setIsProcessing(false);
         }
     };
 
+    const pollConversationResult = async (taskId, maxAttempts = 30) => {
+        for (let i = 0; i < maxAttempts; i++) {
+            const result = await checkConversationStatus(taskId);
+
+            if (result.status === 'SUCCESS' || result.status === 'ERROR') {
+                return result;
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
+        throw new Error('분석 시간이 초과되었습니다.');
+    };
+
 
     return (
         <div className="conversation-container">
-            {/* 1. 상단 주제 탭 */}
-            <div className="theme-header">
-                <div className="theme-scroll">
-                    {THEMES.map((theme) => (
-                        <button
-                            key={theme.id}
-                            className={`theme-chip ${currentTheme === theme.id ? 'active' : ''}`}
-                            onClick={() => handleThemeChange(theme.id)}
-                        >
-                            {theme.label}
-                        </button>
-                    ))}
+            <div className="conversation-header">
+                <div className="header-content">
+                    <h1 className="header-title">바르미와 대화하기</h1>
+                    <p className="header-subtitle">
+                        자유롭게 대화하며 발음을 연습하세요
+                    </p>
                 </div>
             </div>
 
-            {/* 2. 채팅 영역 */}
-            <div className="chat-area">
-                {/* ⭐ 주제 선택 전 안내 문구 (messages가 비어있을 때) */}
-                {messages.length === 0 && !isProcessing && (
-                    <div className="empty-state">
-                        <div className="empty-icon">👆</div>
-                        <h3>주제를 선택해주세요</h3>
-                        <p>원하는 주제를 클릭하면<br/>AI가 먼저 말을 걸어줍니다.</p>
+            <div className="conversation-main">
+                <aside className="theme-sidebar">
+                    <h3 className="sidebar-title">주제 선택</h3>
+                    <div className="theme-list">
+                        {THEMES.map((theme) => (
+                            <button
+                                key={theme.id}
+                                className={`theme-button ${currentTheme === theme.id ? 'active' : ''}`}
+                                onClick={() => handleThemeChange(theme.id)}
+                                disabled={isRecording || isProcessing}
+                            >
+                                <span className="theme-emoji">{theme.emoji}</span>
+                                <span className="theme-label">{theme.label}</span>
+                            </button>
+                        ))}
                     </div>
-                )}
+                </aside>
 
-                {messages.map((msg, index) => (
-                    <div key={index} className={`message-row ${msg.type.startsWith('USER') ? 'user-row' : 'ai-row'}`}>
-                        {!msg.type.startsWith('USER') && <div className="ai-avatar">🤖</div>}
-                        <div className={`bubble ${msg.type}`}>
-                            {msg.type === 'AI_FEEDBACK' && <div className="feedback-label">📝 피드백</div>}
-                            {msg.text}
-                        </div>
+                <div className="chat-section">
+                    <div className="avatar-container">
+                        <img
+                            src={getAvatarImage()}
+                            alt="바르미"
+                            className={`avatar-image ${avatarState}`}
+                        />
+                        {showFailMessage && (
+                            <div className="fail-message">
+                                <p>죄송해요, 다시 한 번 말씀해주세요 😅</p>
+                            </div>
+                        )}
                     </div>
-                ))}
-                
-                {/* 로딩 인디케이터 */}
-                {isProcessing && (
-                    <div className="message-row ai-row">
-                        <div className="ai-avatar">🤖</div>
-                        <div className="bubble AI processing">
-                            {currentTheme && messages.length === 0 ? "질문 생성 중..." : "분석 중..."} 💬
-                        </div>
-                    </div>
-                )}
-                <div ref={chatEndRef} />
-            </div>
 
-            {/* 3. 하단 컨트롤러 */}
-            <div className="control-bar">
-                <button 
-                    className={`mic-button ${isRecording ? 'recording' : ''} ${isProcessing || !currentTheme ? 'disabled' : ''}`}
-                    onClick={isRecording ? stopRecording : startRecording}
-                    disabled={isProcessing || !currentTheme} 
-                >
-                    {isRecording ? (
-                        <span className="recording-ani">⏹ 종료 (녹음 중...)</span>
-                    ) : (
-                        <span>
-                            {!currentTheme ? '👆 주제를 먼저 선택하세요' : '🎤 답변 녹음하기'}
-                        </span>
-                    )}
-                </button>
+                    <div className="chat-messages">
+                        {messages.length === 0 && !isProcessing && (
+                            <div className="empty-state">
+                                <p>👈 왼쪽에서 주제를 선택하면<br />바르미가 먼저 말을 걸어줘요!</p>
+                            </div>
+                        )}
+
+                        {messages.map((msg, index) => (
+                            <div key={index} className={`message ${msg.type.toLowerCase()}`}>
+                                {msg.type === 'AI_FEEDBACK' && (
+                                    <div className="feedback-badge">발음 피드백</div>
+                                )}
+                                <div className="message-bubble">
+                                    {msg.text}
+                                </div>
+                            </div>
+                        ))}
+
+                        {isProcessing && messages.length > 0 && (
+                            <div className="message ai">
+                                <div className="message-bubble processing">
+                                    분석 중입니다...
+                                </div>
+                            </div>
+                        )}
+
+                        <div ref={chatEndRef} />
+                    </div>
+
+                    <div className="recording-controls">
+                        <button
+                            className={`record-button ${isRecording ? 'recording' : ''} ${isProcessing || !currentTheme ? 'disabled' : ''}`}
+                            onClick={isRecording ? stopRecording : startRecording}
+                            disabled={isProcessing || !currentTheme}
+                        >
+                            {isRecording ? (
+                                <>
+                                    <span className="record-icon recording-pulse"></span>
+                                    <span>녹음 중... (클릭하여 종료)</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span className="record-icon"></span>
+                                    <span>{!currentTheme ? '주제를 먼저 선택하세요' : '답변 녹음하기'}</span>
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     );
