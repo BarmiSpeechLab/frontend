@@ -26,10 +26,12 @@ const LoginPage = () => {
         try {
             // 1. 로그인 요청
             const response = await login(email, password);
+            const nickname = response.nickname || response.data?.nickname;
 
             // 2. 토큰 및 이메일 저장
             localStorage.setItem('accessToken', response.accessToken);
             localStorage.setItem('userEmail', email); // 튜토리얼 완료 여부 확인 위해 저장
+            localStorage.setItem('userNickname', nickname);
 
             // 3. 토큰 해독 후 바로 메인으로
             try {
@@ -37,6 +39,12 @@ const LoginPage = () => {
                 console.log('해독된 토큰:', decoded);
                 console.log('sub ID:', decoded.sub);
                 console.log('sub 값 데이터 타입:', typeof decoded.sub);
+
+                // ✅ userId 저장 추가
+                if (decoded.sub) {
+                    localStorage.setItem('userId', decoded.sub);
+                    console.log('userId 저장 완료:', decoded.sub);
+                }
 
                 if (decoded && decoded.auth) {
                     const role = decoded.auth.includes('TUTOR') ? 'TUTOR' : 'USER';

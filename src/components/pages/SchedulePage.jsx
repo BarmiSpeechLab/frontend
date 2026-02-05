@@ -77,11 +77,11 @@ const SchedulePage = () => {
             console.error("저장 실패:", error);
             
             if (error.response?.status === 401) {
-                alert("로그인이 만료되었습니다. 다시 로그인해주세요.");
+                alert("이미 선택한 시간이 포함되어 있습니다! 중복된 시간을 확인해주세요.");
             } else if (error.response?.status === 403) {
                 alert("튜터 권한이 필요합니다.");
             } else {
-                alert(`저장 실패: ${error.response?.data?.message || "서버 오류"}`);
+                alert("서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
             }
         }
     };
