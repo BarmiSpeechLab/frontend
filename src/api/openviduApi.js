@@ -35,10 +35,9 @@ export const createSession = async (sessionId) => {
  */
 export const createToken = async (sessionId) => {
     try {
-        // 백엔드에 토큰 발급 요청
         const response = await axios.post(`${BACKEND_URL}api/meetings/sessions/${sessionId}/connections`, {});
-
-        // 성공 시 토큰 반환
+        
+        // OpenVidu Production 버전은 올바른 URL 생성
         return response.data.data.token;
     } catch (error) {
         console.error("토큰 발급 실패:", error);
