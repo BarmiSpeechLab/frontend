@@ -1,0 +1,135 @@
+.side-nav {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 200px;
+    height: 100vh;
+    background: #ffffff;
+    border-right: 1px solid #e5e7eb;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 0;
+    gap: 2rem;
+}
+
+.side-nav__home {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: transform 0.2s ease;
+}
+
+.side-nav__home:hover {
+    transform: scale(1.1);
+}
+
+.side-nav__logo {
+    width: 85px;
+    height: 85px;
+    object-fit: contain;
+}
+
+.side-nav__menu {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0 1rem;
+}
+
+.side-nav__item {
+    position: relative;
+}
+
+.side-nav__link {
+    font-size: 16px;
+    font-weight: 500;
+    color: #6b7280;
+    text-decoration: none;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    transition: color 0.2s ease, background 0.2s ease;
+    text-align: center;
+    display: block;
+}
+
+.side-nav__link:hover {
+    color: #111827;
+    background: #f9fafb;
+}
+
+.side-nav__link.active {
+    color: #a67c00;
+    background: #fef3e2;
+    font-weight: 600;
+}
+
+.side-nav__submenu {
+    margin-top: 0.25rem;
+    padding-left: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.side-nav__sublink {
+    font-size: 14px;
+    font-weight: 400;
+    color: #9ca3af;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    transition: color 0.2s ease, background 0.2s ease;
+    text-align: center;
+    display: block;
+}
+
+.side-nav__sublink:hover {
+    color: #6b7280;
+    background: #f3f4f6;
+}
+
+.main-content-with-bg {
+    min-height: 100vh;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.88) 100%),
+        url('../../assets/img/main-home-bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+@media (max-width: 768px) {
+    .side-nav {
+        width: 80px;
+        padding: 1.5rem 0;
+    }
+
+    .side-nav__logo {
+        width: 50px;
+        height: 50px;
+    }
+
+    .side-nav__link {
+        font-size: 12px;
+        padding: 0.5rem;
+    }
+}

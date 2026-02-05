@@ -1,0 +1,252 @@
+/* ============= Study Calendar (Monthly) ============= */
+
+.study-calendar {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.calendar-nav-btn {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #a67c00;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.calendar-nav-btn:hover {
+    transform: scale(1.2);
+    color: #d4a574;
+}
+
+.calendar-month {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #a67c00;
+    margin: 0;
+    min-width: 130px;
+    text-align: center;
+}
+
+.calendar-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    background: #fdfaf3;
+    border: 1px solid #f2dfb6;
+    border-radius: 18px;
+    padding: 0.5rem;
+    max-width: 500px;
+    box-shadow: 0 8px 20px rgba(166, 124, 0, 0.08);
+}
+
+.calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.25rem;
+    margin-bottom: 0.1rem;
+}
+
+.weekday-label {
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #a67c00;
+    padding: 0.15rem 0;
+}
+
+.calendar-week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.25rem;
+}
+
+.calendar-cell {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #666;
+    background: #ffffff;
+    border: 1px solid #e8e0d0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: visible;
+}
+
+.calendar-cell.other {
+    background: #f5f5f5;
+    color: #ccc;
+    cursor: default;
+}
+
+.calendar-cell.current:hover {
+    border-color: #a67c00;
+}
+
+.calendar-cell.current.study {
+    background: #ffffff;
+    color: #666;
+    border-color: #e8e0d0;
+}
+
+.calendar-cell.current.study:hover {
+    border-color: #a67c00;
+}
+
+.calendar-day-number {
+    position: relative;
+    z-index: 1;
+}
+
+.study-stamp {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    height: 90%;
+    object-fit: contain;
+    opacity: 0.7;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.study-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #a67c00;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.study-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #a67c00;
+}
+
+.calendar-cell:hover .study-tooltip {
+    opacity: 1;
+}
+
+/* ============= Weekly Chart ============= */
+
+.weekly-chart {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.chart-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.chart-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #a67c00;
+    margin: 0;
+}
+
+.chart-container-compact {
+    display: flex;
+    gap: 1rem;
+    height: 120px;
+    background: #fdfaf3;
+    border: 1px solid #f5e6cc;
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.chart-bars-compact {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    flex: 1;
+    gap: 0.5rem;
+}
+
+.bar-wrapper-compact {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 1;
+    height: 100%;
+    gap: 0.4rem;
+}
+
+.bar-compact {
+    width: 100%;
+    background: linear-gradient(to top, #a67c00, #c99a1a);
+    border-radius: 4px 4px 0 0;
+    min-height: 4px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(166, 124, 0, 0.1);
+}
+
+.bar-compact:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 4px 8px rgba(166, 124, 0, 0.2);
+}
+
+.day-name-compact {
+    font-size: 0.75rem;
+    color: #888;
+    font-weight: 600;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .chart-container-compact {
+        height: 150px;
+    }
+
+    .calendar-cell {
+        width: 14px;
+        height: 14px;
+    }
+
+    .day-label {
+        font-size: 0.65rem;
+        width: 18px;
+    }
+}

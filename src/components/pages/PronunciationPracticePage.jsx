@@ -1,9 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-
-
+import { Mic, Square } from 'lucide-react';
 import './PronunciationPracticePage.css';
 import { submitPronunciation, checkAnalysisStatus } from '../../api/ai';
+import { convertWebMToWav } from '../../utils/audioConverter';
+import { getIpaImages, getIpaImagesBySymbol } from '../../utils/ipaLoader';
+
+// ... (existing code) ...
+
+
 
 const PronunciationPracticePage = () => {
     const location = useLocation();
@@ -58,10 +63,18 @@ const PronunciationPracticePage = () => {
                 }
             };
 
-            mediaRecorderRef.current.onstop = () => {
+            mediaRecorderRef.current.onstop = async () => {
                 // 오디오 웹엠(webm) 포맷으로 전송
-                const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-                handleRecordingComplete(audioBlob);
+                const webmBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+
+                // [수정] WebM -> WAV 변환 (백엔드 호환성)
+                try {
+                    const wavBlob = await convertWebMToWav(webmBlob);
+                    handleRecordingComplete(wavBlob);
+                } catch (e) {
+                    console.error("오디오 변환 실패:", e);
+                    alert("오디오 변환 중 오류가 발생했습니다.");
+                }
 
                 // 마이크 끄기
                 stream.getTracks().forEach(track => track.stop());
@@ -84,14 +97,17 @@ const PronunciationPracticePage = () => {
     };
 
     const handleRecordingComplete = async (audioBlob) => {
+        console.log('[Audio Blob]', audioBlob.type, audioBlob.size);
+
         const audioUrl = URL.createObjectURL(audioBlob);
 
         // 1. 서버 전송 (저장 + 분석 요청)
         let taskId = null;
         try {
-            // submitPronunciation은 taskId 문자열을 직접 반환
-            const submitRes = await submitPronunciation(audioBlob, item.id);
-            taskId = submitRes.taskId;
+            // submitPronunciation이 { taskId } 객체를 반환
+            const response = await submitPronunciation(audioBlob, item.id);
+            taskId = response.taskId;  // ✅ 객체에서 taskId 추출
+            console.log('[제출 성공] Task ID:', taskId);
         } catch (e) {
             console.error("서버 전송 실패:", e);
         }
@@ -112,7 +128,7 @@ const PronunciationPracticePage = () => {
             feedback: null
         };
 
-        let hasNavigated = false;
+        let hasNavigated = false;  // 중복 네비게이션 방지
 
         const pollInterval = setInterval(async () => {
             if (hasNavigated) {
@@ -128,7 +144,15 @@ const PronunciationPracticePage = () => {
                 result: statusRes.result
             });
 
-            if (statusRes.status === 'COMPLETED' && statusRes.result) {
+            // ERROR 상태: 폴링 중단
+            if (statusRes.status === 'ERROR') {
+                console.error('[분석 에러] 서버에서 에러 반환');
+                clearInterval(pollInterval);
+                alert('분석 중 오류가 발생했습니다.');
+                return;
+            }
+
+            if ((statusRes.status === 'COMPLETED' || statusRes.status === 'PROCESSING') && statusRes.result) {
                 const res = statusRes.result;
 
                 console.log('[결과 상세]', {
@@ -200,7 +224,7 @@ const PronunciationPracticePage = () => {
             clearInterval(pollInterval);
             console.warn('[타임아웃] 분석 응답 시간 초과');
             alert('분석 시간이 초과되었습니다. 다시 시도해주세요.');
-        }, 30000);
+        }, 3000000);
     };
 
     const handleRecordToggle = () => {
@@ -211,33 +235,61 @@ const PronunciationPracticePage = () => {
         }
     };
 
+    // Windows-1252(Latin-1 Sup)로 잘못 해석된 UTF-8 복구 (PracticePage용 안전장치) 
+    const fixEncoding = (str) => {
+        return str;
+    };
+
+    // [New] 로컬 에셋 매핑 (Symbol -> ID 순서로 검색)
+    // 1. Symbol 기반 검색 (가장 정확함)
+    // 2. ID 기반 검색 (Legacy)
+    const getBestImages = () => {
+        // 검색 키: symbol 우선 -> ipa -> word(한 글자인 경우)
+        let key = item.symbol || item.ipa || (item.word && item.word.length === 1 ? item.word : null);
+
+        // 대괄호/슬래시 제거 ([a] -> a, /a/ -> a)
+        if (key && typeof key === 'string') {
+            key = key.replace(/[\[\]\/]/g, '').trim();
+        }
+
+        const bySymbol = getIpaImagesBySymbol(key);
+        if (bySymbol.mouth || bySymbol.tongue) {
+            return bySymbol;
+        }
+
+        // ID 기반 Fallback
+        return getIpaImages(item.id);
+    };
+
+    const { mouth: localMouth, tongue: localTongue } = getBestImages();
+
     return (
-        <div
-            className="practice-container"
-        >
+        <div className="practice-container">
             <div className="practice-header">
                 <h1 className="practice-title">
-                    {item.word || item.symbol}
+                    {fixEncoding(item.word || item.symbol)}
                 </h1>
                 <p className="practice-subtitle" style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>
                     <strong>
-                        {item.ipa ? `[${item.ipa}]` : (item.pronunciation ? `[${item.pronunciation}]` : '')}
-                        {item.korPronunciation ? ` ${item.korPronunciation}` : ''}
+                        {item.ipa ? `[${fixEncoding(item.ipa)}]` : (item.pronunciation ? `[${fixEncoding(item.pronunciation)}]` : '')}
+                        {item.korPronunciation ? ` ${fixEncoding(item.korPronunciation)}` : ''}
                     </strong>
-                    <span style={{ color: '#888', fontWeight: 400 }}> {item.meaning ? `- ${item.meaning}` : ''}</span>
+                    <span style={{ color: '#888', fontWeight: 400 }}> {item.meaning ? `- ${fixEncoding(item.meaning)}` : ''}</span>
                 </p>
 
                 {/* IPA 예시 단어 표시 (IPA 타입일 때만 노출) */}
-                {item.type === 'ipa' && item.examples && item.examples.length > 0 && (
-                    <div style={{ marginTop: '1rem', background: '#f5f5f5', padding: '0.8rem', borderRadius: '8px', display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-                        {item.examples.map((ex, idx) => (
-                            <div key={idx} style={{ fontSize: '1rem', color: '#555' }}>
-                                <span style={{ fontWeight: 'bold', color: '#a67c00' }}>{ex.ex_text}</span>
-                                <span style={{ marginLeft: '6px', color: '#777' }}>{ex.ex_mean}</span>
-                            </div>
-                        ))}
-                    </div>
-                )}
+                {
+                    item.type === 'ipa' && item.examples && item.examples.length > 0 && (
+                        <div style={{ marginTop: '1rem', background: '#f5f5f5', padding: '0.8rem', borderRadius: '8px', display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                            {item.examples.map((ex, idx) => (
+                                <div key={idx} style={{ fontSize: '1rem', color: '#555' }}>
+                                    <span style={{ fontWeight: 'bold', color: '#a67c00' }}>{fixEncoding(ex.ex_text)}</span>
+                                    <span style={{ marginLeft: '6px', color: '#777' }}>{fixEncoding(ex.ex_mean)}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )
+                }
             </div>
 
             {/* 시각 자료 */}
@@ -245,31 +297,37 @@ const PronunciationPracticePage = () => {
                 {/* 1. 원어민 영상 */}
                 <div className="visual-box">
                     <div className="visual-label">원어민 영상</div>
-                    {item.nativeVideoUrl ? (
-                        <video src={item.nativeVideoUrl} controls style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                        <div style={{ fontSize: '1.5rem', opacity: 0.3 }}>-</div>
-                    )}
+                    {
+                        item.nativeVideoUrl ? (
+                            <video src={item.nativeVideoUrl} controls style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                            <div style={{ fontSize: '1.5rem', opacity: 0.3 }}>-</div>
+                        )
+                    }
                 </div>
 
                 {/* 2. 입모양 가이드 */}
                 <div className="visual-box">
                     <div className="visual-label">입모양</div>
-                    {item.mouthShapeUrl ? (
-                        <img src={item.mouthShapeUrl} alt="입모양" style={{ width: '100%', height: '80%', objectFit: 'contain' }} />
-                    ) : (
-                        <div style={{ fontSize: '3rem', opacity: 0.3 }}>-</div>
-                    )}
+                    {
+                        item.mouthShapeUrl ? (
+                            <img src={item.mouthShapeUrl} alt="입모양" style={{ width: '100%', height: '80%', objectFit: 'contain' }} />
+                        ) : (
+                            <div style={{ fontSize: '3rem', opacity: 0.3 }}>-</div>
+                        )
+                    }
                 </div>
 
-                {/* 3. 조음 위치 가이드 */}
+                {/* 3. 조음 위치 가이드 (로컬 이미지 우선) */}
                 <div className="visual-box">
                     <div className="visual-label">조음 위치</div>
-                    {item.tonguePositionUrl ? (
-                        <img src={item.tonguePositionUrl} alt="조음 위치" style={{ width: '100%', height: '80%', objectFit: 'contain' }} />
-                    ) : (
-                        <div style={{ fontSize: '3rem', opacity: 0.3 }}>-</div>
-                    )}
+                    {
+                        (localTongue || item.tonguePositionUrl) ? (
+                            <img src={localTongue || item.tonguePositionUrl} alt="조음 위치" style={{ width: '100%', height: '80%', objectFit: 'contain' }} />
+                        ) : (
+                            <div style={{ fontSize: '3rem', opacity: 0.3 }}>-</div>
+                        )
+                    }
                 </div>
 
                 {/* 4. 목표 억양 가이드 */}
@@ -293,7 +351,7 @@ const PronunciationPracticePage = () => {
                     className={`record-btn-large ${isRecording ? 'recording' : ''}`}
                     onClick={handleRecordToggle}
                 >
-                    {isRecording ? '⏹' : ''}
+                    {isRecording ? <Square size={32} /> : <Mic size={32} />}
                 </button>
                 <p style={{ marginTop: '1rem', color: '#ccc' }}>
                     {isRecording ? '버튼을 눌러 종료하세요.' : '버튼을 눌러 녹음을 시작하세요.'}

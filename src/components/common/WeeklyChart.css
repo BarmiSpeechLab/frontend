@@ -1,0 +1,91 @@
+/* ============= Weekly Chart ============= */
+
+.weekly-chart {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-container {
+    display: flex;
+    gap: 1rem;
+    height: 250px;
+    background: linear-gradient(135deg, #fdfaf3 0%, #fcf6e8 100%);
+    border: 1px solid #f2dfb6;
+    border-radius: 16px;
+    padding: 0.9rem;
+    box-shadow: 0 8px 20px rgba(166, 124, 0, 0.08);
+}
+
+.chart-bars {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex: 1;
+    gap: 0.6rem;
+}
+
+.bar-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 1;
+    height: 100%;
+    gap: 0.5rem;
+}
+
+.bar {
+    width: calc(100% - 2px);
+    border-radius: 10px 10px 4px 4px;
+    min-height: 4px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(166, 124, 0, 0.15);
+}
+
+/* 막대 높이에 따른 그라데이션 - 높을수록 진함 */
+.bar.intense-0 {
+    background: #f5f5f5;
+    box-shadow: none;
+}
+
+.bar.intense-1 {
+    background: linear-gradient(to top, #d4a574, #e8b896);
+}
+
+.bar.intense-2 {
+    background: linear-gradient(to top, #c99a1a, #d9a81f);
+}
+
+.bar.intense-3 {
+    background: linear-gradient(to top, #b88a0a, #c99a1a);
+}
+
+.bar.intense-4 {
+    background: linear-gradient(to top, #a67c00, #b88a0a);
+}
+
+.bar.intense-5 {
+    background: linear-gradient(to top, #8f6400, #a67c00);
+}
+
+.bar:hover {
+    filter: brightness(1.15);
+    box-shadow: 0 4px 12px rgba(166, 124, 0, 0.25);
+    transform: scaleY(1.05);
+}
+
+.day-name {
+    font-size: 1rem;
+    color: #6e6e6e;
+    font-weight: 600;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .chart-container {
+        height: 180px;
+    }
+}

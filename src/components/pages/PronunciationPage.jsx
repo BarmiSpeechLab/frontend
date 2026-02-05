@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './SubPage.css';
 import './PronunciationPage.css';
-import { getCurriculumList } from '../../api/curriculum';
+import { getCurriculumList, getCurriculumDetail } from '../../api/curriculum';
 
 const PronunciationPage = () => {
     // IPA 타입 매핑
@@ -24,39 +24,9 @@ const PronunciationPage = () => {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
-    // Windows-1252(Latin-1 Sup)로 잘못 해석된 UTF-8 복구
+    // curr.sql <- SET NAMES utf8mb4; 한 줄 넣어주니 변환 필요 X
     const fixEncoding = (str) => {
-        if (typeof str !== 'string' || !str) return str;
-
-        // 1. 이미 한글이 포함된 경우 (정상 데이터) -> 건드리지 않음
-        if (/[가-힣]/.test(str)) return str;
-
-        // Windows-1252 특수 문자 매핑 (Unicode -> Byte 0x80~0x9F)
-        const win1252Map = {
-            0x20AC: 0x80, 0x201A: 0x82, 0x0192: 0x83, 0x201E: 0x84, 0x2026: 0x85, 0x2020: 0x86, 0x2021: 0x87,
-            0x02C6: 0x88, 0x2030: 0x89, 0x0160: 0x8A, 0x2039: 0x8B, 0x0152: 0x8C, 0x017D: 0x8E,
-            0x2018: 0x91, 0x2019: 0x92, 0x201C: 0x93, 0x201D: 0x94, 0x2022: 0x95, 0x2013: 0x96, 0x2014: 0x97,
-            0x02DC: 0x98, 0x2122: 0x99, 0x0161: 0x9A, 0x203A: 0x9B, 0x0153: 0x9C, 0x017E: 0x9E, 0x0178: 0x9F
-        };
-
-        try {
-            const bytes = [];
-            for (let i = 0; i < str.length; i++) {
-                const code = str.charCodeAt(i);
-                if (code <= 255) {
-                    bytes.push(code);
-                } else if (win1252Map[code]) {
-                    bytes.push(win1252Map[code]);
-                } else {
-                    // 매핑되지 않는 고위 문자는 공백(0x20)이나 물음표(0x3F)로 대체하고 계속 진행
-                    // Abort 하지 않음으로써 나머지 문자라도 복구 시도
-                    bytes.push(0x20);
-                }
-            }
-            return new TextDecoder('utf-8').decode(new Uint8Array(bytes));
-        } catch (e) {
-            return str;
-        }
+        return str;
     };
 
     // meaning에서 타입 추출 (예: "AA (vowel)" -> "모음")
@@ -74,27 +44,24 @@ const PronunciationPage = () => {
     const parseText = (textField) => {
         if (!textField) return { word: '', examples: [] };
 
-        // 인코딩 보정
-        const fixedText = fixEncoding(textField);
+        // 1. 먼저 JSON 파싱 시도 (원본 그대로)
+        try {
+            // 만약 textField가 객체라면 바로 사용
+            const parsed = typeof textField === 'string' ? JSON.parse(textField) : textField;
 
-        if (typeof fixedText === 'object') {
             return {
-                word: fixedText.word || '',
-                examples: fixedText.examples || []
+                // 파싱 후 각 필드에 대해 인코딩 복구 수행
+                word: fixEncoding(parsed.word || parsed.displayText || (typeof textField === 'string' ? textField : '')),
+                examples: (parsed.examples || []).map(ex => ({
+                    ex_text: fixEncoding(ex.ex_text),
+                    ex_mean: fixEncoding(ex.ex_mean) // 여기서 한글은 보존됨
+                }))
             };
+        } catch (e) {
+            // JSON 파싱 실패 시: 일반 문자열로 취급하여 복구 시도
+            const fixed = fixEncoding(textField);
+            return { word: fixed, examples: [] };
         }
-        if (typeof fixedText === 'string') {
-            try {
-                const parsed = JSON.parse(fixedText);
-                return {
-                    word: parsed.word || parsed.displayText || fixedText,
-                    examples: parsed.examples || []
-                };
-            } catch (e) {
-                return { word: fixedText, examples: [] };
-            }
-        }
-        return { word: String(fixedText), examples: [] };
     };
 
     useEffect(() => {
@@ -103,10 +70,15 @@ const PronunciationPage = () => {
             path: '/pronunciation'
         }));
 
+        // 데이터 페칭
         const fetchData = async () => {
             try {
-                // IPA 타입 데이터 -> 전체 테마에서 조회
-                const data = await getCurriculumList('ipa', 'ipa');
+                // 500 에러 회피: 'ipa' 문자열 검색 대신 ID 1~40번 직접 조회
+                const ids = Array.from({ length: 40 }, (_, i) => i + 1).filter(id => id !== 8);
+                const promises = ids.map(id => getCurriculumDetail(id).catch(() => null));
+                const results = await Promise.all(promises);
+                const data = results.filter(item => item !== null);
+
                 const formattedData = (data || []).map(item => {
                     const parsed = parseText(item.text); // word와 examples 추출
                     return {
@@ -129,6 +101,7 @@ const PronunciationPage = () => {
                 setLoading(false);
             }
         };
+
         fetchData();
     }, []);
 
@@ -172,7 +145,7 @@ const PronunciationPage = () => {
                             className="epa-card"
                             onClick={() => handleCardClick(item)}
                         >
-                            <h2 className="epa-symbol">/{item.ipa}/</h2>
+                            <h2 className="epa-symbol">{item.ipa ? item.ipa.replace(/[\/\[\]]/g, '') : ''}</h2>
                             <p className="epa-word">{item.displayText} <span className="epa-kor">{item.korPronunciation}</span></p>
 
                             <div className="epa-progress-bg">

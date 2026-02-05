@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { submitPronunciation, checkAnalysisStatus } from '../../api/ai';
+
 import './PronunciationPracticePage.css';
 
 const LearningPracticePage = () => {
@@ -12,7 +12,12 @@ const LearningPracticePage = () => {
     const { topic, mode = 'WORD', step = 0 } = state;
 
     // 현재 아이템 (단어 or 문장)
-    const items = mode === 'WORD' ? topic.words : topic.sentences;
+    // 현재 아이템 (단어 or 문장)
+    // topic이 없을 경우를 대비해 빈 배열을 기본값으로 설정
+    const items = mode === 'WORD'
+        ? (topic?.words || [])
+        : (topic?.sentences || []);
+
     const currentItem = items[step];
 
     const [isRecording, setIsRecording] = useState(false);

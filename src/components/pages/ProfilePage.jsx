@@ -121,18 +121,16 @@ const ProfilePage = () => {
                 });
 
                 // 2. 학습 현황 조회
-                /*
                 try {
                     const statsData = await getUserStats();
                     setStats({
-                        totalLearningTime: statsData.totalTime || 0,
-                        completedLearning: statsData.successCount || 0,
-                        averageAccuracy: statsData.avgAccuracy || 0,
+                        totalLearningTime: statsData.totalStudyDays || 0, // days로 매핑
+                        completedLearning: statsData.totalTryCount || 0,   // try count로 매핑
+                        averageAccuracy: statsData.averageScore || 0,
                     });
                 } catch (e) {
                     console.warn("통계 정보를 가져오는데 실패했습니다", e);
                 }
-                */
 
             } catch (err) {
                 console.error("프로필 로딩 실패", err);
@@ -145,11 +143,9 @@ const ProfilePage = () => {
         fetchData();
     }, []);
 
-    // 시간 포맷팅용 함수
-    const formatTime = (minutes) => {
-        const hours = Math.floor(minutes / 60);
-        const mins = minutes % 60;
-        return `${hours}시간 ${mins}분`;
+    // 시간 포맷팅용 함수 --> 일수 표시로 변경
+    const formatTime = (days) => {
+        return `${days}일`;
     };
 
     if (loading) return <div className="profile-container">로딩 중...</div>;
@@ -231,18 +227,18 @@ const ProfilePage = () => {
                         <div className="main-stat">
                             {/* user_expression_stats의 학습 시간 합계 또는 로그 기반 계산 */}
                             <span className="stat-value highlight-blue">{formatTime(stats.totalLearningTime)}</span>
-                            <span className="stat-label">총 학습 시간</span>
+                            <span className="stat-label">총 학습 일수</span>
                         </div>
                         <div className="sub-stats">
                             <div className="sub-stat">
                                 {/* user_expression_stats.success_count (완료한 학습) */}
-                                <span className="sub-value">{stats.completedLearning}개</span>
-                                <span className="sub-label">완료한 학습</span>
+                                <span className="sub-value">{stats.completedLearning}회</span>
+                                <span className="sub-label">총 발음 시도</span>
                             </div>
                             <div className="sub-stat">
                                 {/* pronunciation_logs.accuracy_score 평균 */}
-                                <span className="sub-value">{stats.averageAccuracy}%</span>
-                                <span className="sub-label">평균 정확도</span>
+                                <span className="sub-value">{stats.averageAccuracy}점</span>
+                                <span className="sub-label">최고 점수</span>
                             </div>
                         </div>
                     </div>

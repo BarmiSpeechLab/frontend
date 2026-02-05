@@ -24,12 +24,15 @@ export const getCurriculumList = async (type, theme) => {
 export const getCurriculumDetail = async (curriculumId) => {
     try {
         const url = `/curriculums/${curriculumId}`;
-        console.log(`[API 요청] 상세 조회: ${url}`);
         const response = await api.get(url);
-        console.log(`[API 응답 성공] ID ${curriculumId}:`, response.data.data);
         return response.data.data;
     } catch (error) {
+        // 404 에러는 데이터가 없는 것이므로 조용히 null 반환
+        if (error.response?.status === 404) {
+            return null;
+        }
+        // 다른 에러는 로깅
         console.error(`커리큘럼 상세 조회 실패 (ID: ${curriculumId}):`, error);
-        throw error;
+        return null;
     }
 };
