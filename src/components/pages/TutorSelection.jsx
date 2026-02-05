@@ -1,30 +1,46 @@
-import React from 'react';
+// src/components/pages/TutorSelection.jsx
+
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../../api/index'; // api 인스턴스 사용 권장
 import './TutorSelection.css';
 
 const TutorSelection = () => {
+    const [tutors, setTutors] = useState([]);
     const navigate = useNavigate();
 
-    // 임시 데이터 (나중에는 axios로 백엔드에서 받아옵니다)
-    const tutors = [
-        { id: '1', name: 'James Park', intro: '초보 탈출! 입이 트이는 영어', email: 'james@test.com' },
-        { id: '2', name: 'Emily Blunt', intro: '원어민 뉘앙스 완벽 마스터', email: 'emily@test.com' },
-        { id: '3', name: 'Minji Kim', intro: '[취업반] 토익스피킹/OPIc 완성', email: 'minji@test.com' },
-    ];
+    useEffect(() => {
+        const fetchTutors = async () => {
+            try {
+                // 튜터 목록 조회 (이건 잘 된다고 하셨으므로 유지)
+                const res = await api.get('/users/tutors');
+                setTutors(res.data.data || []);
+            } catch (error) {
+                console.error("튜터 목록 로드 실패", error);
+            }
+        };
+        fetchTutors();
+    }, []);
+
+    const handleCardClick = (tutor) => {
+        // 🚀 핵심 수정: navigate할 때 state에 tutor 객체 전체를 담아 보냅니다.
+        navigate(`/tutoring/reserve/${tutor.id}`, { 
+            state: { tutorInfo: tutor } 
+        });
+    };
 
     return (
-        <div className="selection-container">
-            <h2>함께 공부할 튜터를 선택해주세요</h2>
+        <div className="tutor-selection-container">
+            <h2>선생님을 선택해주세요</h2>
             <div className="tutor-grid">
-                {tutors.map((tutor) => (
-                    <div 
-                        key={tutor.id} 
-                        className="tutor-card"
-                        onClick={() => navigate(`/tutoring/reserve/${tutor.id}`, { state: { tutorName: tutor.name, tutorEmail: tutor.email } })}
-                    >
-                        <div className="tutor-avatar"></div>
-                        <h3>{tutor.name}</h3>
-                        <p>{tutor.intro}</p>
+                {tutors.map(tutor => (
+                    <div key={tutor.id} className="tutor-card" onClick={() => handleCardClick(tutor)}>
+                        <div className="tutor-avatar">{tutor.nickname?.charAt(0)}</div>
+                        <div className="tutor-info">
+                            <h3>{tutor.nickname} 선생님</h3>
+                            <p>{tutor.email}</p>
+                        </div>
+                        <button className="select-btn">수업 보기</button>
                     </div>
                 ))}
             </div>

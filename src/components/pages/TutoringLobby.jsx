@@ -1,137 +1,261 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../../api/index';
 import './TutoringLobby.css';
 
 const TutoringLobby = () => {
     const navigate = useNavigate();
     const [currentTime, setCurrentTime] = useState(new Date());
+    const [recommendedTutors, setRecommendedTutors] = useState([]);
+    const [appointments, setAppointments] = useState([]);
+   
+    // ✅ 사용자 역할 및 ID 확인
+    const userRole = localStorage.getItem('userRole');
+    const myId = localStorage.getItem('userId');
+    const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
 
-    // 0. 추천 튜터 더미 데이터 (새로 추가됨)
-    const mockTutors = [
-        { id: 1, name: 'James Park', desc: '초보 탈출! 입이 트이는 영어', img: 'https://via.placeholder.com/150' },
-        { id: 2, name: 'Emily Blunt', desc: '원어민 뉘앙스 완벽 마스터', img: 'https://via.placeholder.com/150' },
-        { id: 3, name: 'Minji Kim', desc: '[취업반] 토익스피킹/OPIc 완성', img: 'https://via.placeholder.com/150' },
-    ];
+    // 🔍 디버깅: 로컬스토리지 전체 확인
+    useEffect(() => {
+        console.log("=== 로컬스토리지 상태 확인 ===");
+        console.log("userRole:", userRole);
+        console.log("userId:", myId);
+        console.log("token:", token ? "존재함" : "없음");
+        console.log("전체 localStorage:", { ...localStorage });
+    }, []);
 
-    // 1. 테스트용 임시 예약 데이터 (나중에 ERD와 연결될 부분)
-    const mockAppointments = [
-        {
-            id: 1,
-            teacherName: 'David Kim',
-            topic: '파열음 [p]/[b], [k]/[g] 발음 수업',
-            date: '2026-01-31', // 테스트용
-            time: '19:00',      // 입장 가능 테스트
-            studentId: 'student_123',
-            teacherId: 'teacher_99'
-        },
-        {
-            id: 2,
-            teacherName: 'Sarah Lee',
-            topic: '긴 문장 강세 발음 연습',
-            date: '2026-02-01', // 입장 불가 테스트
-            time: '14:00',
-            studentId: 'student_123',
-            teacherId: 'teacher_55'
+    // 1. [조회] 나의 수업 일정 불러오기
+    useEffect(() => {
+        const fetchMyAppointments = async () => {
+            // 🔒 토큰 확인
+            if (!token) {
+                console.error("토큰이 없습니다. 로그인이 필요합니다.");
+                alert("로그인이 필요한 서비스입니다.");
+                navigate('/login');
+                return;
+            }
+
+            try {
+                // 튜티(학생)의 경우 /meetings/reserved (본인이 예약한 목록) 호출
+                const endpoint = userRole === 'TUTOR'
+                    ? '/meetings/tutor-meetings'
+                    : '/meetings/reserved';
+
+                console.log(`[API 요청] 내 일정 조회: ${endpoint}`);
+                console.log(`[사용자 정보] Role: ${userRole}, ID: ${myId}`);
+
+                // 🔧 헤더 확인을 위한 로그
+                console.log("요청 헤더 (api 인스턴스):", api.defaults.headers);
+
+                const res = await api.get(endpoint);
+                const serverData = res.data.data || [];
+               
+                console.log("✅ 서버 응답 성공!");
+                console.log("서버 원본 데이터:", serverData);
+                console.log("데이터 개수:", serverData.length);
+
+                // ✅ 필터 제거 - 서버에서 받은 데이터를 그대로 사용
+                const processedData = serverData.map(appt => {
+                    console.log("개별 예약 데이터:", appt);
+                    
+                    return {
+                        ...appt,
+                        roomId: appt.roomId || appt.webRtcRoomId || '',
+                        topic: appt.topic || "1:1 영어 회화 및 발음 교정",
+                        datetime: appt.datetime || appt.date || appt.scheduledAt
+                    };
+                }).sort((a, b) => {
+                    const dateA = new Date(a.datetime);
+                    const dateB = new Date(b.datetime);
+                    return dateA - dateB;
+                });
+               
+                console.log("가공된 데이터:", processedData);
+                setAppointments(processedData);
+
+            } catch (error) {
+                console.error("❌ 일정 조회 실패:", error);
+                console.error("에러 상세:", error.response?.data || error.message);
+                console.error("HTTP 상태:", error.response?.status);
+                
+                // 403 에러 특별 처리
+                if (error.response?.status === 403) {
+                    console.error("🔒 권한 없음 (403 Forbidden)");
+                    console.error("가능한 원인:");
+                    console.error("1. 토큰이 만료되었거나 유효하지 않음");
+                    console.error("2. 해당 API에 접근 권한이 없음");
+                    console.error("3. userRole이 올바르지 않음");
+                    
+                    alert("접근 권한이 없습니다. 다시 로그인해주세요.");
+                    // 필요시 로그아웃 처리
+                    // localStorage.clear();
+                    // navigate('/login');
+                }
+                
+                setAppointments([]);
+            }
+        };
+
+        if (myId && token) {
+            fetchMyAppointments();
+        } else {
+            console.warn("⚠️ 사용자 ID 또는 토큰이 없습니다.");
+            if (!token) {
+                console.warn("→ 로그인 페이지로 이동이 필요할 수 있습니다.");
+            }
         }
-    ];
+    }, [userRole, myId, token, navigate]);
 
-    // 시간 1초마다 갱신
+    // 2. [추천] 튜터 목록 조회 (학생일 때만 실행)
+    useEffect(() => {
+        if (userRole === 'TUTOR') {
+            console.log("튜터 모드 - 추천 튜터 섹션 미표시");
+            return;
+        }
+
+        const fetchRandomTutors = async () => {
+            try {
+                const res = await api.get('/users/tutors');
+                const allTutors = res.data.data || [];
+                const shuffled = [...allTutors].sort(() => 0.5 - Math.random());
+                setRecommendedTutors(shuffled.slice(0, 3));
+            } catch (error) {
+                console.error("추천 튜터 로드 실패:", error);
+                setRecommendedTutors([]);
+            }
+        };
+        fetchRandomTutors();
+    }, [userRole]);
+
+    // 3. 실시간 시간 업데이트 (1초 주기)
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
         return () => clearInterval(timer);
     }, []);
 
-    // 방 이름 해시 생성 함수
-    const generateRoomHash = (appt) => {
-        // 고유 문자열 조합
-        const rawString = `${appt.date}_${appt.time}_${appt.studentId}_${appt.teacherId}`;
-        // Base64 인코딩으로 해시처럼 보이게 만듦 (실제 프로젝트에선 sha256 등을 쓸 수도 있음)
-        return btoa(rawString); 
-    };
+    // ✅ 입장 가능 여부 및 버튼 상태 계산 로직
+    const getButtonStatus = (dateTimeStr, hasRoomId) => {
+        if (!dateTimeStr) {
+            return { active: false, label: '일정 정보 없음', className: 'disabled' };
+        }
 
-    // 5분 전 입장 체크
-    const isClassTime = (dateStr, timeStr) => {
-        const classStart = new Date(`${dateStr}T${timeStr}:00`);
-        // 수업 시작 5분 전부터 입장 허용
+        const classStart = new Date(dateTimeStr);
+        
+        if (isNaN(classStart.getTime())) {
+            console.error("잘못된 날짜 형식:", dateTimeStr);
+            return { active: false, label: '날짜 오류', className: 'disabled' };
+        }
+
         const entryStart = new Date(classStart.getTime() - 5 * 60 * 1000);
-        // 현재 시간이 입장 가능 시간보다 지났는지 확인
-        return currentTime >= entryStart;
+        const entryEnd = new Date(classStart.getTime() + 30 * 60 * 1000);
+
+        if (currentTime < entryStart) {
+            return { active: false, label: '수업 5분 전 입장 가능', className: 'disabled' };
+        } else if (currentTime > entryEnd) {
+            return { active: false, label: '수업 종료', className: 'disabled' };
+        }
+       
+        if (!hasRoomId) {
+            return { active: false, label: '강의실 준비 중...', className: 'waiting' };
+        }
+
+        return { active: true, label: '입장하기', className: 'active' };
     };
 
-    // 입장 버튼 클릭
-    const handleJoin = (appt) => {
-        const roomId = generateRoomHash(appt);
-        // console.log(`생성된 방 해시값(RoomID): ${roomId}`); // 디버깅용 코드
-        navigate(`/tutoring/${roomId}`);
-    };
-
-    // 예약 페이지 이동 핸들러 (추후 구현)
-    const handleBooking = () => {
-        navigate('/tutoring/reserve');
+    const handleJoin = (roomId) => {
+        if (roomId) {
+            console.log("입장 시도 - Room ID:", roomId);
+            navigate(`/tutoring/${roomId}`);
+        } else {
+            alert("강의실 정보가 없습니다. 관리자에게 문의해주세요.");
+        }
     };
 
     return (
         <div className="lobby-container">
-
-            {/* 1. 추천 튜터 섹션 */}
-            <section className="tutor-section">
-                {/* 상단 헤더: 제목 없이 버튼만 우측 배치 */}
-                <div className="tutor-header">
-                    <button className="more-btn" onClick={handleBooking}>
-                        튜터링 예약하러 가기 &gt;
-                    </button>
-                </div>
-
-                <div className="tutor-grid">
-                    {mockTutors.map((tutor) => (
-                        <div key={tutor.id} className="tutor-card" onClick={handleBooking}>
-                            <div className="tutor-img-wrapper">
-                                <div className="tutor-img-placeholder"></div>
-                            </div>
-                            <div className="tutor-info">
-                                <h3 className="tutor-name">{tutor.name}</h3>
-                                <p className="tutor-desc">{tutor.desc}</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </section>
-
-            {/* 구분선 (간격 벌림) */}
-            <div className="divider"></div>
-
-            {/* 2. 나의 예약 목록 */}
-            <section className="appointment-section">
-                {/* 제목은 일정 위에만 존재 */}
-                <h2 className="section-title">📅 나의 수업 일정</h2>
-                
-                <div className="appointment-list">
-                    {mockAppointments.map((appt) => {
-                        const available = isClassTime(appt.date, appt.time);
-                        return (
-                            <div key={appt.id} className="appointment-card">
-                                <div className="card-info">
-                                    <div className="card-date">
-                                        {appt.date} <span className="time-badge">{appt.time}</span>
+            {userRole !== 'TUTOR' && (
+                <section className="tutor-section">
+                    <div className="tutor-header">
+                        <button className="more-btn" onClick={() => navigate('/tutoring/reserve')}>
+                            튜터링 예약하러 가기 &gt;
+                        </button>
+                    </div>
+                    <div className="tutor-grid">
+                        {recommendedTutors.length > 0 ? (
+                            recommendedTutors.map((tutor) => (
+                                <div key={tutor.id} className="tutor-card" onClick={() => navigate(`/tutoring/reserve/${tutor.id}`)}>
+                                    <div className="tutor-img-wrapper">
+                                        {tutor.profileImgUrl ? (
+                                            <img src={tutor.profileImgUrl} alt={tutor.nickname} className="tutor-img" />
+                                        ) : (
+                                            <div className="tutor-img-placeholder">{tutor.nickname?.charAt(0) || '?'}</div>
+                                        )}
                                     </div>
-                                    <h3 className="teacher-name">👨‍🏫 {appt.teacherName} 선생님</h3>
-                                    <p className="class-topic">{appt.topic}</p>
+                                    <div className="tutor-info">
+                                        <h3 className="tutor-name">{tutor.nickname}</h3>
+                                        <p className="tutor-desc">{tutor.introduction || "반가워요! 함께 공부해요."}</p>
+                                    </div>
                                 </div>
-                                <div className="card-action">
-                                    <button
-                                        onClick={() => handleJoin(appt)}
-                                        disabled={!available} 
-                                        className={`join-btn ${available ? 'active' : 'disabled'}`}
-                                    >
-                                        {available ? '입장하기' : '수업 5분 전 입장 가능'}
-                                    </button>
+                            ))
+                        ) : (
+                            <div className="no-data-msg">추천 튜터를 불러오는 중입니다...</div>
+                        )}
+                    </div>
+                </section>
+            )}
+
+            {userRole !== 'TUTOR' && <div className="divider"></div>}
+
+            <section className="appointment-section">
+                <h2 className="section-title">📅 나의 수업 일정</h2>
+                <div className="appointment-list">
+                    {appointments.length > 0 ? (
+                        appointments.map((appt) => {
+                            const hasRoomId = appt.roomId && appt.roomId.length > 0;
+                            const status = getButtonStatus(appt.datetime, hasRoomId);
+                            const dateObj = new Date(appt.datetime);
+                            const isValidDate = !isNaN(dateObj.getTime());
+
+                            return (
+                                <div key={appt.id} className="appointment-card">
+                                    <div className="card-info">
+                                        <div className="card-date">
+                                            {isValidDate 
+                                                ? dateObj.toLocaleDateString('ko-KR')
+                                                : '날짜 정보 없음'
+                                            }
+                                            <span className="time-badge">
+                                                {isValidDate
+                                                    ? dateObj.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
+                                                    : '--:--'
+                                                }
+                                            </span>
+                                        </div>
+                                        <h3 className="teacher-name">
+                                            {userRole === 'TUTOR'
+                                                ? `👤 학생: ${appt.tuteeNickname || '익명 학생'}`
+                                                : `👨‍🏫 선생님: ${appt.tutorNickname || '담당 선생님'}`}
+                                        </h3>
+                                        <p className="class-topic">
+                                            {appt.topic}
+                                        </p>
+                                    </div>
+                                    <div className="card-action">
+                                        <button
+                                            onClick={() => handleJoin(appt.roomId)}
+                                            disabled={!status.active}
+                                            className={`join-btn ${status.className}`}
+                                        >
+                                            {status.label}
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })
+                    ) : (
+                        <div className="no-data-msg">예정된 수업 일정이 없습니다.</div>
+                    )}
                 </div>
             </section>
-
         </div>
     );
 };

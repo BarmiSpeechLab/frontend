@@ -180,8 +180,12 @@ const LoginPage = () => {
         e.preventDefault();
         try {
             const response = await login(email, password);
+            const nickname = response.nickname || response.data?.nickname;
+
+            // 2. 토큰 및 이메일 저장
             localStorage.setItem('accessToken', response.accessToken);
-            localStorage.setItem('userEmail', email);
+            localStorage.setItem('userEmail', email); // 튜토리얼 완료 여부 확인 위해 저장
+            localStorage.setItem('userNickname', nickname);
 
             try {
                 const decoded = jwtDecode(response.accessToken);
