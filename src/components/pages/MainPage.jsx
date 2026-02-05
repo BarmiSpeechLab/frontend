@@ -13,10 +13,11 @@ const MainPage = () => {
     const [hoveredItem, setHoveredItem] = useState(null);
     const [showOnboarding, setShowOnboarding] = useState(false);
 
+    const userRole = localStorage.getItem('userRole') || 'USER';
+
     useEffect(() => {
         const checkOnboarding = () => {
             const loggedInEmail = localStorage.getItem('userEmail') || 'guest';
-            const userRole = localStorage.getItem('userRole') || 'USER';
             const storageKey = `onboardingCompleted_${userRole}_${loggedInEmail}`;
             const status = localStorage.getItem(storageKey);
             if (status !== 'true') setShowOnboarding(true);
@@ -33,7 +34,7 @@ const MainPage = () => {
 
         checkOnboarding();
         fetchProfile();
-    }, []);
+    }, [userRole]);
 
     const handleLogout = async () => {
         if (!window.confirm('로그아웃 하시겠습니까?')) return;
@@ -46,7 +47,7 @@ const MainPage = () => {
             localStorage.removeItem('accessToken');
             localStorage.removeItem('userEmail');
             localStorage.removeItem('userRole');
-            localStorage.removeItem('userId'); // 추가된 userId도 삭제
+            localStorage.removeItem('userId');
             navigate('/login');
         }
     };
@@ -54,11 +55,8 @@ const MainPage = () => {
     const handleOnboardingComplete = async () => {
         try {
             await completeOnboarding();
-
             const loggedInEmail = localStorage.getItem('userEmail') || 'guest';
-            const userRole = localStorage.getItem('userRole') || 'USER';
             localStorage.setItem(`onboardingCompleted_${userRole}_${loggedInEmail}`, 'true');
-
             setShowOnboarding(false);
             alert('환영합니다! 이제 모든 기능을 사용할 수 있어요.');
         } catch (err) {
@@ -67,13 +65,17 @@ const MainPage = () => {
         }
     };
 
-    const menuItems = [
-        { label: '발음기호', route: '/pronunciation' },
-        { label: '학습하기', route: '/learning' },
-        { label: '튜터링', route: '/tutoring' },
-        { label: '리포트', route: '/report' },
-        { label: '프로필', route: '/profile' }
+    const allMenuItems = [
+        { label: '학습하기', route: '/learning', roles: ['USER'] },
+        { label: '회화연습', route: '/conversation', roles: ['USER'] },
+        { label: '리포트', route: '/report', roles: ['USER', 'TUTOR'] },
+        { label: '튜터링', route: '/tutoring', roles: ['USER', 'TUTOR'] },
+        { label: '일정 관리', route: '/schedule', roles: ['TUTOR'] },
+        { label: '프로필', route: '/profile', roles: ['USER', 'TUTOR'] }
     ];
+
+    // 현재 사용자 역할에 맞는 메뉴만 필터링
+    const menuItems = allMenuItems.filter(item => item.roles.includes(userRole));
 
     return (
         <div className="main-home main-home--bg">
@@ -82,9 +84,9 @@ const MainPage = () => {
                 <header className="main-home__headline">
                     <p className="main-home__brand">Barmi Speech Lab</p>
                     <h1 className="main-home__title">
-                        바르미 마을에 오신걸 환영합니다
+                        {userName ? `${userName}님, ` : ''}바르미 마을에 오신걸 환영합니다
                     </h1>
-                    <p className="main-home__subtitle">미어캣을 눌러 학습하세요!</p>
+                    <p className="main-home__subtitle">미어캣을 눌러 학습을 시작하세요!</p>
                 </header>
 
                 <section className="main-home__menu">
@@ -112,7 +114,7 @@ const MainPage = () => {
             {showOnboarding && (
                 <OnboardingModal
                     onComplete={handleOnboardingComplete}
-                    role={localStorage.getItem('userRole') || 'USER'}
+                    role={userRole}
                 />
             )}
 
