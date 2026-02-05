@@ -4,7 +4,11 @@ import { Mic, Square } from 'lucide-react';
 import './PronunciationPracticePage.css';
 import { submitPronunciation, checkAnalysisStatus } from '../../api/ai';
 import { convertWebMToWav } from '../../utils/audioConverter';
-import { getIpaImages } from '../../utils/ipaLoader';
+import { getIpaImages, getIpaImagesBySymbol } from '../../utils/ipaLoader';
+
+// ... (existing code) ...
+
+
 
 const PronunciationPracticePage = () => {
     const location = useLocation();
@@ -236,9 +240,28 @@ const PronunciationPracticePage = () => {
         return str;
     };
 
-    // [New] 로컬 에셋 매핑 (ID 기반)
-    // DB의 item.id와 폴더명의 숫자(예: 1_ɑ)가 일치한다고 가정
-    const { mouth: localMouth, tongue: localTongue } = getIpaImages(item.id);
+    // [New] 로컬 에셋 매핑 (Symbol -> ID 순서로 검색)
+    // 1. Symbol 기반 검색 (가장 정확함)
+    // 2. ID 기반 검색 (Legacy)
+    const getBestImages = () => {
+        // 검색 키: symbol 우선 -> ipa -> word(한 글자인 경우)
+        let key = item.symbol || item.ipa || (item.word && item.word.length === 1 ? item.word : null);
+
+        // 대괄호/슬래시 제거 ([a] -> a, /a/ -> a)
+        if (key && typeof key === 'string') {
+            key = key.replace(/[\[\]\/]/g, '').trim();
+        }
+
+        const bySymbol = getIpaImagesBySymbol(key);
+        if (bySymbol.mouth || bySymbol.tongue) {
+            return bySymbol;
+        }
+
+        // ID 기반 Fallback
+        return getIpaImages(item.id);
+    };
+
+    const { mouth: localMouth, tongue: localTongue } = getBestImages();
 
     return (
         <div className="practice-container">

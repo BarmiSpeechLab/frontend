@@ -51,8 +51,102 @@ const LoginPage = () => {
         }
     }, [isLoginModalOpen]);
 
-    // 스크롤 애니메이션 (Intersection Observer)
-    const sectionRefs = useRef([]);
+    // 현재 보고 있는 섹션 인덱스
+    const [currentSection, setCurrentSection] = useState(0);
+    const isScrolling = useRef(false); // 스크롤 중복 방지 플래그
+    const containerRef = useRef(null); // 스크롤 컨테이너 참조
+    const sectionRefs = useRef([]); // 섹션 요소 참조 배열
+
+    // 섹션 요소들을 순서대로 관리하기 위해 Ref 저장 함수 수정
+    // (DOM 순서대로 정렬되지 않을 수 있으므로, 렌더링 후 정렬하거나 인덱스로 접근)
+    // 여기서는 간단히 sectionRefs를 배열로 관리하고, 초기화 시점에 비우도록 함
+
+    // 컴포넌트 마운트 시 sectionRefs 초기화는 그대로 유지하되,
+    // 순서를 보장하기 위해 각 섹션에 id나 data-index를 주는 것이 좋음.
+    // 하지만 현재 구조상 순차적으로 렌더링되므로 ref callback 순서를 믿거나,
+    // querySelectorAll로 다시 잡는 것이 확실함.
+
+    useEffect(() => {
+        // 확실한 순서 보장을 위해 DOM 쿼리 사용 (ref 콜백은 순서 보장 안될 수 있음)
+        if (containerRef.current) {
+            const sections = containerRef.current.querySelectorAll('.section');
+            sectionRefs.current = Array.from(sections);
+        }
+    }, []);
+
+    // 휠 이벤트 핸들러
+    useEffect(() => {
+        const container = containerRef.current;
+        if (!container) return;
+
+        const handleWheel = (e) => {
+            e.preventDefault(); // 기본 스크롤 방지
+
+            if (isScrolling.current) return; // 애니메이션 중이면 무시
+
+            const delta = e.deltaY;
+            const threshold = 50; // 감도 조절
+
+            if (Math.abs(delta) < threshold) return;
+
+            let nextSection = currentSection;
+
+            if (delta > 0) {
+                // 아래로 스크롤
+                if (currentSection < sectionRefs.current.length) { // 마지막은 footer 등이 없으므로 section 개수제한
+                    // 마지막 섹션(CTA) 이후로는 더 안 내려감
+                    if (currentSection < sectionRefs.current.length - 1) {
+                        nextSection = currentSection + 1;
+                    }
+                }
+            } else {
+                // 위로 스크롤
+                if (currentSection > 0) {
+                    nextSection = currentSection - 1;
+                }
+            }
+
+            if (nextSection !== currentSection) {
+                scrollToSection(nextSection);
+            }
+        };
+
+        // passive: false 여야 preventDefault 가능
+        container.addEventListener('wheel', handleWheel, { passive: false });
+
+        return () => {
+            if (container) container.removeEventListener('wheel', handleWheel);
+        };
+    }, [currentSection]); // currentSection이 바뀔 때마다 이벤트 리스너 갱신 (closure 문제 방지)
+
+    const scrollToSection = (index) => {
+        isScrolling.current = true;
+        setCurrentSection(index);
+
+        const target = sectionRefs.current[index];
+        if (target) {
+            // 부드러운 이동
+            containerRef.current.scrollTo({
+                top: target.offsetTop,
+                behavior: 'smooth'
+            });
+
+            // 스크롤 애니메이션 시간(약 500ms~1s) 동안 락 걸기
+            // CSS transition과 얼추 비슷하게 맞춤
+            setTimeout(() => {
+                isScrolling.current = false;
+            }, 800);
+        } else {
+            isScrolling.current = false;
+        }
+    };
+
+    // 로고 클릭시 최상단 이동
+    const scrollToTop = () => {
+        scrollToSection(0);
+    };
+
+    // 스크롤 애니메이션 (Intersection Observer) - 기존 유지 (등장 효과 위함)
     useEffect(() => {
         const observer = new IntersectionObserver(
             (entries) => {
@@ -62,28 +156,25 @@ const LoginPage = () => {
                     }
                 });
             },
-            { threshold: 0.1 } // 10% 보이면 트리거
+            { threshold: 0.2 }
         );
 
-        sectionRefs.current.forEach((ref) => {
-            if (ref) observer.observe(ref);
-        });
+        // sectionRef가 업데이트 된 후 관찰
+        if (sectionRefs.current) {
+            sectionRefs.current.forEach((ref) => {
+                if (ref) observer.observe(ref);
+            });
+        }
 
-        return () => {
-            if (sectionRefs.current) {
-                sectionRefs.current.forEach((ref) => ref && observer.unobserve(ref));
-            }
-        };
-    }, []);
+        return () => observer.disconnect();
+    }, []); // deps 빈배열: 마운트 시 한 번만 실행 (sections가 다 렌더링 된 후라고 가정)
 
     const addToRefs = (el) => {
-        if (el && !sectionRefs.current.includes(el)) {
-            sectionRefs.current.push(el);
-        }
+        // ref 콜백은 렌더링 중에 실행됨.
+        // 여기서는 아무것도 안 하고, useEffect에서 querySelectorAll로 한 번에 잡는 게 
+        // 순서 보장에 더 유리하므로 비워두거나 제거해도 됨.
+        // 하지만 기존 코드 호환성을 위해 남겨둠 (실제로는 useEffect에서 덮어씌움)
     };
-
-    // 스크롤 컨테이너 참조 (Scroll Snap 적용으로 인해 window 대신 컨테이너를 스크롤해야 함)
-    const containerRef = useRef(null);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -115,7 +206,7 @@ const LoginPage = () => {
 
             {/* 헤더 */}
             <header className="landing-header">
-                <div className="header-logo" onClick={() => containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}>
+                <div className="header-logo" onClick={scrollToTop}>
                     바르미
                 </div>
                 <button
@@ -127,7 +218,7 @@ const LoginPage = () => {
             </header>
 
             {/* 섹션 1: 히어로 */}
-            <section className="section hero-section" ref={addToRefs}>
+            <section className="section hero-section">
                 <h1 className="hero-title anim-target delay-1">바르미 마을에 입주해보세요!</h1>
                 <p className="hero-subtitle anim-target delay-2">가장 쉽고 재미있는 영어 학습 서비스</p>
                 <div style={{ marginTop: '50px' }} className="anim-target delay-3">
@@ -140,7 +231,7 @@ const LoginPage = () => {
             </section>
 
             {/* 섹션 2: 청각장애인을 위한 학습 */}
-            <section className="section feature-section reverse" ref={addToRefs}>
+            <section className="section feature-section reverse">
                 <div className="feature-img-wrapper anim-target delay-1">
                     <img src={login3} alt="Pronunciation" className="feature-img" />
                 </div>
@@ -155,7 +246,7 @@ const LoginPage = () => {
             </section>
 
             {/* 섹션 3: 발음 교정 */}
-            <section className="section feature-section" ref={addToRefs}>
+            <section className="section feature-section">
                 <div className="feature-img-wrapper anim-target delay-1">
                     <img src={login2} alt="Accessibility" className="feature-img" />
                 </div>
@@ -170,7 +261,7 @@ const LoginPage = () => {
             </section>
 
             {/* 섹션 4: 비대면 튜터링 */}
-            <section className="section feature-section reverse" ref={addToRefs}>
+            <section className="section feature-section reverse">
                 <div className="feature-img-wrapper anim-target delay-1">
                     <img src={login4} alt="Tutoring" className="feature-img tutoring-img" />
                 </div>
@@ -185,7 +276,7 @@ const LoginPage = () => {
             </section>
 
             {/* 섹션 5: CTA (하단 강조) */}
-            <section className="section cta-section" ref={addToRefs}>
+            <section className="section cta-section">
                 <h2 className="cta-title anim-target delay-1">바르미와 함께 해보세요!</h2>
                 <button
                     className="cta-btn anim-target delay-2"
