@@ -1,0 +1,387 @@
+/* ReportPage.css - Login Style Adaptation */
+
+/* 1. Font Import (Same as Login) */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+/* 2. Global Container (Background & Font) */
+.dashboard-container {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    width: 100%;
+    min-height: 100vh;
+    background-image: url('../../assets/img/main-home-bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    /* Parallax effect */
+    padding-top: 100px;
+    /* Space for fixed header */
+    padding-bottom: 50px;
+    color: #333;
+}
+
+/* 3. Header (Glassmorphism) */
+.dashboard-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 80px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 40px;
+    backdrop-filter: blur(10px);
+    background-color: rgba(255, 255, 255, 0.4);
+    z-index: 1000;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    margin-bottom: 0;
+    /* Remove old margin */
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+}
+
+.mascot-wrapper {
+    margin-right: -5px;
+}
+
+.dashboard-mascot {
+    width: 60px;
+    /* Smaller logic for header */
+    height: 60px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+}
+
+.welcome-text {
+    font-size: 1.8rem;
+    color: #4a3b32;
+    /* Login Title Color */
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin: 0;
+}
+
+/* Profile Widget (Adapted to be cleaner) */
+.profile-widget {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    gap: 0.8rem;
+    background: rgba(255, 255, 255, 0.6);
+    padding: 6px 16px 6px 6px;
+    border-radius: 30px;
+    transition: all 0.2s;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.profile-widget:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.profile-circle-small {
+    width: 36px;
+    height: 36px;
+    background: var(--color-gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    /* Ensure image clipping */
+    border: 1px solid #fff;
+    /* White border for clean look */
+}
+
+.profile-img-small {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    /* Focus on face */
+    transform: scale(1.2) translateY(5px);
+    /* Zoom slightly to fill better if needed */
+}
+
+.profile-name-small {
+    font-size: 1rem;
+    color: #5d4037;
+    font-weight: 600;
+}
+
+/* Center Logo */
+.header-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    cursor: pointer;
+}
+
+.header-logo-text {
+    font-family: 'Barmi', cursive;
+    font-size: 2.2rem;
+    color: var(--color-gold);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    line-height: 1;
+    padding-top: 5px;
+    transition: transform 0.2s;
+}
+
+.header-center:hover .header-logo-text {
+    transform: scale(1.05);
+}
+
+.profile-dropdown {
+    position: absolute;
+    top: 120%;
+    right: 0;
+    background: rgba(255, 255, 255, 0.95);
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    width: 160px;
+    overflow: hidden;
+    padding: 8px;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+
+.dropdown-item {
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    color: #555;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.dropdown-item:hover {
+    background: #f8f1e5;
+    color: #a67c00;
+}
+
+.dropdown-item.logout-item {
+    color: #d32f2f;
+    border-top: 1px solid #eee;
+    margin-top: 4px;
+}
+
+.dropdown-item.logout-item:hover {
+    background: #fff5f5;
+}
+
+
+/* 4. Sections (Cards style) */
+.dashboard-content-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.section-title {
+    font-size: 1.5rem;
+    color: #4a3b32;
+    margin-bottom: 1.5rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-title::before {
+    content: '';
+    display: block;
+    width: 6px;
+    height: 24px;
+    background: var(--color-gold);
+    border-radius: 4px;
+}
+
+.status-section,
+.report-section {
+    background: rgba(255, 255, 255, 0.85);
+    /* Semi-transparent white */
+    backdrop-filter: blur(12px);
+    border-radius: 30px;
+    /* More rounded */
+    padding: 2.5rem;
+    margin-bottom: 3rem;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+    /* Soft shadow */
+    border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+/* 5. Charts & Grids */
+.report-charts-container {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 2rem;
+    align-items: start;
+}
+
+.report-left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.report-cards-container {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+/* 6. Overrides for Child Components to match Login Theme (Card Style) */
+
+/* Common Card Mixin-like style */
+.overall-stats-card,
+.weekly-chart .chart-container,
+.weakness-radar-card,
+.status-item-large {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: none !important;
+    border-radius: 24px !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08) !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.status-item-large.clickable:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 20px 45px rgba(166, 124, 0, 0.2) !important;
+}
+
+/* Calendar overrides - Keep it cleaner but consistent */
+.study-calendar .calendar-grid {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: none !important;
+    border-radius: 24px !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08) !important;
+}
+
+.study-calendar .calendar-month,
+.study-calendar .calendar-nav-btn {
+    color: #4a3b32 !important;
+    /* Login Title Color */
+}
+
+/* Chart & Stats Inner Text Colors */
+.card-label,
+.weakness-radar-title,
+.overall-stat-label {
+    color: #888 !important;
+}
+
+.card-value,
+.chart-title,
+.overall-stat-value {
+    color: #4a3b32 !important;
+    /* Darker brown for better contrast */
+}
+
+/* Inner Stats Items - Cleaner & More "Login-like" */
+.overall-stat-item {
+    background: #ffffff !important;
+    border: 1px solid #f2dfb6 !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 10px rgba(166, 124, 0, 0.05) !important;
+    transition: all 0.2s ease !important;
+}
+
+.overall-stat-item:hover {
+    transform: translateY(-2px);
+    border-color: var(--color-gold) !important;
+    box-shadow: 0 6px 15px rgba(166, 124, 0, 0.15) !important;
+}
+
+.weakness-radar-item {
+    background: #ffffff !important;
+    border: 1px solid #f2dfb6 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03) !important;
+    transition: all 0.2s ease !important;
+}
+
+.weakness-radar-item:hover {
+    transform: translateY(-2px) !important;
+    border-color: var(--color-gold) !important;
+    background: #fffdf5 !important;
+}
+
+/* Status Cards specific layout fix */
+.status-cards {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.status-item-large {
+    padding: 2.5rem !important;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.status-item-large.clickable:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 20px 45px rgba(166, 124, 0, 0.2) !important;
+}
+
+.card-label {
+    font-size: 1rem;
+    color: #888;
+    font-weight: 500;
+}
+
+.card-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #4a3b32;
+}
+
+.click-hint {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: var(--color-gold);
+    font-weight: 700;
+    display: inline-block;
+    padding: 6px 12px;
+    background: #fdfaf3;
+    border-radius: 12px;
+    align-self: flex-start;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .report-charts-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-header {
+        padding: 0 20px;
+    }
+
+    .welcome-text {
+        font-size: 1.4rem;
+    }
+
+    .status-section,
+    .report-section {
+        padding: 1.5rem;
+    }
+}

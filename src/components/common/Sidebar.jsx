@@ -57,99 +57,34 @@ const Sidebar = () => {
     };
 
     const activeMenuIndex = getActiveMenuIndex();
-    const getActiveMenuY = () => {
-        if (activeMenuIndex === -1 || !navListRef.current || !sidebarRef.current) return null;
 
-        const navRect = navListRef.current.getBoundingClientRect();
-        const sidebarRect = sidebarRef.current.getBoundingClientRect();
+    // [Mod] 리포트 페이지에서는 상단 로고/마스코트 숨김
+    const isReportPage = location.pathname === '/report';
 
-        // nav-list의 시작점 (sidebar 기준)
-        const navListTop = navRect.top - sidebarRect.top;
-
-        // 각 메뉴 아이템이 약 50px (padding + gap 포함)
-        const menuItemHeight = 50;
-        const menuY = navListTop + (activeMenuIndex * menuItemHeight) + 25; // 25는 메뉴 중앙
-
-        return menuY;
-    };
-
-    // 마우스 호버 시 애니메이션 처리
-    useEffect(() => {
-        const handleMouseMove = (event) => {
-            if (!navListRef.current || !sidebarRef.current) return;
-
-            const navRect = navListRef.current.getBoundingClientRect();
-            const sidebarRect = sidebarRef.current.getBoundingClientRect();
-
-            // sidebar 기준으로 Y 좌표 계산
-            const y = event.clientY - sidebarRect.top;
-            const navListTop = navRect.top - sidebarRect.top;
-
-            // nav-list의 메뉴 아이템 부분만의 높이 (튜토리얼 제외)
-            // 각 nav-item이 약 50px (padding + gap 포함) + 여유분 50px
-            const estimatedMenuHeight = fileteredMenuItems.length * 50 + 50;
-
-            // 메뉴 영역 내에서만 보이기
-            if (y >= navListTop && y <= navListTop + estimatedMenuHeight) {
-                setMascotPos({ y, visible: true });
-            } else {
-                setMascotPos((prev) => ({ ...prev, visible: false }));
-            }
-        };
-
-        const handleMouseLeave = () => {
-            setMascotPos((prev) => ({ ...prev, visible: false }));
-        };
-
-        const node = navListRef.current;
-        if (!node) return undefined;
-        node.addEventListener('mousemove', handleMouseMove);
-        node.addEventListener('mouseleave', handleMouseLeave);
-
-        return () => {
-            node.removeEventListener('mousemove', handleMouseMove);
-            node.removeEventListener('mouseleave', handleMouseLeave);
-        };
-    }, [fileteredMenuItems.length]);
-
-    // 프레임 애니메이션 - mascotPos.visible이 true일 때만 실행
-    useEffect(() => {
-        const shouldAnimate = mascotPos.visible;
-
-        if (!shouldAnimate) {
-            setFrameIndex(0);
-            return;
-        }
-
-        animationIntervalRef.current = setInterval(() => {
-            setFrameIndex((prev) => 1 - prev); // 0과 1을 번갈아가며 토글
-        }, 300);
-
-        return () => {
-            if (animationIntervalRef.current) {
-                clearInterval(animationIntervalRef.current);
-            }
-        };
-    }, [mascotPos.visible, activeMenuIndex]);
+    // ... (rest of the hooks) ...
 
     return (
         <aside className="sidebar" ref={sidebarRef}>
-            <img
-                src={frameIndex === 0 ? climbLeft : climbRight}
-                alt="미어캣"
-                className={`sidebar-mascot ${mascotPos.visible ? 'is-visible' : ''}`}
-                style={{
-                    transform: `translateY(${mascotPos.y}px)`
-                }}
-            />
-            <button className="sidebar-logo" onClick={() => navigate('/main')} title="홈으로">
-                <span className="logo-char">바</span>
-                <span className="logo-char">르</span>
-                <span className="logo-char">미</span>
-                <img src={rmiRun} alt="바르미" className="sidebar-logo-image" />
-            </button>
+            {!isReportPage && (
+                <>
+                    <img
+                        src={frameIndex === 0 ? climbLeft : climbRight}
+                        alt="미어캣"
+                        className={`sidebar-mascot ${mascotPos.visible ? 'is-visible' : ''}`}
+                        style={{
+                            transform: `translateY(${mascotPos.y}px)`
+                        }}
+                    />
+                    <button className="sidebar-logo" onClick={() => navigate('/main')} title="홈으로">
+                        <span className="logo-char">바</span>
+                        <span className="logo-char">르</span>
+                        <span className="logo-char">미</span>
+                        <img src={rmiRun} alt="바르미" className="sidebar-logo-image" />
+                    </button>
+                </>
+            )}
 
-            <nav className="sidebar-nav">
+            <nav className="sidebar-nav" style={{ marginTop: isReportPage ? '6rem' : '0' }}>
                 <ul className="nav-list" ref={navListRef}>
                     {fileteredMenuItems.map((item) => (
                         <li

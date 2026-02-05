@@ -99,7 +99,7 @@ const ProfilePage = () => {
             setUser(prev => ({ ...prev, nickname: editedNickname }));
             setIsEditing(false);
 
-            alert("프로필 정보가 수정되었습니다. (임시)");
+            alert("프로필 정보가 수정되었습니다");
         } catch (err) {
             console.error("프로필 수정 실패", err);
             alert(err.message || "프로필 수정 중 오류가 발생했습니다.");
