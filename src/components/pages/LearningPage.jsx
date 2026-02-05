@@ -316,7 +316,7 @@ function LearningPage() {
                             {/* 완료 뱃지 */}
                             {item.isCompleted && (
                                 <div className="completed-badge">
-                                    ✅ 완료
+                                    완료
                                 </div>
                             )}
 
