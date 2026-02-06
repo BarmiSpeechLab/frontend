@@ -1,0 +1,135 @@
+/* AiFeedback.css */
+
+.feedback-card-container {
+    background: transparent;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.feedback-header {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.feedback-header-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #8a6d3b;
+    letter-spacing: -0.5px;
+}
+
+/* 개별 피드백 아이템 (단어/음소 단위) */
+.feedback-item {
+    background: #ffffff;
+    border: 1px solid #eaddcf;
+    border-radius: 12px;
+    padding: 1.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    box-shadow: 0 4px 12px rgba(166, 124, 0, 0.05);
+    /* 카드 자체에 그림자 추가 */
+}
+
+/* 피드백 대상 (단어/발음기호) */
+.feedback-target {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #5d4037;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #f5eee6;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.feedback-target-text {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.target-arrow {
+    color: #a67c00;
+    font-weight: bold;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+}
+
+.feedback-target-highlight {
+    color: #d32f2f;
+    background: #ffebee;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-family: monospace;
+}
+
+/* 상세 내용 (오류 내용, 교정 방법) */
+.feedback-detail-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.feedback-label-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.feedback-label {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #333;
+}
+
+.feedback-icon-wrapper {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.feedback-icon-wrapper.error {
+    background: #ffebee;
+    color: #d32f2f;
+}
+
+.feedback-icon-wrapper.correction {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.feedback-content-text {
+    font-size: 0.95rem;
+    color: #4e342e;
+    line-height: 1.6;
+    word-break: keep-all;
+    padding-left: 2px;
+    /* 살짝 들여쓰기 느낌 */
+}
+
+/* 로딩/대기 상태 */
+.feedback-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 0;
+    gap: 1rem;
+    color: #a1887f;
+    text-align: center;
+}
+
+.feedback-loading-text {
+    font-style: italic;
+    font-size: 0.95rem;
+}
