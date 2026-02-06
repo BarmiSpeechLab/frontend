@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getUserCurriculumStats, getCurriculumListStatic } from '../../api/curriculum';
 import stamp from '../../assets/img/stamp.png'; 
+import ipaImg from '../../assets/img/ipa_img.png';
+import wordImg from '../../assets/img/word_img.png';
+import sentImg from '../../assets/img/sent_img.png';
 import './LearningPage.css';
 
 function LearningPage() {
@@ -194,19 +197,25 @@ function LearningPage() {
                 <p className="subpage-desc">원하는 학습 모드를 선택해 보세요.</p>
                 <div className="learning-selection-grid">
                     <div className="selection-card pron" onClick={() => navigate('/pronunciation')}>
-                        <div className="card-icon">🔤</div>
+                        <div className="card-icon">
+                            <img src={ipaImg} alt="발음기호 아이콘" className="selection-card-img" />
+                        </div>
                         <h2>발음기호</h2>
                         <p>영어의 기초가 되는<br/>발음기호부터 차근차근</p>
                         <button className="select-btn">시작하기</button>
                     </div>
                     <div className="selection-card word" onClick={() => navigate('/learning?mode=WORD')}>
-                        <div className="card-icon">🍎</div>
+                        <div className="card-icon">
+                            <img src={wordImg} alt="단어 학습 아이콘" className="selection-card-img" />
+                        </div>
                         <h2>단어 학습</h2>
                         <p>주제별 필수 단어로<br/>어휘력을 쑥쑥</p>
                         <button className="select-btn">시작하기</button>
                     </div>
                     <div className="selection-card sentence" onClick={() => navigate('/learning?mode=SENTENCE')}>
-                        <div className="card-icon">💬</div>
+                        <div className="card-icon">
+                            <img src={sentImg} alt="문장 학습 아이콘" className="selection-card-img" />
+                        </div>
                         <h2>문장 학습</h2>
                         <p>실생활 문장을 통해<br/>자연스러운 회화 연습</p>
                         <button className="select-btn">시작하기</button>
