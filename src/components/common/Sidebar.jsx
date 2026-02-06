@@ -12,7 +12,6 @@ const Sidebar = () => {
     const sidebarRef = useRef(null);
     const navListRef = useRef(null);
     
-    // y: 위치, moving: 움직임 여부, isSub: 서브메뉴 여부
     const [mascotPos, setMascotPos] = useState({ y: -100, moving: false, isSub: false });
     const [frameIndex, setFrameIndex] = useState(0);
     const animationIntervalRef = useRef(null);
@@ -38,25 +37,34 @@ const Sidebar = () => {
     ];
 
     const fileteredMenuItems = allmenuItems.filter(item => item.roles.includes(userRole));
-    const isLearningSubActive = ['/learning/topic', '/learning/practice', '/pronunciation', '/learning'].includes(location.pathname) || location.pathname.startsWith('/learning');
+    
+    // [수정] 상세 페이지(/pronunciationPractice)도 학습하기 서브 메뉴 활성화 범위에 포함
+    const isLearningSubActive = [
+        '/learning/topic', 
+        '/learning/practice', 
+        '/pronunciation', 
+        '/learning', 
+        '/pronunciationPractice'
+    ].some(path => location.pathname.startsWith(path));
+
     const isReportPage = location.pathname === '/report';
 
     const updateToActivePosition = () => {
         if (!navListRef.current || isReportPage) return;
 
-        // [핵심 수정] 위치를 다시 계산하기 전까지 미어캣의 움직임을 중단시켜 헛발질을 방지합니다.
+        // 위치 계산 전까지 미어캣의 움직임을 즉시 중단 (헛발질 방지)
         setMascotPos(prev => ({ ...prev, moving: false }));
 
         setTimeout(() => {
             const currentFullBuffer = location.pathname + location.search;
             const allLinks = navListRef.current.querySelectorAll('.nav-sublink, .nav-link');
             
-            // 현재 주소와 href가 완벽히 일치하는 타겟 탐색
+            // 1. 현재 주소(쿼리 포함)와 href가 완벽히 일치하는 타겟 탐색
             let target = Array.from(allLinks).find(link => 
                 link.getAttribute('href') === currentFullBuffer
             );
 
-            // 상세 페이지일 경우 mode 쿼리 파라미터로 부모 메뉴 매칭
+            // 2. 일치하는 게 없다면(상세페이지인 경우) mode 파라미터로 부모 메뉴 매칭
             if (!target && location.pathname === '/pronunciationPractice') {
                 const params = new URLSearchParams(location.search);
                 const mode = params.get('mode');
@@ -78,7 +86,7 @@ const Sidebar = () => {
                 // 정확한 목적지가 확인된 후에만 위치를 갱신
                 setMascotPos({ y: newY, moving: false, isSub });
             }
-        }, 80); // 딜레이를 최적화하여 반응 속도를 높임
+        }, 120); // 클래스 반영 및 렌더링을 위해 안정적인 시간(120ms) 부여
     };
 
     useEffect(() => {
@@ -92,7 +100,6 @@ const Sidebar = () => {
                 const y = (rect.top - sidebarRect.top) + (rect.height * 0.7);
                 const isSub = target.classList.contains('nav-sublink');
                 
-                // 불필요한 미세 움직임 방지 및 이동 상태 활성화
                 setMascotPos(prev => {
                     if (Math.abs(prev.y - y) < 1) return prev;
                     return { y, moving: true, isSub };
@@ -104,7 +111,6 @@ const Sidebar = () => {
             updateToActivePosition();
         };
 
-        // 초기 로드 및 경로 변경 시 실행
         updateToActivePosition();
 
         const sidebarNode = sidebarRef.current;
@@ -119,7 +125,6 @@ const Sidebar = () => {
                 sidebarNode.removeEventListener('mouseleave', handleMouseLeaveSidebar);
             }
         };
-        // search(?mode=...) 변경 시에도 미어캣 위치를 다시 잡도록 설정
     }, [location.pathname, location.search, isReportPage]);
 
     useEffect(() => {
@@ -150,7 +155,6 @@ const Sidebar = () => {
                         transform: `translateY(${mascotPos.y}px) translateY(-50%) scaleX(-1)`,
                         position: 'absolute',
                         right: '20px',
-                        // 부드러운 이동을 유지하되 목적지 변경 시 튀는 느낌을 줄임
                         transition: mascotPos.moving 
                             ? 'transform 0.3s ease-out, height 0.2s ease-in-out' 
                             : 'transform 0.2s ease-in-out, height 0.2s ease-in-out',
@@ -191,12 +195,22 @@ const Sidebar = () => {
                             {(item.name === '학습하기' && (hoveredMenu === item.name || isLearningSubActive)) && item.subItems && (
                                 <ul className="nav-submenu">
                                     {item.subItems.map((subItem) => {
-                                        const isSubActive = (location.pathname + location.search) === subItem.path;
+                                        // [핵심] 현재 URL(pathname+search)이 서브 아이템의 path와 일치하거나,
+                                        // 상세페이지에서 mode가 일치할 경우 active 클래스 부여
+                                        const params = new URLSearchParams(location.search);
+                                        const mode = params.get('mode');
+                                        const isExactPath = (location.pathname + location.search) === subItem.path;
+                                        const isModeMatch = location.pathname === '/pronunciationPractice' && (
+                                            (mode === 'WORD' && subItem.path.includes('mode=WORD')) ||
+                                            (mode === 'SENTENCE' && subItem.path.includes('mode=SENTENCE')) ||
+                                            (mode === 'PRON' && subItem.path.includes('/pronunciation'))
+                                        );
+
                                         return (
                                             <li key={subItem.name}>
                                                 <Link
                                                     to={subItem.path}
-                                                    className={`nav-sublink ${isSubActive ? 'active' : ''}`}
+                                                    className={`nav-sublink ${isExactPath || isModeMatch ? 'active' : ''}`}
                                                 >
                                                     {subItem.name}
                                                 </Link>
