@@ -39,7 +39,7 @@ const TutoringLobby = () => {
         console.log("전체 localStorage:", { ...localStorage });
     }, []);
 
-    // 1. [조회] 나의 수업 일정 불러오기
+    // 1. 나의 수업 일정 불러오기
     useEffect(() => {
         const fetchMyAppointments = async () => {
             // 🔒 토큰 확인
@@ -59,7 +59,7 @@ const TutoringLobby = () => {
                 console.log(`[API 요청] 내 일정 조회: ${endpoint}`);
                 console.log(`[사용자 정보] Role: ${userRole}, ID: ${myId}`);
 
-                // 🔧 헤더 확인을 위한 로그
+                // 헤더 확인 로그
                 console.log("요청 헤더 (api 인스턴스):", api.defaults.headers);
 
                 const res = await api.get(endpoint);
@@ -69,7 +69,7 @@ const TutoringLobby = () => {
                 console.log("서버 원본 데이터:", serverData);
                 console.log("데이터 개수:", serverData.length);
 
-                // ✅ 필터 제거 - 서버에서 받은 데이터를 그대로 사용
+                // 필터 제거 - 서버에서 받은 데이터를 그대로 사용
                 const processedData = serverData.map(appt => {
                     console.log("개별 예약 데이터:", appt);
                     
@@ -121,7 +121,7 @@ const TutoringLobby = () => {
         }
     }, [userRole, myId, token, navigate]);
 
-    // 2. [추천] 튜터 목록 조회 (학생일 때만 실행)
+    // 2.튜터 목록 조회 (학생일 때만 실행)
     useEffect(() => {
         if (userRole === 'TUTOR') {
             console.log("튜터 모드 - 추천 튜터 섹션 미표시");
@@ -134,7 +134,6 @@ const TutoringLobby = () => {
                 const allTutors = res.data.data || [];
                 const shuffled = [...allTutors].sort(() => 0.5 - Math.random());
                 
-                // ✅ 이 부분에만 랜덤 할당 로직을 추가했습니다.
                 const randomizedTutors = shuffled.slice(0, 3).map(tutor => {
                     const randomImg = RANDOM_IMAGES[Math.floor(Math.random() * RANDOM_IMAGES.length)];
                     const randomIntro = RANDOM_INTRODUCTIONS[Math.floor(Math.random() * RANDOM_INTRODUCTIONS.length)];
@@ -161,7 +160,7 @@ const TutoringLobby = () => {
         return () => clearInterval(timer);
     }, []);
 
-    // ✅ 입장 가능 여부 및 버튼 상태 계산 로직
+    // 입장 가능 여부 및 버튼 상태 계산 로직
     const getButtonStatus = (dateTimeStr, hasRoomId) => {
         if (!dateTimeStr) {
             return { active: false, label: '일정 정보 없음', className: 'disabled' };
@@ -213,7 +212,7 @@ const TutoringLobby = () => {
                             recommendedTutors.map((tutor) => (
                                 <div key={tutor.id} className="tutor-card-mini" onClick={() => navigate(`/tutoring/reserve/${tutor.id}`)}>
                                     <div className="tutor-img-wrapper">
-                                        {/* ✅ 할당된 profileImgUrl 출력 */}
+                                        {/* profileImgUrl 출력 */}
                                         {tutor.profileImgUrl ? (
                                             <img src={tutor.profileImgUrl} alt={tutor.nickname} className="tutor-img" />
                                         ) : (
@@ -222,7 +221,7 @@ const TutoringLobby = () => {
                                     </div>
                                     <div className="tutor-info">
                                         <h3 className="tutor-name">{tutor.nickname}</h3>
-                                        {/* ✅ 할당된 introduction 출력 */}
+                                        {/* introduction 출력 */}
                                         <p className="tutor-desc">{tutor.introduction}</p>
                                     </div>
                                 </div>

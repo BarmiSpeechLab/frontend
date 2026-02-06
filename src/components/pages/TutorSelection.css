@@ -1,18 +1,15 @@
-/* 1. 컨테이너 전체 설정 (스크롤 제한 해제) */
 .tutor-selection-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* 고정 높이와 overflow: hidden 제거 */
     min-height: 100vh; 
     padding-top: 1rem !important;   
-    padding-bottom: 5rem; /* 하단 여유 공간 확보 */
+    padding-bottom: 5rem; 
     box-sizing: border-box;
     animation: fadeIn 0.5s ease-out;
     margin: 0 auto;
 }
 
-/* 2. 제목 스타일 (기존 유지) */
 .tutor-selection-container h2 {
     margin-top: 2rem;      
     margin-bottom: 4rem; 
@@ -27,7 +24,6 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* 튜터 그리드 레이아웃 (기존 유지) */
 .tutor-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -36,7 +32,6 @@
     width: 90%;
 }
 
-/* 튜터 카드 디자인 (기존 유지) */
 .tutor-card-detail {
     background: #ffffff;
     border-radius: 20px;
@@ -60,7 +55,6 @@
     border-color: #f5e6cc;
 }
 
-/* 이미지 컨테이너 (기존 유지) */
 .tutor-img-wrapper {
     width: 120px;
     height: 120px;
@@ -79,12 +73,10 @@
     border: 3px solid #fdfaf3;
 }
 
-/* 호버 시 이미지 애니메이션 추가 */
 .tutor-card:hover .tutor-img-wrapper {
     transform: scale(1.1) rotate(5deg);
 }
 
-/* 정보 텍스트 영역 */
 .tutor-info {
     width: 100%;
     flex-grow: 1;
@@ -129,7 +121,6 @@
     min-height: 3rem; 
 }
 
-/* 하단 버튼 (기존 유지) */
 .select-btn {
     background: #f5f0e6;
     color: #a67c00;
