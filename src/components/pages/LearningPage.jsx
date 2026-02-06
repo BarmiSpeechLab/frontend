@@ -130,8 +130,14 @@ function LearningPage() {
                     const allPromises = CATEGORIES.map(categoryKey => {
                         const categoryName = THEME_LABELS[categoryKey] || categoryKey;
                         return Promise.all([
-                            getCurriculumListStatic('단어', categoryName).catch(() => []),
-                            getCurriculumListStatic('문장', categoryName).catch(() => [])
+                            getCurriculumListStatic('단어', categoryName).catch(err => {
+                                console.error(`[Load Error] 단어 조회 실패 (${categoryName}):`, err);
+                                return [];
+                            }),
+                            getCurriculumListStatic('문장', categoryName).catch(err => {
+                                console.error(`[Load Error] 문장 조회 실패 (${categoryName}):`, err);
+                                return [];
+                            })
                         ]).then(([wordData, sentenceData]) => ({
                             categoryKey,
                             categoryName,
@@ -182,55 +188,67 @@ function LearningPage() {
                         data: curriculumsStatic,
                         timestamp: Date.now()
                     }));
-                    console.log('[Fetching Static] 완료 및 캐싱');
+                    console.log('[Fetching Static] 완료 및 캐싱. curriculumsStatic:', curriculumsStatic);
                 }
 
                 // =======================================================
                 // 2단계: 사용자 통계 조회 (동적, 캐싱 없음, 매번 조회)
                 // =======================================================
                 console.log('[Fetching Stats] 사용자 통계 조회');
-                const stats = await getUserCurriculumStats();
-                const statsMap = new Map(stats.map(s => [s.curriculumId, s]));
-                console.log('[Fetching Stats] 완료, 통계 개수:', stats.length);
+                try {
+                    const stats = await getUserCurriculumStats();
+                    const statsMap = new Map(stats.map(s => [s.curriculumId, s]));
+                    console.log('[Fetching Stats] 완료, 통계 개수:', stats.length);
 
-                // =======================================================
-                // 3단계: 병합 (Curriculum + Stats)
-                // =======================================================
-                const mergedTopics = curriculumsStatic.map(topic => {
-                    const mergeItems = (items) => items.map(item => {
-                        const stat = statsMap.get(item.id) || { score: 0, tryCount: 0, grade: null };
+                    // =======================================================
+                    // 3단계: 병합 (Curriculum + Stats)
+                    // =======================================================
+                    const mergedTopics = curriculumsStatic.map(topic => {
+                        const mergeItems = (items) => items.map(item => {
+                            const stat = statsMap.get(item.id) || { score: 0, tryCount: 0, grade: null };
+                            return {
+                                ...item,
+                                score: stat.score,
+                                tryCount: stat.tryCount,
+                                grade: stat.grade,
+                                isCompleted: stat.tryCount > 0
+                            };
+                        });
+
+                        const mergedWords = mergeItems(topic.words);
+                        const mergedSentences = mergeItems(topic.sentences);
+
+                        // Progress 계산
+                        const wordProgress = mergedWords.length > 0
+                            ? Math.round((mergedWords.filter(w => w.isCompleted).length / mergedWords.length) * 100)
+                            : 0;
+                        const sentenceProgress = mergedSentences.length > 0
+                            ? Math.round((mergedSentences.filter(s => s.isCompleted).length / mergedSentences.length) * 100)
+                            : 0;
+
                         return {
-                            ...item,
-                            score: stat.score,
-                            tryCount: stat.tryCount,
-                            grade: stat.grade,
-                            isCompleted: stat.tryCount > 0
+                            ...topic,
+                            words: mergedWords,
+                            sentences: mergedSentences,
+                            wordProgress,
+                            sentenceProgress,
+                            progress: Math.round((wordProgress + sentenceProgress) / 2)
                         };
                     });
 
-                    const mergedWords = mergeItems(topic.words);
-                    const mergedSentences = mergeItems(topic.sentences);
-
-                    // Progress 계산
-                    const wordProgress = mergedWords.length > 0
-                        ? Math.round((mergedWords.filter(w => w.isCompleted).length / mergedWords.length) * 100)
-                        : 0;
-                    const sentenceProgress = mergedSentences.length > 0
-                        ? Math.round((mergedSentences.filter(s => s.isCompleted).length / mergedSentences.length) * 100)
-                        : 0;
-
-                    return {
+                    setTopics(mergedTopics);
+                    console.log('[Merge Complete] 커리큘럼 + Stats 병합 완료. mergedTopics:', mergedTopics);
+                } catch (statsError) {
+                    console.error('[Fetching Stats] 실패. Static 데이터만 표시 시도:', statsError);
+                    // Stats 조회 실패 시 Static 데이터만으로라도 렌더링 시도
+                    const fallbackTopics = curriculumsStatic.map(topic => ({
                         ...topic,
-                        words: mergedWords,
-                        sentences: mergedSentences,
-                        wordProgress,
-                        sentenceProgress,
-                        progress: Math.round((wordProgress + sentenceProgress) / 2)
-                    };
-                });
-
-                setTopics(mergedTopics);
-                console.log('[Merge Complete] 커리큘럼 + Stats 병합 완료');
+                        wordProgress: 0,
+                        sentenceProgress: 0,
+                        progress: 0
+                    }));
+                    setTopics(fallbackTopics);
+                }
             } catch (error) {
                 console.error('데이터 로딩 실패:', error);
             } finally {
