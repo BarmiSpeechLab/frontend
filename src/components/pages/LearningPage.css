@@ -2,11 +2,13 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden !important;
     padding-top: 1rem !important;   
     padding-bottom: 2rem;
-    min-height: calc(100vh - 80px);
-    animation: fadeIn 0.5s ease-out;
     box-sizing: border-box;
+    animation: fadeIn 0.5s ease-out;
 }
 
 .selection-page .subpage-title {
@@ -55,8 +57,8 @@
 }
 
 .selection-card-img {
-    width: 150px;  
-    height: 150px;
+    width: 120px; 
+    height: 120px;
     object-fit: contain;
     margin-bottom: 0.5rem;
 }
@@ -111,4 +113,121 @@
     background: #a67c00;
     color: #ffffff;
     box-shadow: 0 4px 12px rgba(166, 124, 0, 0.3);
+}
+
+.learning-card {
+    background: #fdfaf3;
+    border: 1px solid #f5e6cc;
+    border-radius: 16px;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    text-align: center;
+    position: relative;
+}
+
+.learning-card:hover {
+    background: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(166, 124, 0, 0.1);
+    border-color: #a67c00;
+}
+
+.learning-text {
+    font-size: 1.8rem;
+    color: #a67c00;
+    font-weight: 800;
+    margin: 0;
+    word-break: keep-all;
+}
+
+.learning-sub {
+    font-size: 1rem;
+    color: #888;
+    margin: 0;
+}
+
+.kor-pron {
+    color: #aaa;
+    margin-left: 0.5rem;
+}
+
+.learning-progress-bg {
+    width: 100%;
+    height: 6px;
+    background: #e0e0e0;
+    border-radius: 3px;
+    margin-top: 0.5rem;
+    overflow: hidden;
+}
+
+.learning-progress-fill {
+    height: 100%;
+    background: #a67c00;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.completed-stamp {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 80px;
+    height: 80px;
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.completed-stamp img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.stats-above-progress {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+}
+
+.stat-badge-left {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #666;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    border: 1px solid #eee;
+}
+
+.stat-badge-right {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #d4af37; 
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f2dfb6;
+}
+
+.topic-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.topic-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
 }

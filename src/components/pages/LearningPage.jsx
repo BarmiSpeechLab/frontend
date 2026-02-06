@@ -19,7 +19,6 @@ function LearningPage() {
     const [activeFilter, setActiveFilter] = useState('daily');
     const [viewMode, setViewMode] = useState(null);
 
-    // 인코딩 복구 및 텍스트 파싱 로직 (유지)
     const fixEncoding = (str) => {
         if (typeof str !== 'string' || !str) return str;
         if (/[가-힣]/.test(str)) return str;
@@ -104,70 +103,69 @@ function LearningPage() {
                     curriculumsStatic = results.map(({ categoryKey, categoryName, wordData, sentenceData }) => ({
                         id: categoryKey,
                         title: categoryName,
-                        words: wordData.map(item => ({
-                            id: item.id,
-                            itemType: 'word',
-                            displayText: parseText(item.text).word,
-                            meaning: fixEncoding(item.meaning),
-                            ipa: fixEncoding(item.ipa),
-                            korPronunciation: fixEncoding(item.korPronunciation),
-                            examples: parseText(item.text).examples
-                        })),
-                        sentences: sentenceData.map(item => ({
-                            id: item.id,
-                            itemType: 'sentence',
-                            displayText: parseText(item.text).word,
-                            meaning: fixEncoding(item.meaning),
-                            ipa: fixEncoding(item.ipa),
-                            korPronunciation: fixEncoding(item.korPronunciation),
-                            examples: parseText(item.text).examples
-                        }))
+                        words: wordData.map(item => {
+                            const parsed = parseText(item.text);
+                            return {
+                                id: item.id,
+                                itemType: 'word',
+                                displayText: parsed.word,
+                                meaning: fixEncoding(item.meaning),
+                                ipa: fixEncoding(item.ipa),
+                                korPronunciation: fixEncoding(item.korPronunciation),
+                                examples: parsed.examples
+                            };
+                        }),
+                        sentences: sentenceData.map(item => {
+                            const parsed = parseText(item.text);
+                            return {
+                                id: item.id,
+                                itemType: 'sentence',
+                                displayText: parsed.word,
+                                meaning: fixEncoding(item.meaning),
+                                ipa: fixEncoding(item.ipa),
+                                korPronunciation: fixEncoding(item.korPronunciation),
+                                examples: parsed.examples
+                            };
+                        })
                     }));
                     sessionStorage.setItem(staticCacheKey, JSON.stringify({ data: curriculumsStatic, timestamp: Date.now() }));
                 }
 
-                // develop 브랜치의 최신 Stats 병합 로직 반영
-                try {
-                    const stats = await getUserCurriculumStats();
-                    const statsMap = new Map(stats.map(s => [s.curriculumId, s]));
+                const stats = await getUserCurriculumStats();
+                const statsMap = new Map(stats.map(s => [s.curriculumId, s]));
 
-                    const mergedTopics = curriculumsStatic.map(topic => {
-                        const mergeItems = (items) => items.map(item => {
-                            const stat = statsMap.get(item.id) || { score: 0, tryCount: 0, grade: null };
-                            return {
-                                ...item,
-                                score: stat.score,
-                                tryCount: stat.tryCount,
-                                grade: stat.grade,
-                                isCompleted: stat.tryCount > 0
-                            };
-                        });
-
-                        const mergedWords = mergeItems(topic.words);
-                        const mergedSentences = mergeItems(topic.sentences);
-
-                        // Progress 계산 (develop 브랜치 로직)
-                        const wordProgress = mergedWords.length > 0
-                            ? Math.round((mergedWords.filter(w => w.isCompleted).length / mergedWords.length) * 100)
-                            : 0;
-                        const sentenceProgress = mergedSentences.length > 0
-                            ? Math.round((mergedSentences.filter(s => s.isCompleted).length / mergedSentences.length) * 100)
-                            : 0;
-
+                const mergedTopics = curriculumsStatic.map(topic => {
+                    const mergeItems = (items) => items.map(item => {
+                        const stat = statsMap.get(item.id) || { score: 0, tryCount: 0, grade: null };
                         return {
-                            ...topic,
-                            words: mergedWords,
-                            sentences: mergedSentences,
-                            wordProgress,
-                            sentenceProgress,
-                            progress: Math.round((wordProgress + sentenceProgress) / 2)
+                            ...item,
+                            score: stat.score,
+                            tryCount: stat.tryCount,
+                            grade: stat.grade,
+                            isCompleted: stat.tryCount > 0
                         };
                     });
-                    setTopics(mergedTopics);
-                } catch (statsError) {
-                    console.error('[Stats Load Error] 기본 데이터만 표시:', statsError);
-                    setTopics(curriculumsStatic.map(t => ({ ...t, progress: 0 })));
-                }
+
+                    const mergedWords = mergeItems(topic.words);
+                    const mergedSentences = mergeItems(topic.sentences);
+
+                    const wordProgress = mergedWords.length > 0
+                        ? Math.round((mergedWords.filter(w => w.isCompleted).length / mergedWords.length) * 100)
+                        : 0;
+                    const sentenceProgress = mergedSentences.length > 0
+                        ? Math.round((mergedSentences.filter(s => s.isCompleted).length / mergedSentences.length) * 100)
+                        : 0;
+
+                    return {
+                        ...topic,
+                        words: mergedWords,
+                        sentences: mergedSentences,
+                        wordProgress,
+                        sentenceProgress,
+                        progress: Math.round((wordProgress + sentenceProgress) / 2)
+                    };
+                });
+                setTopics(mergedTopics);
 
             } catch (error) {
                 console.error('데이터 로딩 실패:', error);
@@ -184,12 +182,16 @@ function LearningPage() {
             ...item,
             symbol: item.displayText,
             word: item.displayText,
+            meaning: item.meaning,
+            itemType: item.itemType,
+            ipa: item.ipa,
+            korPronunciation: item.korPronunciation,
+            examples: item.examples,
             returnPath: `/learning${location.search}`,
         };
         navigate(`/pronunciationPractice${location.search}`, { state: practiceItem });
     };
 
-    // 선택 화면 UI (사용자님 작업분 고수)
     if (!viewMode) {
         return (
             <div className="subpage-container selection-page">
@@ -198,7 +200,7 @@ function LearningPage() {
                 <div className="learning-selection-grid">
                     <div className="selection-card pron" onClick={() => navigate('/pronunciation')}>
                         <div className="card-icon">
-                            <img src={ipaImg} alt="발음기호 아이콘" className="selection-card-img" />
+                            <img src={ipaImg} alt="발음기호" className="selection-card-img" />
                         </div>
                         <h2>발음기호</h2>
                         <p>영어의 기초가 되는<br/>발음기호부터 차근차근</p>
@@ -206,7 +208,7 @@ function LearningPage() {
                     </div>
                     <div className="selection-card word" onClick={() => navigate('/learning?mode=WORD')}>
                         <div className="card-icon">
-                            <img src={wordImg} alt="단어 학습 아이콘" className="selection-card-img" />
+                            <img src={wordImg} alt="단어 학습" className="selection-card-img" />
                         </div>
                         <h2>단어 학습</h2>
                         <p>주제별 필수 단어로<br/>어휘력을 쑥쑥</p>
@@ -214,7 +216,7 @@ function LearningPage() {
                     </div>
                     <div className="selection-card sentence" onClick={() => navigate('/learning?mode=SENTENCE')}>
                         <div className="card-icon">
-                            <img src={sentImg} alt="문장 학습 아이콘" className="selection-card-img" />
+                            <img src={sentImg} alt="문장 학습" className="selection-card-img" />
                         </div>
                         <h2>문장 학습</h2>
                         <p>실생활 문장을 통해<br/>자연스러운 회화 연습</p>
