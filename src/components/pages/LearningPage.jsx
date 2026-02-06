@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getCurriculumList, getCurriculumDetail, getUserCurriculumStats, getCurriculumListStatic } from '../../api/curriculum';
+import stamp from '../../assets/img/stamp.png'; // ✅ 바로미 완료 도장
 import './LearningPage.css';
 
 function LearningPage() {
@@ -294,16 +295,10 @@ function LearningPage() {
                             className="learning-card"
                             onClick={() => handleItemClick(item)}
                         >
-                            {/* Stats Badges */}
-                            {item.tryCount > 0 && (
-                                <div className="card-badge-left">
-                                    🔄 {item.tryCount}회
-                                </div>
-                            )}
-
-                            {item.tryCount > 0 && (
-                                <div className="card-badge-right">
-                                    🏆 {item.score || 0}점
+                            {/* 완료 뱃지 → 바로미 완료 도장 (오른쪽 상단) */}
+                            {item.isCompleted && (
+                                <div className="completed-stamp">
+                                    <img src={stamp} alt="완료" />
                                 </div>
                             )}
 
@@ -313,13 +308,19 @@ function LearningPage() {
                                 {item.korPronunciation && <span className="kor-pron"> {item.korPronunciation}</span>}
                             </p>
 
-                            {/* 완료 뱃지 */}
-                            {item.isCompleted && (
-                                <div className="completed-badge">
-                                    완료
+                            {/* Stats Badges (진행 바 위쪽 양 사이드) */}
+                            {item.tryCount > 0 && (
+                                <div className="stats-above-progress">
+                                    <div className="stat-badge-left">
+                                        {item.tryCount}회
+                                    </div>
+                                    <div className="stat-badge-right">
+                                        {item.score || 0}점
+                                    </div>
                                 </div>
                             )}
 
+                            {/* 진행 바 (카드 최하단) */}
                             <div className="learning-progress-bg">
                                 <div
                                     className="learning-progress-fill"
