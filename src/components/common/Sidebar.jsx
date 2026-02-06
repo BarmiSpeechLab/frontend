@@ -38,21 +38,18 @@ const Sidebar = () => {
 
     const fileteredMenuItems = allmenuItems.filter(item => item.roles.includes(userRole));
     
-    // [수정] 상세 페이지(/pronunciationPractice)도 학습하기 서브 메뉴 활성화 범위에 포함
-    const isLearningSubActive = [
-        '/learning/topic', 
-        '/learning/practice', 
-        '/pronunciation', 
-        '/learning', 
-        '/pronunciationPractice'
-    ].some(path => location.pathname.startsWith(path));
+    // 쿼리 스트링(?mode=)이 있을 때만 상세 학습 중으로 간주
+    const isActuallyLearningDetail = location.pathname === '/learning' && location.search !== "";
+    const isPronunciationPage = location.pathname.startsWith('/pronunciation') || location.pathname === '/pronunciationPractice';
+
+    // 학습하기 서브 메뉴 활성화 범위 (색칠용)
+    const isLearningSubActive = isActuallyLearningDetail || isPronunciationPage || location.pathname === '/learning';
 
     const isReportPage = location.pathname === '/report';
 
     const updateToActivePosition = () => {
         if (!navListRef.current || isReportPage) return;
 
-        // 위치 계산 전까지 미어캣의 움직임을 즉시 중단 (헛발질 방지)
         setMascotPos(prev => ({ ...prev, moving: false }));
 
         setTimeout(() => {
@@ -64,7 +61,14 @@ const Sidebar = () => {
                 link.getAttribute('href') === currentFullBuffer
             );
 
-            // 2. 일치하는 게 없다면(상세페이지인 경우) mode 파라미터로 부모 메뉴 매칭
+            // 2. 모드 없는 /learning 일 경우 (선택 화면) -> 대메뉴 '학습하기'를 강제 타겟팅
+            if (location.pathname === '/learning' && location.search === "") {
+                target = Array.from(allLinks).find(link => 
+                    link.innerText.trim() === '학습하기' && link.classList.contains('nav-link')
+                );
+            }
+
+            // 3. 상세페이지 대응 로직
             if (!target && location.pathname === '/pronunciationPractice') {
                 const params = new URLSearchParams(location.search);
                 const mode = params.get('mode');
@@ -83,10 +87,9 @@ const Sidebar = () => {
                 const newY = (rect.top - sidebarRect.top) + (rect.height * 0.5);
                 const isSub = target.classList.contains('nav-sublink');
 
-                // 정확한 목적지가 확인된 후에만 위치를 갱신
                 setMascotPos({ y: newY, moving: false, isSub });
             }
-        }, 120); // 클래스 반영 및 렌더링을 위해 안정적인 시간(120ms) 부여
+        }, 120);
     };
 
     useEffect(() => {
@@ -192,15 +195,14 @@ const Sidebar = () => {
                                 </Link>
                             )}
                             
-                            {(item.name === '학습하기' && (hoveredMenu === item.name || isLearningSubActive)) && item.subItems && (
+                            {/* 토글 열림 조건: 마우스 호버 중이거나, 쿼리 스트링이 있는 상세 모드일 때만 */}
+                            {(item.name === '학습하기' && (hoveredMenu === item.name || isActuallyLearningDetail || isPronunciationPage)) && item.subItems && (
                                 <ul className="nav-submenu">
                                     {item.subItems.map((subItem) => {
-                                        // [핵심] 현재 URL(pathname+search)이 서브 아이템의 path와 일치하거나,
-                                        // 상세페이지에서 mode가 일치할 경우 active 클래스 부여
                                         const params = new URLSearchParams(location.search);
                                         const mode = params.get('mode');
                                         const isExactPath = (location.pathname + location.search) === subItem.path;
-                                        const isModeMatch = location.pathname === '/pronunciationPractice' && (
+                                        const isModeMatch = (location.pathname === '/pronunciationPractice' || location.pathname === '/learning') && (
                                             (mode === 'WORD' && subItem.path.includes('mode=WORD')) ||
                                             (mode === 'SENTENCE' && subItem.path.includes('mode=SENTENCE')) ||
                                             (mode === 'PRON' && subItem.path.includes('/pronunciation'))

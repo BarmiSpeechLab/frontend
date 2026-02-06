@@ -1,118 +1,114 @@
-.topic-card {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    border: none;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.topic-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-}
-
-.learning-card {
-    background: #fdfaf3;
-    border: 1px solid #f5e6cc;
-    border-radius: 16px;
-    padding: 2rem;
+.selection-page {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
-    text-align: center;
-    position: relative;
+    padding-top: 1rem !important;   
+    padding-bottom: 2rem;
+    min-height: calc(100vh - 80px);
+    animation: fadeIn 0.5s ease-out;
+    box-sizing: border-box;
 }
 
-.learning-card:hover {
-    background: #fff;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 16px rgba(166, 124, 0, 0.1);
-    border-color: #a67c00;
-}
-
-.learning-text {
-    font-size: 1.8rem;
+.selection-page .subpage-title {
+    margin-top: 2rem;      
+    margin-bottom: 0.5rem;
+    font-size: 2rem;
     color: #a67c00;
     font-weight: 800;
-    margin: 0;
-    word-break: keep-all;
 }
 
-.learning-sub {
-    font-size: 1rem;
+.selection-page .subpage-desc {
+    font-size: 1.1rem;
     color: #888;
-    margin: 0;
+    font-weight: 500;
+    margin-bottom: 4rem !important; 
+    margin-top: 0;
 }
 
-.kor-pron {
-    color: #aaa;
-    margin-left: 0.5rem;
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-.learning-progress-bg {
-    width: 100%;
-    height: 6px;
-    background: #e0e0e0;
-    border-radius: 3px;
-    margin-top: 0.5rem;
+.learning-selection-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    max-width: 1100px;
+    width: 90%;
+}
+
+.selection-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 2.5rem 1.5rem !important; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    border: 2px solid transparent;
+    position: relative;
     overflow: hidden;
 }
 
-.learning-progress-fill {
-    height: 100%;
-    background: #a67c00;
-    border-radius: 3px;
-    transition: width 0.3s ease;
-}
-
-/* 완료 스탬프 (바로미 완료 도장) - 오른쪽 상단 구석 */
-.completed-stamp {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 80px;
-    height: 80px;
-    opacity: 0.4;
-    pointer-events: none;
-    z-index: 10;
-}
-
-.completed-stamp img {
-    width: 100%;
-    height: 100%;
+.selection-card-img {
+    width: 150px;  
+    height: 150px;
     object-fit: contain;
+    margin-bottom: 0.5rem;
 }
 
-/* 통계 컨테이너 (진행 바 위쪽 양 사이드) */
-.stats-above-progress {
-    width: 100%;
+.card-icon {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
-    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+    min-height: 70px; 
 }
 
-.stat-badge-left {
-    background: rgba(255, 255, 255, 0.9);
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: #666;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    border: 1px solid #eee;
-}
-
-.stat-badge-right {
-    background: rgba(255, 255, 255, 0.9);
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 0.85rem;
+.selection-card h2 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 0.8rem;
     font-weight: 800;
-    color: #d4af37;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    border: 1px solid #f2dfb6;
+}
+
+.selection-card p {
+    font-size: 0.95rem;
+    color: #777;
+    line-height: 1.5;
+    margin-bottom: 2rem;
+    word-break: keep-all;
+}
+
+.select-btn {
+    background: #f5f0e6;
+    color: #a67c00;
+    border: none;
+    padding: 0.7rem 2rem;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(166, 124, 0, 0.1);
+}
+
+.selection-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(166, 124, 0, 0.12);
+    border-color: #f5e6cc;
+}
+
+.selection-card:hover .card-icon {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.selection-card:hover .select-btn {
+    background: #a67c00;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(166, 124, 0, 0.3);
 }
