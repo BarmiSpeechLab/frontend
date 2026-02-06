@@ -74,6 +74,7 @@ const Sidebar = () => {
                 const mode = params.get('mode');
                 target = Array.from(allLinks).find(link => {
                     const linkHref = link.getAttribute('href');
+                    if (!linkHref) return false;
                     if (mode === 'PRON') return linkHref.includes('/pronunciation');
                     if (mode === 'WORD') return linkHref.includes('mode=WORD');
                     if (mode === 'SENTENCE') return linkHref.includes('mode=SENTENCE');
