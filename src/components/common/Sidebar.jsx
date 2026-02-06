@@ -44,19 +44,22 @@ const Sidebar = () => {
     const updateToActivePosition = () => {
         if (!navListRef.current || isReportPage) return;
 
+        // [핵심 수정] 위치를 다시 계산하기 전까지 미어캣의 움직임을 중단시켜 헛발질을 방지합니다.
+        setMascotPos(prev => ({ ...prev, moving: false }));
+
         setTimeout(() => {
             const currentFullBuffer = location.pathname + location.search;
+            const allLinks = navListRef.current.querySelectorAll('.nav-sublink, .nav-link');
             
-            // 1. 현재 URL(쿼리 포함)과 정확히 일치하는 링크 찾기
-            let target = Array.from(navListRef.current.querySelectorAll('.nav-sublink, .nav-link'))
-                .find(link => link.getAttribute('href') === currentFullBuffer);
+            // 현재 주소와 href가 완벽히 일치하는 타겟 탐색
+            let target = Array.from(allLinks).find(link => 
+                link.getAttribute('href') === currentFullBuffer
+            );
 
-            // 2. 만약 학습 상세페이지(/pronunciationPractice)라면 쿼리 파라미터를 분석해서 부모 메뉴 매칭
+            // 상세 페이지일 경우 mode 쿼리 파라미터로 부모 메뉴 매칭
             if (!target && location.pathname === '/pronunciationPractice') {
                 const params = new URLSearchParams(location.search);
-                const mode = params.get('mode'); // 'WORD', 'SENTENCE', 'PRON' 등
-                
-                const allLinks = navListRef.current.querySelectorAll('.nav-sublink, .nav-link');
+                const mode = params.get('mode');
                 target = Array.from(allLinks).find(link => {
                     const linkHref = link.getAttribute('href');
                     if (mode === 'PRON') return linkHref.includes('/pronunciation');
@@ -69,13 +72,13 @@ const Sidebar = () => {
             if (target && sidebarRef.current) {
                 const rect = target.getBoundingClientRect();
                 const sidebarRect = sidebarRef.current.getBoundingClientRect();
-                setMascotPos({ 
-                    y: (rect.top - sidebarRect.top) + (rect.height * 0.5), 
-                    moving: false, 
-                    isSub: target.classList.contains('nav-sublink') 
-                });
+                const newY = (rect.top - sidebarRect.top) + (rect.height * 0.5);
+                const isSub = target.classList.contains('nav-sublink');
+
+                // 정확한 목적지가 확인된 후에만 위치를 갱신
+                setMascotPos({ y: newY, moving: false, isSub });
             }
-        }, 50);
+        }, 80); // 딜레이를 최적화하여 반응 속도를 높임
     };
 
     useEffect(() => {
@@ -88,17 +91,12 @@ const Sidebar = () => {
                 const sidebarRect = sidebarRef.current.getBoundingClientRect();
                 const y = (rect.top - sidebarRect.top) + (rect.height * 0.7);
                 const isSub = target.classList.contains('nav-sublink');
-                setMascotPos({ y, moving: true, isSub });
-            } else {
-                const activeSub = navListRef.current.querySelector('.nav-sublink.active');
-                const activeMain = navListRef.current.querySelector('.nav-link.active');
-                const targetActive = activeSub || activeMain;
-                if (targetActive) {
-                    const rect = targetActive.getBoundingClientRect();
-                    const sidebarRect = sidebarRef.current.getBoundingClientRect();
-                    const isSub = targetActive.classList.contains('nav-sublink');
-                    setMascotPos({ y: (rect.top - sidebarRect.top) + (rect.height * 0.7), moving: true, isSub });
-                }
+                
+                // 불필요한 미세 움직임 방지 및 이동 상태 활성화
+                setMascotPos(prev => {
+                    if (Math.abs(prev.y - y) < 1) return prev;
+                    return { y, moving: true, isSub };
+                });
             }
         };
 
@@ -106,6 +104,7 @@ const Sidebar = () => {
             updateToActivePosition();
         };
 
+        // 초기 로드 및 경로 변경 시 실행
         updateToActivePosition();
 
         const sidebarNode = sidebarRef.current;
@@ -120,10 +119,12 @@ const Sidebar = () => {
                 sidebarNode.removeEventListener('mouseleave', handleMouseLeaveSidebar);
             }
         };
-    }, [location.pathname, isReportPage]);
+        // search(?mode=...) 변경 시에도 미어캣 위치를 다시 잡도록 설정
+    }, [location.pathname, location.search, isReportPage]);
 
     useEffect(() => {
         if (!mascotPos.moving) {
+            if (animationIntervalRef.current) clearInterval(animationIntervalRef.current);
             setFrameIndex(0);
             return;
         }
@@ -149,12 +150,15 @@ const Sidebar = () => {
                         transform: `translateY(${mascotPos.y}px) translateY(-50%) scaleX(-1)`,
                         position: 'absolute',
                         right: '20px',
-                        transition: 'transform 0.3s ease-in-out, height 0.2s ease-in-out',
+                        // 부드러운 이동을 유지하되 목적지 변경 시 튀는 느낌을 줄임
+                        transition: mascotPos.moving 
+                            ? 'transform 0.3s ease-out, height 0.2s ease-in-out' 
+                            : 'transform 0.2s ease-in-out, height 0.2s ease-in-out',
                         pointerEvents: 'none',
                         zIndex: 10,
                         opacity: mascotPos.y < 0 ? 0 : 1,
                         height: mascotPos.moving 
-                                ? '80px' // 기어갈 때 사이즈
+                                ? '80px' 
                                 : (mascotPos.isSub ? '70px' : '90px'),
                         width: 'auto',
                         objectFit: 'contain'
@@ -188,7 +192,6 @@ const Sidebar = () => {
                                 <ul className="nav-submenu">
                                     {item.subItems.map((subItem) => {
                                         const isSubActive = (location.pathname + location.search) === subItem.path;
-
                                         return (
                                             <li key={subItem.name}>
                                                 <Link
@@ -205,13 +208,13 @@ const Sidebar = () => {
                         </li>
                     ))}
                     
-                    <li className="nav-item" style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #eee' }}>
+                    <li className="nav-item tutorial-section" style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #eee' }}>
                         <button onClick={() => {
                             const email = localStorage.getItem('userEmail') || 'guest';
                             const role = localStorage.getItem('userRole') || 'USER';
                             localStorage.removeItem(`onboardingCompleted_${role}_${email}`);
                             window.location.href = '/main';
-                        }} style={{ width: '100%', padding: '10px', background: '#f5f0e6', color: '#a67c00', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+                        }} className="tutorial-btn" style={{ width: '100%', padding: '10px', background: '#f5f0e6', color: '#a67c00', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
                             튜토리얼
                         </button>
                     </li>
