@@ -46,6 +46,12 @@ export const getUserCurriculumStats = async () => {
 // ✅ NEW: 커리큘럼 정보만 조회 (정적 데이터, Stats 없음)
 export const getCurriculumListStatic = async (type, theme) => {
     const url = `/curriculums/static/${encodeURIComponent(type)}/${encodeURIComponent(theme)}`;
-    const response = await api.get(url);
-    return response.data.data;
+    try {
+        const response = await api.get(url);
+        console.log(`[API] getCurriculumListStatic(${type}, ${theme}) Response:`, response.data);
+        return response.data.data;
+    } catch (error) {
+        console.error(`[API Error] getCurriculumListStatic(${type}, ${theme}) 실패:`, error);
+        throw error;
+    }
 };
