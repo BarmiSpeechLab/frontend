@@ -174,7 +174,7 @@ const PronunciationPage = () => {
             pronunciation: item.ipa,
             examples: item.examples // 실습 페이지로 예시 전달
         };
-        navigate('/pronunciationPractice', { state: practiceItem });
+        navigate('/pronunciationPractice?mode=PRON', { state: practiceItem });
     };
 
     // 탭 필터링

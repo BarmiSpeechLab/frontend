@@ -45,17 +45,35 @@ const Sidebar = () => {
         if (!navListRef.current || isReportPage) return;
 
         setTimeout(() => {
-            const activeSub = navListRef.current.querySelector('.nav-sublink.active');
-            const activeMain = navListRef.current.querySelector('.nav-link.active');
-            const target = activeSub || activeMain;
+            const currentFullBuffer = location.pathname + location.search;
+            
+            // 1. 현재 URL(쿼리 포함)과 정확히 일치하는 링크 찾기
+            let target = Array.from(navListRef.current.querySelectorAll('.nav-sublink, .nav-link'))
+                .find(link => link.getAttribute('href') === currentFullBuffer);
+
+            // 2. 만약 학습 상세페이지(/pronunciationPractice)라면 쿼리 파라미터를 분석해서 부모 메뉴 매칭
+            if (!target && location.pathname === '/pronunciationPractice') {
+                const params = new URLSearchParams(location.search);
+                const mode = params.get('mode'); // 'WORD', 'SENTENCE', 'PRON' 등
+                
+                const allLinks = navListRef.current.querySelectorAll('.nav-sublink, .nav-link');
+                target = Array.from(allLinks).find(link => {
+                    const linkHref = link.getAttribute('href');
+                    if (mode === 'PRON') return linkHref.includes('/pronunciation');
+                    if (mode === 'WORD') return linkHref.includes('mode=WORD');
+                    if (mode === 'SENTENCE') return linkHref.includes('mode=SENTENCE');
+                    return false;
+                });
+            }
 
             if (target && sidebarRef.current) {
                 const rect = target.getBoundingClientRect();
                 const sidebarRect = sidebarRef.current.getBoundingClientRect();
-                const y = (rect.top - sidebarRect.top) + (rect.height * 0.6);
-                // 서브링크 여부 확인
-                const isSub = target.classList.contains('nav-sublink');
-                setMascotPos({ y, moving: false, isSub });
+                setMascotPos({ 
+                    y: (rect.top - sidebarRect.top) + (rect.height * 0.5), 
+                    moving: false, 
+                    isSub: target.classList.contains('nav-sublink') 
+                });
             }
         }, 50);
     };
@@ -168,14 +186,20 @@ const Sidebar = () => {
                             
                             {(item.name === '학습하기' && (hoveredMenu === item.name || isLearningSubActive)) && item.subItems && (
                                 <ul className="nav-submenu">
-                                    {item.subItems.map((subItem) => (
-                                        <li key={subItem.name}>
-                                            <Link to={subItem.path} 
-                                                className={`nav-sublink ${location.pathname.startsWith(subItem.path.split('?')[0]) ? 'active' : ''}`}>
-                                                {subItem.name}
-                                            </Link>
-                                        </li>
-                                    ))}
+                                    {item.subItems.map((subItem) => {
+                                        const isSubActive = (location.pathname + location.search) === subItem.path;
+
+                                        return (
+                                            <li key={subItem.name}>
+                                                <Link
+                                                    to={subItem.path}
+                                                    className={`nav-sublink ${isSubActive ? 'active' : ''}`}
+                                                >
+                                                    {subItem.name}
+                                                </Link>
+                                            </li>
+                                        );
+                                    })}
                                 </ul>
                             )}
                         </li>
