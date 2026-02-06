@@ -219,7 +219,7 @@ function LearningPage() {
             examples: item.examples,
             returnPath: `/learning${location.search}`,
         };
-        navigate('/pronunciationPractice', { state: practiceItem });
+        navigate(`/pronunciationPractice${location.search}`, { state: practiceItem });
     };
 
     const activeTopic = topics.find(t => t.id === activeFilter);
