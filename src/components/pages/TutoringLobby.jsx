@@ -2,6 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/index';
 import './TutoringLobby.css';
+import rmitu1 from '../../assets/img/rmitu1.png';
+import rmitu2 from '../../assets/img/rmitu2.png';
+import rmitu3 from '../../assets/img/rmitu3.png';
+import rmitu4 from '../../assets/img/rmitu4.png';
+import rmitu5 from '../../assets/img/rmitu5.png';
+
+// ✅ 랜덤으로 할당할 정적 데이터 리스트 (추가)
+const RANDOM_INTRODUCTIONS = [
+    "꼼꼼한 피드백으로 영어 발음의 기초를 확실히 잡아드립니다!",
+    "비즈니스 회화 실력을 단기간에 끌어올려 드릴게요.",
+    "원어민 같은 억양, 저와 함께라면 가능합니다.",
+    "실전 영어를 쉽고 재미있게 가르쳐 드리는 튜터입니다.",
+    "초보자도 당당하게 말할 수 있도록 도와드립니다."
+];
+
+const RANDOM_IMAGES = [rmitu1, rmitu2, rmitu3, rmitu4, rmitu5];
 
 const TutoringLobby = () => {
     const navigate = useNavigate();
@@ -117,7 +133,20 @@ const TutoringLobby = () => {
                 const res = await api.get('/users/tutors');
                 const allTutors = res.data.data || [];
                 const shuffled = [...allTutors].sort(() => 0.5 - Math.random());
-                setRecommendedTutors(shuffled.slice(0, 3));
+                
+                // ✅ 이 부분에만 랜덤 할당 로직을 추가했습니다.
+                const randomizedTutors = shuffled.slice(0, 3).map(tutor => {
+                    const randomImg = RANDOM_IMAGES[Math.floor(Math.random() * RANDOM_IMAGES.length)];
+                    const randomIntro = RANDOM_INTRODUCTIONS[Math.floor(Math.random() * RANDOM_INTRODUCTIONS.length)];
+                    
+                    return {
+                        ...tutor,
+                        profileImgUrl: tutor.profileImgUrl || randomImg, // 기존 사진 없으면 랜덤
+                        introduction: randomIntro // 한줄 소개 랜덤 할당
+                    };
+                });
+
+                setRecommendedTutors(randomizedTutors);
             } catch (error) {
                 console.error("추천 튜터 로드 실패:", error);
                 setRecommendedTutors([]);
@@ -182,8 +211,9 @@ const TutoringLobby = () => {
                     <div className="tutor-grid">
                         {recommendedTutors.length > 0 ? (
                             recommendedTutors.map((tutor) => (
-                                <div key={tutor.id} className="tutor-card" onClick={() => navigate(`/tutoring/reserve/${tutor.id}`)}>
+                                <div key={tutor.id} className="tutor-card-mini" onClick={() => navigate(`/tutoring/reserve/${tutor.id}`)}>
                                     <div className="tutor-img-wrapper">
+                                        {/* ✅ 할당된 profileImgUrl 출력 */}
                                         {tutor.profileImgUrl ? (
                                             <img src={tutor.profileImgUrl} alt={tutor.nickname} className="tutor-img" />
                                         ) : (
@@ -192,7 +222,8 @@ const TutoringLobby = () => {
                                     </div>
                                     <div className="tutor-info">
                                         <h3 className="tutor-name">{tutor.nickname}</h3>
-                                        <p className="tutor-desc">{tutor.introduction || "반가워요! 함께 공부해요."}</p>
+                                        {/* ✅ 할당된 introduction 출력 */}
+                                        <p className="tutor-desc">{tutor.introduction}</p>
                                     </div>
                                 </div>
                             ))

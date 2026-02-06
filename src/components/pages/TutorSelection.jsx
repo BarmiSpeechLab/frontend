@@ -1,9 +1,33 @@
-// src/components/pages/TutorSelection.jsx
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../../api/index'; // api 인스턴스 사용 권장
+import api from '../../api/index';
 import './TutorSelection.css';
+
+// ✅ 로비와 동일하게 이미지 Import
+import rmitu1 from '../../assets/img/rmitu1.png';
+import rmitu2 from '../../assets/img/rmitu2.png';
+import rmitu3 from '../../assets/img/rmitu3.png';
+import rmitu4 from '../../assets/img/rmitu4.png';
+import rmitu5 from '../../assets/img/rmitu5.png';
+
+// ✅ 랜덤으로 할당할 데이터 리스트
+const RANDOM_INTRODUCTIONS = [
+    "꼼꼼한 피드백으로 영어 발음의 기초를 확실히 잡아드립니다!",
+    "비즈니스 회화 실력을 단기간에 끌어올려 드릴게요.",
+    "원어민 같은 억양, 저와 함께라면 가능합니다.",
+    "실전 영어를 쉽고 재미있게 가르쳐 드리는 튜터입니다.",
+    "초보자도 당당하게 말할 수 있도록 도와드립니다."
+];
+
+const RANDOM_IMAGES = [rmitu1, rmitu2, rmitu3, rmitu4, rmitu5];
+
+const RANDOM_ORGS = [
+    "바르미 어학원",
+    "글로벌 에듀케이션",
+    "프리랜서 교육팀",
+    "스피킹 마스터즈",
+    "하이엔드 영어센터"
+];
 
 const TutorSelection = () => {
     const [tutors, setTutors] = useState([]);
@@ -12,9 +36,25 @@ const TutorSelection = () => {
     useEffect(() => {
         const fetchTutors = async () => {
             try {
-                // 튜터 목록 조회 (이건 잘 된다고 하셨으므로 유지)
                 const res = await api.get('/users/tutors');
-                setTutors(res.data.data || []);
+                const serverData = res.data.data || [];
+
+                // ✅ 가져온 데이터에 랜덤 정보(사진, 기관, 소개) 입히기
+                const randomizedTutors = serverData.map(tutor => {
+                    const randomImg = RANDOM_IMAGES[Math.floor(Math.random() * RANDOM_IMAGES.length)];
+                    const randomIntro = RANDOM_INTRODUCTIONS[Math.floor(Math.random() * RANDOM_INTRODUCTIONS.length)];
+                    const randomOrg = RANDOM_ORGS[Math.floor(Math.random() * RANDOM_ORGS.length)];
+
+                    return {
+                        ...tutor,
+                        // 기존에 데이터가 있더라도(null이나 빈 문자열 포함) 무조건 랜덤 데이터로 덮어쓰기
+                        profileImgUrl: randomImg, 
+                        introduction: randomIntro,
+                        organization: randomOrg 
+                    };
+                });
+
+                setTutors(randomizedTutors);
             } catch (error) {
                 console.error("튜터 목록 로드 실패", error);
             }
@@ -23,7 +63,6 @@ const TutorSelection = () => {
     }, []);
 
     const handleCardClick = (tutor) => {
-        // 🚀 핵심 수정: navigate할 때 state에 tutor 객체 전체를 담아 보냅니다.
         navigate(`/tutoring/reserve/${tutor.id}`, { 
             state: { tutorInfo: tutor } 
         });
@@ -34,11 +73,19 @@ const TutorSelection = () => {
             <h2>선생님을 선택해주세요</h2>
             <div className="tutor-grid">
                 {tutors.map(tutor => (
-                    <div key={tutor.id} className="tutor-card" onClick={() => handleCardClick(tutor)}>
-                        <div className="tutor-avatar">{tutor.nickname?.charAt(0)}</div>
+                    <div key={tutor.id} className="tutor-card-detail" onClick={() => handleCardClick(tutor)}>
+                        <div className="tutor-img-wrapper">
+                            {tutor.profileImgUrl ? (
+                                <img src={tutor.profileImgUrl} alt={tutor.nickname} className="tutor-img" />
+                            ) : (
+                                <div className="tutor-avatar">{tutor.nickname?.charAt(0)}</div>
+                            )}
+                        </div>
                         <div className="tutor-info">
-                            <h3>{tutor.nickname} 선생님</h3>
-                            <p>{tutor.email}</p>
+                            <h3 className="tutor-name">{tutor.nickname} 선생님</h3>
+                            <p className="tutor-email">{tutor.email}</p>
+                            <p className="tutor-org">🏢 {tutor.organization}</p>
+                            <p className="tutor-desc">“ {tutor.introduction} ”</p>
                         </div>
                         <button className="select-btn">수업 보기</button>
                     </div>
