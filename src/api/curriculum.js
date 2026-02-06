@@ -36,3 +36,16 @@ export const getCurriculumDetail = async (curriculumId) => {
         return null;
     }
 };
+
+// ✅ NEW: 사용자별 커리큘럼 통계만 조회 (동적 데이터, 경량)
+export const getUserCurriculumStats = async () => {
+    const response = await api.get('/curriculums/stats');
+    return response.data.data; // [{curriculumId, score, tryCount, grade, ...}]
+};
+
+// ✅ NEW: 커리큘럼 정보만 조회 (정적 데이터, Stats 없음)
+export const getCurriculumListStatic = async (type, theme) => {
+    const url = `/curriculums/static/${encodeURIComponent(type)}/${encodeURIComponent(theme)}`;
+    const response = await api.get(url);
+    return response.data.data;
+};

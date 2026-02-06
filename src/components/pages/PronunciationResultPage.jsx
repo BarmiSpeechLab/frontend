@@ -327,6 +327,8 @@ const PronunciationResultPage = () => {
                     }}
                     onClick={() => {
                         // "다시 학습하기"
+                        // ✅ 캐시 제거하여 최신 점수 반영
+                        sessionStorage.removeItem('curriculum_data');
                         navigate('/pronunciationPractice', { state: { ...item, id: item.id } });
                     }}
                     onMouseOver={(e) => {
@@ -399,11 +401,16 @@ const PronunciationResultPage = () => {
                                     }
                                 });
                             } else {
+                                // ✅ 캐시 제거하여 최신 점수 반영
+                                sessionStorage.removeItem('curriculum_data');
                                 navigate('/learning');
                             }
                         }
                         // 3. 그 외 -> 종료
                         else {
+                            // ✅ 캐시 제거하여 최신 점수 반영
+                            sessionStorage.removeItem('curriculum_data');
+
                             // IPA 학습이었다면 발음기호 목록으로 이동
                             if (item.ipa && !item.itemType) { // itemType이 없는 경우(IPA 단독 학습) 등 체크
                                 navigate('/pronunciation');

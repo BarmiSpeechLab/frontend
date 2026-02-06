@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { getCurriculumList, getCurriculumDetail } from '../../api/curriculum';
+import { getCurriculumList, getCurriculumDetail, getUserCurriculumStats, getCurriculumListStatic } from '../../api/curriculum';
+import stamp from '../../assets/img/stamp.png'; // ✅ 바로미 완료 도장
 import './LearningPage.css';
 
 function LearningPage() {
@@ -96,107 +97,140 @@ function LearningPage() {
     };
 
     useEffect(() => {
-        // ✅ 데이터 페칭 with Session Storage 캐싱
+        // ✅ API 분리: 커리큘럼(정적) + Stats(동적)
         const fetchData = async () => {
             try {
-                // ✅ 캐시 확인 (5분간 유효)
-                const cached = sessionStorage.getItem('curriculum_data');
-                if (cached) {
-                    try {
-                        const { data, timestamp } = JSON.parse(cached);
-                        const cacheAge = Date.now() - timestamp;
-                        const CACHE_DURATION = 5 * 60 * 1000;  // 5분
+                // =======================================================
+                // 1단계: 커리큘럼 정보 조회 (정적, 장기 캐싱 - 1일)
+                // =======================================================
+                let curriculumsStatic;
+                const staticCacheKey = 'curriculums_static';
+                const staticCached = sessionStorage.getItem(staticCacheKey);
+                const STATIC_CACHE_DURATION = 24 * 60 * 60 * 1000; // 1일
 
-                        if (cacheAge < CACHE_DURATION) {
-                            console.log('[Cache Hit] Session Storage에서 커리큘럼 로드 (캐시 나이:', Math.round(cacheAge / 1000), '초)');
-                            setTopics(data);
-                            setLoading(false);
-                            return;
+                if (staticCached) {
+                    try {
+                        const { data, timestamp } = JSON.parse(staticCached);
+                        const cacheAge = Date.now() - timestamp;
+
+                        if (cacheAge < STATIC_CACHE_DURATION) {
+                            console.log('[Static Cache Hit] 커리큘럼 정보 로드 (캐시 나이:', Math.round(cacheAge / 3600000), '시간)');
+                            curriculumsStatic = data;
                         } else {
-                            console.log('[Cache Expired] 캐시 만료, API 재조회');
+                            console.log('[Static Cache Expired] 커리큘럼 재조회');
                         }
                     } catch (e) {
-                        console.warn('캐시 데이터 파싱 실패:', e);
+                        console.warn('Static 캐시 파싱 실패:', e);
                     }
                 }
 
-                console.log('[Fetching] 모든 카테고리 병렬 조회 시작');
+                // 캐시가 없으면 API 호출
+                if (!curriculumsStatic) {
+                    console.log('[Fetching Static] 커리큘럼 정보 병렬 조회 시작');
+                    const allPromises = CATEGORIES.map(categoryKey => {
+                        const categoryName = THEME_LABELS[categoryKey] || categoryKey;
+                        return Promise.all([
+                            getCurriculumListStatic('단어', categoryName).catch(() => []),
+                            getCurriculumListStatic('문장', categoryName).catch(() => [])
+                        ]).then(([wordData, sentenceData]) => ({
+                            categoryKey,
+                            categoryName,
+                            wordData,
+                            sentenceData
+                        }));
+                    });
 
-                // =========================================================
-                // 병렬 조회 방식 (최적화) - 모든 API 호출을 동시에 실행
-                // =========================================================
-                const allPromises = CATEGORIES.map(categoryKey => {
-                    const categoryName = THEME_LABELS[categoryKey] || categoryKey;
+                    const results = await Promise.all(allPromises);
 
-                    return Promise.all([
-                        getCurriculumList('단어', categoryName).catch(() => []),
-                        getCurriculumList('문장', categoryName).catch(() => [])
-                    ]).then(([wordData, sentenceData]) => ({
-                        categoryKey,
-                        categoryName,
-                        wordData,
-                        sentenceData
-                    }));
-                });
-
-                // 모든 API 호출을 병렬로 실행
-                const results = await Promise.all(allPromises);
-
-                // 데이터 가공 함수 (✅ develop 브랜치의 score 필드 포함)
-                const processItems = (items) => {
-                    const completedCount = items.filter(item => item.isCompleted).length;
-                    const progress = items.length > 0 ? Math.round((completedCount / items.length) * 100) : 0;
-
-                    return {
-                        list: items.map(item => {
-                            const parsed = parseText(item.text);
-                            return {
-                                id: item.id,
-                                itemType: fixEncoding(item.type) === '단어' ? 'word' : 'sentence',
-                                displayText: parsed.word,
-                                examples: parsed.examples.map(ex => ({
-                                    ex_text: fixEncoding(ex.ex_text),
-                                    ex_mean: fixEncoding(ex.ex_mean)
-                                })),
-                                meaning: fixEncoding(item.meaning),
-                                ipa: fixEncoding(item.ipa),
-                                korPronunciation: fixEncoding(item.korPronunciation),
-                                tryCount: item.tryCount || 0,
-                                score: item.score || 0,  // ✅ develop 브랜치 추가 필드
-                                isCompleted: item.isCompleted
-                            };
-                        }),
-                        progress
-                    };
-                };
-
-                // 결과 처리
-                const topicsList = results
-                    .filter(({ wordData, sentenceData }) => wordData.length > 0 || sentenceData.length > 0)
-                    .map(({ categoryKey, categoryName, wordData, sentenceData }) => {
-                        const processedWords = processItems(wordData);
-                        const processedSentences = processItems(sentenceData);
-
-                        return {
+                    // 커리큘럼 데이터 가공 (Stats 없음)
+                    curriculumsStatic = results
+                        .filter(({ wordData, sentenceData }) => wordData.length > 0 || sentenceData.length > 0)
+                        .map(({ categoryKey, categoryName, wordData, sentenceData }) => ({
                             id: categoryKey,
                             title: categoryName,
-                            progress: Math.round((processedWords.progress + processedSentences.progress) / 2),
-                            words: processedWords.list,
-                            sentences: processedSentences.list,
-                            wordProgress: processedWords.progress,
-                            sentenceProgress: processedSentences.progress
+                            words: wordData.map(item => {
+                                const parsed = parseText(item.text);
+                                return {
+                                    id: item.id,
+                                    itemType: fixEncoding(item.type) === '단어' ? 'word' : 'sentence',
+                                    displayText: parsed.word,
+                                    examples: parsed.examples.map(ex => ({
+                                        ex_text: fixEncoding(ex.ex_text),
+                                        ex_mean: fixEncoding(ex.ex_mean)
+                                    })),
+                                    meaning: fixEncoding(item.meaning),
+                                    ipa: fixEncoding(item.ipa),
+                                    korPronunciation: fixEncoding(item.korPronunciation)
+                                };
+                            }),
+                            sentences: sentenceData.map(item => {
+                                const parsed = parseText(item.text);
+                                return {
+                                    id: item.id,
+                                    itemType: 'sentence',
+                                    displayText: parsed.word,
+                                    examples: parsed.examples,
+                                    meaning: fixEncoding(item.meaning),
+                                    ipa: fixEncoding(item.ipa),
+                                    korPronunciation: fixEncoding(item.korPronunciation)
+                                };
+                            })
+                        }));
+
+                    // Static 데이터 캐싱
+                    sessionStorage.setItem(staticCacheKey, JSON.stringify({
+                        data: curriculumsStatic,
+                        timestamp: Date.now()
+                    }));
+                    console.log('[Fetching Static] 완료 및 캐싱');
+                }
+
+                // =======================================================
+                // 2단계: 사용자 통계 조회 (동적, 캐싱 없음, 매번 조회)
+                // =======================================================
+                console.log('[Fetching Stats] 사용자 통계 조회');
+                const stats = await getUserCurriculumStats();
+                const statsMap = new Map(stats.map(s => [s.curriculumId, s]));
+                console.log('[Fetching Stats] 완료, 통계 개수:', stats.length);
+
+                // =======================================================
+                // 3단계: 병합 (Curriculum + Stats)
+                // =======================================================
+                const mergedTopics = curriculumsStatic.map(topic => {
+                    const mergeItems = (items) => items.map(item => {
+                        const stat = statsMap.get(item.id) || { score: 0, tryCount: 0, grade: null };
+                        return {
+                            ...item,
+                            score: stat.score,
+                            tryCount: stat.tryCount,
+                            grade: stat.grade,
+                            isCompleted: stat.tryCount > 0
                         };
                     });
 
-                console.log('[Fetching] 모든 카테고리 병렬 조회 완료');
+                    const mergedWords = mergeItems(topic.words);
+                    const mergedSentences = mergeItems(topic.sentences);
 
-                // ✅ Session Storage에 캐싱
-                sessionStorage.setItem('curriculum_data', JSON.stringify({
-                    data: topicsList,
-                    timestamp: Date.now()
-                }));
+                    // Progress 계산
+                    const wordProgress = mergedWords.length > 0
+                        ? Math.round((mergedWords.filter(w => w.isCompleted).length / mergedWords.length) * 100)
+                        : 0;
+                    const sentenceProgress = mergedSentences.length > 0
+                        ? Math.round((mergedSentences.filter(s => s.isCompleted).length / mergedSentences.length) * 100)
+                        : 0;
 
-                setTopics(topicsList);
+                    return {
+                        ...topic,
+                        words: mergedWords,
+                        sentences: mergedSentences,
+                        wordProgress,
+                        sentenceProgress,
+                        progress: Math.round((wordProgress + sentenceProgress) / 2)
+                    };
+                });
+
+                setTopics(mergedTopics);
+                console.log('[Merge Complete] 커리큘럼 + Stats 병합 완료');
             } catch (error) {
                 console.error('데이터 로딩 실패:', error);
             } finally {
@@ -205,7 +239,7 @@ function LearningPage() {
         };
 
         fetchData();
-    }, []);
+    }, [location.pathname]); // ✅ location 변경 시 재실행 (Stats만 다시 조회)
 
     const handleItemClick = (item) => {
         const practiceItem = {
@@ -261,16 +295,10 @@ function LearningPage() {
                             className="learning-card"
                             onClick={() => handleItemClick(item)}
                         >
-                            {/* Stats Badges */}
-                            {item.tryCount > 0 && (
-                                <div className="card-badge-left">
-                                    🔄 {item.tryCount}회
-                                </div>
-                            )}
-
-                            {item.tryCount > 0 && (
-                                <div className="card-badge-right">
-                                    🏆 {item.score || 0}점
+                            {/* 완료 뱃지 → 바로미 완료 도장 (오른쪽 상단) */}
+                            {item.isCompleted && (
+                                <div className="completed-stamp">
+                                    <img src={stamp} alt="완료" />
                                 </div>
                             )}
 
@@ -280,13 +308,19 @@ function LearningPage() {
                                 {item.korPronunciation && <span className="kor-pron"> {item.korPronunciation}</span>}
                             </p>
 
-                            {/* 완료 뱃지 */}
-                            {item.isCompleted && (
-                                <div className="completed-badge">
-                                    ✅ 완료
+                            {/* Stats Badges (진행 바 위쪽 양 사이드) */}
+                            {item.tryCount > 0 && (
+                                <div className="stats-above-progress">
+                                    <div className="stat-badge-left">
+                                        {item.tryCount}회
+                                    </div>
+                                    <div className="stat-badge-right">
+                                        {item.score || 0}점
+                                    </div>
                                 </div>
                             )}
 
+                            {/* 진행 바 (카드 최하단) */}
                             <div className="learning-progress-bg">
                                 <div
                                     className="learning-progress-fill"

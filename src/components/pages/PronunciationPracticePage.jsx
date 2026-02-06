@@ -168,9 +168,7 @@ const PronunciationPracticePage = () => {
             item: item,
             userAudioUrl: audioUrl,
             nativeVideoUrl: item.nativeVideoUrl,
-            grade: null,
-            standardPitch: null,
-            feedback: null
+            standardPitch: null
         };
 
         let hasNavigated = false;  // 중복 네비게이션 방지
