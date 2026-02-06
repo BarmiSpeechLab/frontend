@@ -5,6 +5,7 @@ import './PronunciationPracticePage.css';
 import { submitPronunciation, checkAnalysisStatus } from '../../api/ai';
 import { convertWebMToWav } from '../../utils/audioConverter';
 import { getIpaImages, getIpaImagesBySymbol } from '../../utils/ipaLoader';
+import PronunciationAnalysisResult from "../common/PronunciationAnalysisResult";
 
 const PronunciationPracticePage = () => {
     const location = useLocation();
@@ -366,6 +367,29 @@ const PronunciationPracticePage = () => {
                     }
 
                     console.log('%c[분석 완료]', 'color: green; font-weight: bold;', mergedResult);
+                    
+                    const phonemes =
+                        mergedResult?.pronunciation?.analysis_result
+                        ?.flatMap((r) => r?.phonemes ?? []) ?? [];
+                    
+                    setAnalysisResult({
+                        phonemes: phonemes.map((p) => ({
+                            cipa: p?.cipa ?? "",
+                            uipa: p?.uipa ?? "",
+                            ok: typeof p?.is_correct === "boolean" ? p.is_correct : p?.cipa === p?.uipa, // 정답판정
+                        })),
+
+                        ckor: 
+                            mergedResult?.pronunciation?.analysis_result
+                            ?.map(r => r?.kor?.ckor)
+                            .filter(Boolean) ?? [],
+
+                        ukor: 
+                            mergedResult?.pronunciation?.analysis_result
+                            ?.map(r => r?.kor?.ukor)
+                            .filter(Boolean) ?? [],
+                    });
+
                     clearInterval(pollIntervalRef.current);
                     pollIntervalRef.current = null;
                     setIsAnalyzing(false);
@@ -471,27 +495,61 @@ const PronunciationPracticePage = () => {
                 {/* Row 1: 내 발음 + 조음 위치 */}
                 <div className="row-2-myrecording">
                     <div className="record-section">
-                        <div className="record-title">내 발음 녹음</div>
-                        <div className="record-controls">
-                            <button
-                                className={`record-btn-merged ${isRecording ? 'recording' : ''}`}
-                                onClick={handleRecordToggle}
-                                disabled={isAnalyzing}
-                            >
-                                {isRecording ? <Square size={40} /> : <Mic size={40} />}
-                            </button>
-                            <div className="record-status">
-                                <p className="status-text">
-                                    {isRecording ? '🔴 녹음 중...' : '준비 완료'}
-                                </p>
-                                {userAudioUrl && (
-                                    <button className="play-btn" onClick={handlePlayAudio} disabled={isAnalyzing}>
-                                        <Play size={20} /> 다시 듣기
-                                    </button>
-                                )}
-                            </div>
-                        </div>
+                    <div className="record-title">
+                        {!isAnalyzing && analysisResult ? "분석 결과" : "내 발음 녹음"}
                     </div>
+
+                    {/* 분석 완료 후: 결과 표시 */}
+                    {!isAnalyzing && analysisResult && (
+                        <PronunciationAnalysisResult
+                            phonemes={analysisResult.phonemes}
+                            ckor={analysisResult.ckor}
+                            ukor={analysisResult.ukor}
+                        />
+                    )}
+
+                    {/* 분석 완료 전: 기존 UI 그대로 */}
+                    {!analysisResult && (
+                        <div className="record-controls">
+                        <button
+                            className={`record-btn-merged ${isRecording ? "recording" : ""}`}
+                            onClick={handleRecordToggle}
+                            disabled={isAnalyzing}
+                        >
+                            {isRecording ? <Square size={40} /> : <Mic size={40} />}
+                        </button>
+
+                        <div className="record-status">
+                            <p className="status-text">{isRecording ? "🔴 녹음 중..." : "준비 완료"}</p>
+
+                            {userAudioUrl && (
+                            <button className="play-btn" onClick={handlePlayAudio} disabled={isAnalyzing}>
+                                <Play size={20} /> 다시 듣기
+                            </button>
+                            )}
+                        </div>
+                        </div>
+                    )}
+
+                    {/* 분석 완료 후: “다시 녹음(녹음 버튼)”만 남기기 */}
+                    {!isAnalyzing && analysisResult && (
+                        <div className="record-controls">
+                        <button
+                            className="record-btn-merged"
+                            onClick={() => {
+                            setAnalysisResult(null); // 결과 지우고 다시 녹음 화면으로
+                            handleRecordToggle();    // 바로 녹음 시작하고 싶으면 유지, “버튼만 보여주고 싶으면” 이 줄 제거
+                            }}
+                        >
+                            <Mic size={40} />
+                        </button>
+                        <div className="record-status">
+                            <p className="status-text">다시 녹음하기</p>
+                        </div>
+                        </div>
+                    )}
+                    </div>
+                   
                     <div className="visual-card visual-card-compact">
                         <div className="visual-label">조음 위치</div>
                         {(localTongue || item.tonguePositionUrl) ? (

@@ -1,0 +1,65 @@
+.pa-result {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(8px);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.pa-result__row {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+.pa-result__row + .pa-result__row {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.pa-result__label {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+.pa-result__value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 14px;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.pa-result__value--cipa {
+  color: #e7f3ff;
+}
+
+.pa-result__value--uipa {
+  color: #f4ffe6;
+}
+
+.pa-token {
+  display: inline-block;
+  padding: 2px 8px;
+  margin-right: 6px;
+  margin-bottom: 6px;
+  border-radius: 10px;
+  font-weight: 800;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.pa-token--ok {
+  background: rgba(46, 204, 113, 0.18);
+  color: #eafff2;
+  border-color: rgba(46, 204, 113, 0.35);
+}
+
+.pa-token--bad {
+  background: rgba(231, 76, 60, 0.18);
+  color: #ffecec;
+  border-color: rgba(231, 76, 60, 0.35);
+}
