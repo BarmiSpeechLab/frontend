@@ -52,7 +52,7 @@
 }
 
 /* 튜터 카드 */
-.tutor-card {
+.tutor-card-mini {
     flex: 1;
     background-color: white;
     border-radius: 20px;
@@ -70,24 +70,56 @@
     text-align: center;
     
     /* 높이 고정 */
-    height: 220px;
+    height: 270px;
 }
 
-.tutor-card:hover {
-    transform: translateY(-5px);
-    border-color: #b2dfdb;
+.tutor-card-mini:hover {
+    transform: translateY(-12px); /* 5px보다 조금 더 역동적으로 변경 */
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
+    border-color: #f5e6cc;
 }
 
+/* 2. 이미지 호버: 원형 이미지 살짝 확대 */
+.tutor-card-mini:hover .tutor-img-wrapper {
+    transform: scale(1.1) rotate(5deg);
+}
+
+/* 튜터 이미지 컨테이너 */
+.tutor-img-wrapper {
+    width: 80px;  
+    height: 80px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 튜터 실제 사진 스타일 */
+.tutor-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;    
+    border-radius: 50%;  
+    border: 2px solid #f0f0f0; 
+}
+
+/* 사진이 없을 때 나오는 플레이스홀더 */
 .tutor-img-placeholder {
-    width: 70px;
-    height: 70px;
+    width: 80px;
+    height: 80px;
     background-color: #e0f2f1;
     border-radius: 50%;
-    margin-bottom: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: #4CAF50;
+    margin: 0; 
 }
 
 .tutor-name {
-    font-size: 16px;
+    font-size: 22px;
     font-weight: bold;
     color: #333;
     margin: 0 0 5px 0;
