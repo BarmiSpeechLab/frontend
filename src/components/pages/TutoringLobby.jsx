@@ -7,8 +7,9 @@ import rmitu2 from '../../assets/img/rmitu2.png';
 import rmitu3 from '../../assets/img/rmitu3.png';
 import rmitu4 from '../../assets/img/rmitu4.png';
 import rmitu5 from '../../assets/img/rmitu5.png';
+import rmitu6 from '../../assets/img/rmitu6.png';
+import rmitu7 from '../../assets/img/rmitu7.png';
 
-// ✅ 랜덤으로 할당할 정적 데이터 리스트 (추가)
 const RANDOM_INTRODUCTIONS = [
     "꼼꼼한 피드백으로 영어 발음의 기초를 확실히 잡아드립니다!",
     "비즈니스 회화 실력을 단기간에 끌어올려 드릴게요.",
@@ -17,7 +18,7 @@ const RANDOM_INTRODUCTIONS = [
     "초보자도 당당하게 말할 수 있도록 도와드립니다."
 ];
 
-const RANDOM_IMAGES = [rmitu1, rmitu2, rmitu3, rmitu4, rmitu5];
+const RANDOM_IMAGES = [rmitu1, rmitu2, rmitu3, rmitu4, rmitu5, rmitu6, rmitu7];
 
 const TutoringLobby = () => {
     const navigate = useNavigate();
@@ -25,12 +26,10 @@ const TutoringLobby = () => {
     const [recommendedTutors, setRecommendedTutors] = useState([]);
     const [appointments, setAppointments] = useState([]);
    
-    // ✅ 사용자 역할 및 ID 확인
     const userRole = localStorage.getItem('userRole');
     const myId = localStorage.getItem('userId');
     const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
 
-    // 🔍 디버깅: 로컬스토리지 전체 확인
     useEffect(() => {
         console.log("=== 로컬스토리지 상태 확인 ===");
         console.log("userRole:", userRole);
@@ -42,7 +41,7 @@ const TutoringLobby = () => {
     // 1. 나의 수업 일정 불러오기
     useEffect(() => {
         const fetchMyAppointments = async () => {
-            // 🔒 토큰 확인
+            // 토큰 확인
             if (!token) {
                 console.error("토큰이 없습니다. 로그인이 필요합니다.");
                 alert("로그인이 필요한 서비스입니다.");
@@ -135,13 +134,14 @@ const TutoringLobby = () => {
                 const shuffled = [...allTutors].sort(() => 0.5 - Math.random());
                 
                 const randomizedTutors = shuffled.slice(0, 3).map(tutor => {
-                    const randomImg = RANDOM_IMAGES[Math.floor(Math.random() * RANDOM_IMAGES.length)];
-                    const randomIntro = RANDOM_INTRODUCTIONS[Math.floor(Math.random() * RANDOM_INTRODUCTIONS.length)];
+                    const tId = Number(tutor.id);
+                    const imgIndex = (tId - 1) % RANDOM_IMAGES.length;
+                    const introIndex = (tId - 1) % RANDOM_INTRODUCTIONS.length;
                     
                     return {
                         ...tutor,
-                        profileImgUrl: tutor.profileImgUrl || randomImg, // 기존 사진 없으면 랜덤
-                        introduction: randomIntro // 한줄 소개 랜덤 할당
+                        profileImgUrl: RANDOM_IMAGES[imgIndex], 
+                        introduction: RANDOM_INTRODUCTIONS[introIndex] // 한줄 소개 랜덤 할당
                     };
                 });
 

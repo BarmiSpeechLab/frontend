@@ -73,9 +73,15 @@
     height: 270px;
 }
 
-.tutor-card:hover {
-    transform: translateY(-5px);
-    border-color: #b2dfdb;
+.tutor-card-mini:hover {
+    transform: translateY(-12px); /* 5px보다 조금 더 역동적으로 변경 */
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
+    border-color: #f5e6cc;
+}
+
+/* 2. 이미지 호버: 원형 이미지 살짝 확대 */
+.tutor-card-mini:hover .tutor-img-wrapper {
+    transform: scale(1.1) rotate(5deg);
 }
 
 /* 튜터 이미지 컨테이너 */

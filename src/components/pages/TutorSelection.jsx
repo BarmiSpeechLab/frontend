@@ -8,6 +8,8 @@ import rmitu2 from '../../assets/img/rmitu2.png';
 import rmitu3 from '../../assets/img/rmitu3.png';
 import rmitu4 from '../../assets/img/rmitu4.png';
 import rmitu5 from '../../assets/img/rmitu5.png';
+import rmitu6 from '../../assets/img/rmitu6.png';
+import rmitu7 from '../../assets/img/rmitu7.png';
 
 const RANDOM_INTRODUCTIONS = [
     "꼼꼼한 피드백으로 영어 발음의 기초를 확실히 잡아드립니다!",
@@ -17,7 +19,7 @@ const RANDOM_INTRODUCTIONS = [
     "초보자도 당당하게 말할 수 있도록 도와드립니다."
 ];
 
-const RANDOM_IMAGES = [rmitu1, rmitu2, rmitu3, rmitu4, rmitu5];
+const RANDOM_IMAGES = [rmitu1, rmitu2, rmitu3, rmitu4, rmitu5, rmitu6, rmitu7];
 
 const RANDOM_ORGS = [
     "바르미 어학원",
@@ -38,15 +40,16 @@ const TutorSelection = () => {
                 const serverData = res.data.data || [];
 
                 const randomizedTutors = serverData.map(tutor => {
-                    const randomImg = RANDOM_IMAGES[Math.floor(Math.random() * RANDOM_IMAGES.length)];
-                    const randomIntro = RANDOM_INTRODUCTIONS[Math.floor(Math.random() * RANDOM_INTRODUCTIONS.length)];
-                    const randomOrg = RANDOM_ORGS[Math.floor(Math.random() * RANDOM_ORGS.length)];
+                    const tId = Number(tutor.id);
+                    const imgIndex = (tId - 1) % RANDOM_IMAGES.length;
+                    const introIndex = (tId - 1) % RANDOM_INTRODUCTIONS.length;
+                    const orgIndex = (tId - 1) % RANDOM_ORGS.length;
 
                     return {
                         ...tutor,
-                        profileImgUrl: randomImg, 
-                        introduction: randomIntro,
-                        organization: randomOrg 
+                        profileImgUrl: RANDOM_IMAGES[imgIndex],
+                        introduction: RANDOM_INTRODUCTIONS[introIndex],
+                        organization: RANDOM_ORGS[orgIndex]
                     };
                 });
 

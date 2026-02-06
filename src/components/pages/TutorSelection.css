@@ -87,14 +87,14 @@
 }
 
 .tutor-name {
-    font-size: 1.3rem;
+    font-size: 1.5rem;
     font-weight: 800;
     color: #333;
     margin-bottom: 0.5rem;
 }
 
 .tutor-email {
-    font-size: 0.85rem;
+    font-size: 0.89rem;
     color: #999;
     margin-bottom: 0.8rem;
 }
@@ -136,7 +136,17 @@
     margin-top: auto;
 }
 
-.tutor-card:hover .select-btn {
+.tutor-card-detail:hover {
+    transform: translateY(-12px);
+    box-shadow: 0 20px 40px rgba(166, 124, 0, 0.15);
+    border-color: #f5e6cc;
+}
+
+.tutor-card-detail:hover .tutor-img-wrapper {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.tutor-card-detail:hover .select-btn {
     background: #a67c00;
     color: #ffffff;
     box-shadow: 0 4px 12px rgba(166, 124, 0, 0.3);
