@@ -1,4 +1,6 @@
 import React, { useEffect, useRef } from 'react';
+import { Activity } from 'lucide-react';
+import './IntonationGraph.css';
 
 const IntonationGraph = ({
     standardPitch = [],
@@ -92,9 +94,9 @@ const IntonationGraph = ({
             };
 
             // 표준 억양 (빨강)
-            drawLine(standardPitch, '#e24a4aff');
+            drawLine(standardPitch, '#ef4444');
             // 사용자 억양 (초록) - 보정된 데이터 사용
-            drawLine(alignedUserPitch, '#00ff22ff');
+            drawLine(alignedUserPitch, '#15803d');
 
 
             // 3. 단어/세그먼트 경계 및 라벨 표시
@@ -104,8 +106,8 @@ const IntonationGraph = ({
                 const totalLength = activePitch.length || 1;
                 let currentIdx = 0;
 
-                ctx.font = 'bold 13px "Pretendard", sans-serif';
-                ctx.fillStyle = isStandard ? '#e24a4a' : '#2e7d32'; // 표준은 빨강 계열, 사용자는 초록 계열
+                ctx.font = 'bold 16px "Pretendard", sans-serif';
+                ctx.fillStyle = isStandard ? '#ef4444' : '#15803d';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = isStandard ? 'top' : 'bottom';
 
@@ -123,7 +125,7 @@ const IntonationGraph = ({
                         const curveY = getY(pitchVal);
 
                         ctx.beginPath();
-                        ctx.strokeStyle = isStandard ? 'rgba(226, 74, 74, 0.25)' : 'rgba(46, 125, 50, 0.25)';
+                        ctx.strokeStyle = isStandard ? 'rgba(239, 68, 68, 0.25)' : 'rgba(21, 128, 61, 0.25)';
                         ctx.lineWidth = 1.2;
 
                         if (isStandard) {
@@ -165,15 +167,19 @@ const IntonationGraph = ({
 
     return (
         <div className="graph-card">
-            <div className="graph-title">
-                <span>억양 분석</span>
-                <div style={{ fontSize: '0.8rem', marginLeft: 'auto' }}>
-                    <span style={{ color: '#e24a4aff', marginRight: '10px' }}>· 표준</span>
-                    <span style={{ color: '#00ff22ff' }}>· 내 발음</span>
+            <div className="graph-header">
+                <div className="graph-title-group">
+                    <Activity size={20} fill="#a67c00" color="#a67c00" />
+                    <span className="graph-header-title">억양 분석</span>
+                </div>
+                <div className="graph-legend">
+                    <span style={{ color: '#ef4444', marginRight: '10px' }}>· 표준</span>
+                    <span style={{ color: '#15803d' }}>· 내 발음</span>
                 </div>
             </div>
             <canvas
                 ref={canvasRef}
+                className="intonation-canvas-display"
                 width={width}
                 height={height}
                 style={{ width: '100%', height: 'auto' }}

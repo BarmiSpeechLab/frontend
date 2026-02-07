@@ -1,68 +1,44 @@
-.intonation-graph-container {
-    width: 100%;
+.graph-card {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 16px;
-    padding: 20px;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    gap: 0.3rem;
+    background: #fffdf7;
+    /* Slightly lighter than #fff7ea */
+    border: 1px solid #f5eee6;
+    border-radius: 16px;
+    padding: 1.2rem 2rem 2rem;
+    box-shadow: 0 6px 16px rgba(166, 124, 0, 0.12);
 }
 
-.intonation-canvas {
-    width: 100%;
-    height: auto;
-    border: 1px solid #e5e7eb;
+.graph-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.2rem;
+}
+
+.graph-title-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.graph-header-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #8a6d3b;
+    letter-spacing: -0.5px;
+}
+
+.graph-legend {
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+canvas.intonation-canvas-display {
+    border: 1px solid #f0f0f0;
     border-radius: 8px;
     background: #fafafa;
-}
-
-.intonation-legend {
-    display: flex;
-    gap: 24px;
-    align-items: center;
-    justify-content: center;
-}
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
-    color: #333;
-}
-
-.legend-color {
-    width: 24px;
-    height: 4px;
-    border-radius: 2px;
-}
-
-.legend-color.standard {
-    background: #e24a4a;
-}
-
-.legend-color.user {
-    background: #00ff22;
-}
-
-/* 반응형 */
-@media (max-width: 768px) {
-    .intonation-graph-container {
-        padding: 16px;
-    }
-
-    .intonation-canvas {
-        max-width: 100%;
-    }
-
-    .legend-item {
-        font-size: 12px;
-    }
-
-    .legend-color {
-        width: 20px;
-        height: 3px;
-    }
+    width: 100%;
+    height: auto;
 }
