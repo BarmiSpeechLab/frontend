@@ -82,7 +82,7 @@ function LearningPage() {
             try {
                 setLoading(true);
                 let curriculumsStatic;
-                const staticCacheKey = 'curriculums_static';
+                const staticCacheKey = 'curriculums_static_v2';
                 const staticCached = sessionStorage.getItem(staticCacheKey);
                 const STATIC_CACHE_DURATION = 24 * 60 * 60 * 1000;
 
@@ -117,7 +117,9 @@ function LearningPage() {
                                 meaning: fixEncoding(item.meaning),
                                 ipa: fixEncoding(item.ipa),
                                 korPronunciation: fixEncoding(item.korPronunciation),
-                                examples: parsed.examples
+                                examples: parsed.examples,
+                                inton: item.inton || item.intonData,
+                                intonData: item.inton || item.intonData
                             };
                         }),
                         sentences: sentenceData.map(item => {
@@ -129,7 +131,9 @@ function LearningPage() {
                                 meaning: fixEncoding(item.meaning),
                                 ipa: fixEncoding(item.ipa),
                                 korPronunciation: fixEncoding(item.korPronunciation),
-                                examples: parsed.examples
+                                examples: parsed.examples,
+                                inton: item.inton || item.intonData,
+                                intonData: item.inton || item.intonData
                             };
                         })
                     }));

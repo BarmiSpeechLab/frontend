@@ -1,0 +1,236 @@
+/* AiFeedback.css */
+
+.feedback-card-container {
+    background: transparent;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    /* Reduced gap */
+}
+
+.feedback-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.2rem;
+    /* Reduced margin */
+}
+
+.feedback-header-title {
+    font-size: 1.1rem;
+    /* Slightly smaller */
+    font-weight: 800;
+    color: #8a6d3b;
+    letter-spacing: -0.5px;
+}
+
+/* 개별 피드백 아이템 (단어/음소 단위) */
+.feedback-item {
+    background: #ffffff;
+    border: 1px solid #eaddcf;
+    border-radius: 12px;
+    padding: 1.2rem;
+    /* Reduced padding */
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    box-shadow: 0 4px 12px rgba(166, 124, 0, 0.05);
+}
+
+/* 피드백 대상 (단어/발음기호) */
+.feedback-target {
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid #f5eee6;
+    margin-bottom: 0.2rem;
+}
+
+.feedback-target-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.feedback-target-word {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #5d4037;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.feedback-target-phonemes {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #8d6e63;
+    padding-left: 1.8rem;
+}
+
+.phoneme-wrap {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+}
+
+.phoneme-label {
+    font-size: 0.8rem;
+    color: #a1887f;
+    font-weight: 600;
+}
+
+.phoneme-value {
+    color: #5d4037;
+    font-weight: 700;
+}
+
+.target-arrow {
+    color: #a67c00;
+    display: inline-flex;
+    align-items: center;
+    opacity: 0.6;
+    margin: 0 0.1rem;
+}
+
+.feedback-target-highlight {
+    color: #d32f2f;
+    background: #ffebee;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-family: monospace;
+}
+
+/* 상세 내용 (오류 내용, 교정 방법) */
+/* 상세 내용 (오류 내용, 교정 방법) */
+.feedback-detail-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    /* Reduced gap */
+}
+
+.feedback-label-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.feedback-label {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #333;
+}
+
+.feedback-icon-wrapper {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.feedback-icon-wrapper.error {
+    background: #ffebee;
+    color: #d32f2f;
+}
+
+.feedback-icon-wrapper.correction {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.feedback-content-text {
+    font-size: 0.95rem;
+    color: #4e342e;
+    line-height: 1.6;
+    word-break: keep-all;
+    padding-left: 2px;
+    margin: 0;
+    /* Remove default margin */
+}
+
+/* 네비게이션 컨트롤 */
+.feedback-navigation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 0.8rem;
+    padding: 0;
+    background: transparent;
+}
+
+.nav-btn {
+    background: #ffffff;
+    border: 1px solid #eaddcf;
+    color: #a67c00;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 4px rgba(166, 124, 0, 0.08);
+}
+
+.nav-btn:hover:not(:disabled) {
+    background: #fdfaf3;
+    transform: scale(1.05);
+}
+
+.nav-btn:disabled {
+    opacity: 0.2;
+    cursor: not-allowed;
+    background: #f5f5f5;
+}
+
+.nav-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.page-indicator {
+    font-size: 0.85rem;
+    color: #8a6d3b;
+    min-width: 45px;
+    text-align: center;
+}
+
+.page-indicator strong {
+    color: #a67c00;
+    font-size: 1rem;
+}
+
+.feedback-info-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: #2e7d32;
+    background: #e8f5e9;
+    padding: 6px 12px;
+    border-radius: 8px;
+    margin-top: 0.5rem;
+}
+
+/* 로딩/대기 상태 */
+.feedback-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 0;
+    gap: 1rem;
+    color: #a1887f;
+    text-align: center;
+}
+
+.feedback-loading-text {
+    font-style: italic;
+    font-size: 0.95rem;
+}
