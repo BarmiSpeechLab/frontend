@@ -49,8 +49,9 @@
     position: relative;
     width: 320px;
     min-height: 220px;
-    background: #fff;
-    border: 1px solid #ddd;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 16px;
     display: flex;
     align-items: center;
@@ -147,8 +148,9 @@
 }
 
 .visual-box {
-    background: #fff;
-    border: 1px solid #ddd;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 20px;
     height: 320px;
     display: flex;
@@ -191,8 +193,9 @@
 }
 
 .practice-controls {
-    background: #fdfaf3;
-    border: 1px solid #f5e6cc;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 20px;
     padding: 2rem;
     text-align: center;
@@ -397,8 +400,9 @@
 }
 
 .visual-card {
-    background: #fff;
-    border: 1px solid #ddd;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 16px;
     height: 260px;
     display: flex;
@@ -419,8 +423,9 @@
 
 /* Row 2: 내 발음 (녹음/재생) */
 .row-2-myrecording {
-    background: #fdfaf3;
-    border: 1px solid #f5e6cc;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 16px;
     padding: 2rem;
     display: grid;

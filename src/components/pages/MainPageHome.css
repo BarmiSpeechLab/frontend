@@ -9,9 +9,7 @@
 }
 
 .main-home--bg {
-    background:
-        linear-gradient(180deg, rgba(139, 198, 255, 0.15) 0%, rgba(250, 214, 170, 0.25) 55%, rgba(250, 196, 150, 0.3) 100%),
-        url('../../assets/img/main-home-bg.png');
+    background-image: url('../../assets/img/main-home-bg.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -20,7 +18,8 @@
 .main-home__overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.2) 100%);
+    /* background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.2) 100%); */
+    /* Removed overlay to match Login Page style */
     z-index: 1;
 }
 
@@ -161,7 +160,6 @@
     transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 
     /* For Staggered Animation */
-    opacity: 0;
 }
 
 .main-home__menu-item:hover {

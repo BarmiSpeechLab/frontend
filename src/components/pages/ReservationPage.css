@@ -1,7 +1,8 @@
 .reservation-page {
     max-width: 1000px;
     margin: 0 auto;
-    padding: 40px 20px;
+    padding: 100px 20px 40px 20px;
+    /* Reduced to align with Sidebar 'Learning' menu */
     font-family: 'Noto Sans KR', sans-serif;
 }
 
@@ -9,13 +10,17 @@
 .tutor-summary-card {
     display: flex;
     align-items: center;
-    background: #ffffff;
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     padding: 24px 32px;
     border-radius: 24px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
     margin-bottom: 40px;
-    border: 1px solid #f0f0f0;
+    border: 1px solid rgba(255, 255, 255, 0.6);
     position: relative;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .tutor-summary-img-wrapper {
@@ -84,67 +89,155 @@
     flex: 1;
 }
 
-.calendar-section h3, .time-grid-section h3 {
+.calendar-section h3,
+.time-grid-section h3 {
     font-size: 1.25rem;
     color: #333;
     margin-bottom: 24px;
-    font-weight: 800; /* 더 두껍게 */
+    font-weight: 800;
     letter-spacing: -0.5px;
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-/* 타이틀 앞에 포인트 아이콘 효과 */
-.calendar-section h3::before { content: '🗓️'; font-size: 1.1rem; }
-.time-grid-section h3::before { content: '⏰'; font-size: 1.1rem; }
+
+
+/* ============= Study Calendar Layout Match ============= */
+
+.study-calendar-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.study-calendar {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* External Navigation Buttons */
+.calendar-nav-btn-outside {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: #a67c00;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    flex-shrink: 0;
+}
+
+.calendar-nav-btn-outside:hover {
+    background: #fff;
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    color: #e57373;
+}
+
+/* Split Header: Left Month, Right Year */
+.calendar-header-split {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 0 0.5rem 1rem 0.5rem;
+    border-bottom: 2px solid rgba(166, 124, 0, 0.1);
+    margin-bottom: 1rem;
+}
+
+.header-month,
+.header-year {
+    font-size: 2.5rem !important;
+    font-weight: 800 !important;
+    color: #a67c00 !important;
+    line-height: 1 !important;
+}
 
 /* 달력(react-calendar) 커스텀 디자인 */
 .react-calendar {
     width: 100% !important;
-    border: 2px solid #f5e6cc !important; 
+    background: rgba(255, 255, 255, 0.6) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
     border-radius: 24px !important;
-    box-shadow: 0 15px 35px rgba(166, 124, 0, 0.08) !important;
-    padding: 25px;
-    background: #fff;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    padding: 2rem !important;
+    font-family: 'Noto Sans KR', sans-serif;
+    line-height: 1.125em;
+    display: flex;
+    flex-direction: column;
 }
 
-/* 달력 상단 내비게이션 (화살표 및 월/년) 강조 */
+/* HIDE Default Navigation from React-Calendar */
 .react-calendar__navigation {
-    height: 45px;
-    margin-bottom: 15px;
-}
-
-.react-calendar__navigation button {
-    min-width: 50px;
-    background: none;
-    font-size: 1.2rem !important; 
-    font-weight: 800 !important;  
-    color: #333 !important;
-}
-
-.react-calendar__navigation button:enabled:hover,
-.react-calendar__navigation button:enabled:focus {
-    background-color: #f5f0e6 !important;
-    border-radius: 12px;
+    display: none !important;
 }
 
 /* 요일 글자 디자인 */
+.react-calendar__month-view__weekdays {
+    text-align: center;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 1rem;
+    border-bottom: 2px solid rgba(74, 59, 50, 0.1);
+    padding-bottom: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.react-calendar__month-view__weekdays__weekday {
+    padding: 0.5em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .react-calendar__month-view__weekdays__weekday abbr {
     text-decoration: none;
-    font-weight: 800 !important; 
-    color: #a67c00 !important;
-    font-size: 1rem !important;
+    color: #888 !important;
+    font-weight: 700 !important;
+}
+
+/* Sunday Red */
+.react-calendar__month-view__weekdays__weekday:first-child abbr {
+    color: #e57373 !important;
 }
 
 /* 날짜 타일 디자인 */
 .react-calendar__tile {
-    height: 60px !important;      
-    border-radius: 12px;
-    font-size: 1.1rem !important; 
-    font-weight: 700 !important;   
-    color: #444;
+    height: auto !important;
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: transparent !important;
+    border-radius: 0 !important;
+    border-bottom: 1px solid rgba(74, 59, 50, 0.05);
+    font-size: 1.2rem !important;
+    font-weight: 600 !important;
+    color: #4a3b32 !important;
     transition: all 0.2s;
+}
+
+/* Hover effect */
+.react-calendar__tile:enabled:hover,
+.react-calendar__tile:enabled:focus {
+    background: rgba(255, 255, 255, 0.6) !important;
+    border-radius: 50% !important;
+    border-bottom: none;
+    color: #a67c00 !important;
 }
 
 /* 선택된 날짜 강조 */
@@ -152,28 +245,50 @@
     background: #a67c00 !important;
     color: white !important;
     font-weight: 800 !important;
+    border-radius: 50% !important;
     box-shadow: 0 6px 15px rgba(166, 124, 0, 0.3);
+    border-bottom: none;
 }
 
 /* 오늘 날짜 표시 */
 .react-calendar__tile--now {
-    background: #fdfaf3 !important;
+    background: transparent !important;
     color: #a67c00 !important;
     font-weight: 800;
-    border: 2px solid #f5e6cc;
+    border: 2px solid #f5e6cc !important;
+    border-radius: 50% !important;
 }
 
-/* 마우스 올렸을 때 */
-.react-calendar__tile:enabled:hover, 
-.react-calendar__tile:enabled:focus {
-    background-color: #f5f0e6 !important;
-    color: #a67c00;
+.react-calendar__tile--now:enabled:hover,
+.react-calendar__tile--now:enabled:focus {
+    background: #fdfaf3 !important;
 }
 
 /* 비활성화된 날짜 */
 .react-calendar__tile:disabled {
-    background-color: #f9f9f9 !important;
-    color: #ccc !important;
+    background-color: transparent !important;
+    color: #d1d1d1 !important;
+}
+
+/* Color Sat/Sun properly using nth-child */
+.react-calendar__month-view__days__day--weekend {
+    color: #d10000;
+}
+
+/* Sunday (1st) */
+.react-calendar__tile:nth-child(7n+1) {
+    color: #e57373 !important;
+}
+
+/* Saturday (7th) */
+.react-calendar__tile:nth-child(7n) {
+    color: #64b5f6 !important;
+}
+
+/* Active overrides color */
+.react-calendar__tile--active:nth-child(7n+1),
+.react-calendar__tile--active:nth-child(7n) {
+    color: white !important;
 }
 
 /* 시간 버튼 그리드 및 디자인 */
@@ -189,7 +304,7 @@
     border: 2px solid #f5e6cc;
     border-radius: 18px;
     font-size: 1.2rem;
-    font-weight: 800;   
+    font-weight: 800;
     color: #a67c00;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -205,15 +320,18 @@
 
 /* 안내 메시지 */
 .no-time-msg {
-    grid-column: 1 / -1; 
+    grid-column: 1 / -1;
     text-align: center;
     color: #bbb;
-    padding: 60px 20px; 
+    padding: 60px 20px;
     font-weight: 600;
     font-size: 1.1rem;
-    border: 2px dashed #eee; 
+    border: 1px solid rgba(255, 255, 255, 0.6);
     border-radius: 24px;
-    background: none;
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
     margin-top: 10px;
     display: flex;
     flex-direction: column;
@@ -221,4 +339,3 @@
     justify-content: center;
     gap: 10px;
 }
-

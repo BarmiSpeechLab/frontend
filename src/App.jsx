@@ -19,10 +19,12 @@ import ReportPage from './components/pages/ReportPage';
 import MainPage from './components/pages/MainPage';
 import ProfilePage from './components/pages/ProfilePage';
 import ConversationPage from './components/pages/ConversationPage';
+import ScrollToTop from './components/common/ScrollToTop';
 
 function App() {
     return (
         <Router>
+            <ScrollToTop />
             <Routes>
                 {/* 1) 누구나 접근 가능 (인증 X) */}
                 <Route path="/" element={<Navigate to="/login" replace />} />

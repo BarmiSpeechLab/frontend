@@ -25,7 +25,7 @@ const TutoringLobby = () => {
     const [currentTime, setCurrentTime] = useState(new Date());
     const [recommendedTutors, setRecommendedTutors] = useState([]);
     const [appointments, setAppointments] = useState([]);
-   
+
     const userRole = localStorage.getItem('userRole');
     const myId = localStorage.getItem('userId');
     const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
@@ -63,7 +63,7 @@ const TutoringLobby = () => {
 
                 const res = await api.get(endpoint);
                 const serverData = res.data.data || [];
-               
+
                 console.log("✅ 서버 응답 성공!");
                 console.log("서버 원본 데이터:", serverData);
                 console.log("데이터 개수:", serverData.length);
@@ -71,7 +71,7 @@ const TutoringLobby = () => {
                 // 필터 제거 - 서버에서 받은 데이터를 그대로 사용
                 const processedData = serverData.map(appt => {
                     console.log("개별 예약 데이터:", appt);
-                    
+
                     return {
                         ...appt,
                         roomId: appt.roomId || appt.webRtcRoomId || '',
@@ -83,7 +83,7 @@ const TutoringLobby = () => {
                     const dateB = new Date(b.datetime);
                     return dateA - dateB;
                 });
-               
+
                 console.log("가공된 데이터:", processedData);
                 setAppointments(processedData);
 
@@ -91,7 +91,7 @@ const TutoringLobby = () => {
                 console.error("❌ 일정 조회 실패:", error);
                 console.error("에러 상세:", error.response?.data || error.message);
                 console.error("HTTP 상태:", error.response?.status);
-                
+
                 // 403 에러 특별 처리
                 if (error.response?.status === 403) {
                     console.error("🔒 권한 없음 (403 Forbidden)");
@@ -99,13 +99,13 @@ const TutoringLobby = () => {
                     console.error("1. 토큰이 만료되었거나 유효하지 않음");
                     console.error("2. 해당 API에 접근 권한이 없음");
                     console.error("3. userRole이 올바르지 않음");
-                    
+
                     alert("접근 권한이 없습니다. 다시 로그인해주세요.");
                     // 필요시 로그아웃 처리
                     // localStorage.clear();
                     // navigate('/login');
                 }
-                
+
                 setAppointments([]);
             }
         };
@@ -132,15 +132,15 @@ const TutoringLobby = () => {
                 const res = await api.get('/users/tutors');
                 const allTutors = res.data.data || [];
                 const shuffled = [...allTutors].sort(() => 0.5 - Math.random());
-                
+
                 const randomizedTutors = shuffled.slice(0, 3).map(tutor => {
                     const tId = Number(tutor.id);
                     const imgIndex = (tId - 1) % RANDOM_IMAGES.length;
                     const introIndex = (tId - 1) % RANDOM_INTRODUCTIONS.length;
-                    
+
                     return {
                         ...tutor,
-                        profileImgUrl: RANDOM_IMAGES[imgIndex], 
+                        profileImgUrl: RANDOM_IMAGES[imgIndex],
                         introduction: RANDOM_INTRODUCTIONS[introIndex] // 한줄 소개 랜덤 할당
                     };
                 });
@@ -167,7 +167,7 @@ const TutoringLobby = () => {
         }
 
         const classStart = new Date(dateTimeStr);
-        
+
         if (isNaN(classStart.getTime())) {
             console.error("잘못된 날짜 형식:", dateTimeStr);
             return { active: false, label: '날짜 오류', className: 'disabled' };
@@ -181,7 +181,7 @@ const TutoringLobby = () => {
         } else if (currentTime > entryEnd) {
             return { active: false, label: '수업 종료', className: 'disabled' };
         }
-       
+
         if (!hasRoomId) {
             return { active: false, label: '강의실 준비 중...', className: 'waiting' };
         }
@@ -200,17 +200,19 @@ const TutoringLobby = () => {
 
     return (
         <div className="lobby-container">
+            <h1 className="subpage-title">1:1 튜터링</h1>
+
             {userRole !== 'TUTOR' && (
                 <section className="tutor-section">
-                    <div className="tutor-header">
-                        <button className="more-btn" onClick={() => navigate('/tutoring/reserve')}>
-                            튜터링 예약하러 가기 &gt;
+                    <div className="tutor-header-right">
+                        <button className="more-btn" onClick={() => navigate('/tutoring/reserve')} style={{ paddingRight: 0 /* Force Align */ }}>
+                            튜터링 예약하기
                         </button>
                     </div>
                     <div className="tutor-grid">
                         {recommendedTutors.length > 0 ? (
                             recommendedTutors.map((tutor) => (
-                                <div key={tutor.id} className="tutor-card-mini" onClick={() => navigate(`/tutoring/reserve/${tutor.id}`)}>
+                                <div key={tutor.id} className="tutor-card-mini glass-panel" onClick={() => navigate(`/tutoring/reserve/${tutor.id}`)}>
                                     <div className="tutor-img-wrapper">
                                         {/* profileImgUrl 출력 */}
                                         {tutor.profileImgUrl ? (
@@ -223,11 +225,12 @@ const TutoringLobby = () => {
                                         <h3 className="tutor-name">{tutor.nickname}</h3>
                                         {/* introduction 출력 */}
                                         <p className="tutor-desc">{tutor.introduction}</p>
+                                        <button className="tutor-action-btn">수업 보기</button>
                                     </div>
                                 </div>
                             ))
                         ) : (
-                            <div className="no-data-msg">추천 튜터를 불러오는 중입니다...</div>
+                            <div className="no-data-msg">추천 튜터를 불러오는 중 ...</div>
                         )}
                     </div>
                 </section>
@@ -236,54 +239,56 @@ const TutoringLobby = () => {
             {userRole !== 'TUTOR' && <div className="divider"></div>}
 
             <section className="appointment-section">
-                <h2 className="section-title">📅 나의 수업 일정</h2>
-                <div className="appointment-list">
-                    {appointments.length > 0 ? (
-                        appointments.map((appt) => {
-                            const hasRoomId = appt.roomId && appt.roomId.length > 0;
-                            const status = getButtonStatus(appt.datetime, hasRoomId);
-                            const dateObj = new Date(appt.datetime);
-                            const isValidDate = !isNaN(dateObj.getTime());
+                <h2 className="section-title">나의 수업 일정</h2>
+                <div className="glass-panel schedule-container">
+                    <div className="appointment-list">
+                        {appointments.length > 0 ? (
+                            appointments.map((appt) => {
+                                const hasRoomId = appt.roomId && appt.roomId.length > 0;
+                                const status = getButtonStatus(appt.datetime, hasRoomId);
+                                const dateObj = new Date(appt.datetime);
+                                const isValidDate = !isNaN(dateObj.getTime());
 
-                            return (
-                                <div key={appt.id} className="appointment-card">
-                                    <div className="card-info">
-                                        <div className="card-date">
-                                            {isValidDate 
-                                                ? dateObj.toLocaleDateString('ko-KR')
-                                                : '날짜 정보 없음'
-                                            }
-                                            <span className="time-badge">
+                                return (
+                                    <div key={appt.id} className="appointment-card">
+                                        <div className="card-info">
+                                            <div className="card-date">
                                                 {isValidDate
-                                                    ? dateObj.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
-                                                    : '--:--'
+                                                    ? dateObj.toLocaleDateString('ko-KR')
+                                                    : '날짜 정보 없음'
                                                 }
-                                            </span>
+                                                <span className="time-badge">
+                                                    {isValidDate
+                                                        ? dateObj.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
+                                                        : '--:--'
+                                                    }
+                                                </span>
+                                            </div>
+                                            <h3 className="teacher-name">
+                                                {userRole === 'TUTOR'
+                                                    ? `${appt.tuteeNickname || '익명 학생'} 학생`
+                                                    : `${appt.tutorNickname || '담당 선생님'} 선생님`}
+                                            </h3>
+                                            <p className="class-topic">
+                                                {appt.topic}
+                                            </p>
                                         </div>
-                                        <h3 className="teacher-name">
-                                            {userRole === 'TUTOR'
-                                                ? `👤 학생: ${appt.tuteeNickname || '익명 학생'}`
-                                                : `👨‍🏫 선생님: ${appt.tutorNickname || '담당 선생님'}`}
-                                        </h3>
-                                        <p className="class-topic">
-                                            {appt.topic}
-                                        </p>
+                                        <div className="card-action">
+                                            <button
+                                                onClick={() => handleJoin(appt.roomId)}
+                                                disabled={!status.active}
+                                                className={`join-btn ${status.className}`}
+                                            >
+                                                {status.label}
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div className="card-action">
-                                        <button
-                                            onClick={() => handleJoin(appt.roomId)}
-                                            disabled={!status.active}
-                                            className={`join-btn ${status.className}`}
-                                        >
-                                            {status.label}
-                                        </button>
-                                    </div>
-                                </div>
-                            );
-                        })
-                    ) : (
-                        <div className="no-data-msg">예정된 수업 일정이 없습니다.</div>
-                    )}
+                                );
+                            })
+                        ) : (
+                            <div className="no-data-msg">예정된 수업 일정이 없습니다.</div>
+                        )}
+                    </div>
                 </div>
             </section>
         </div>

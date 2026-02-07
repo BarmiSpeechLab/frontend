@@ -2,7 +2,8 @@
 .subpage-container {
     position: relative;
     width: 100%;
-    min-height: 100vh; /* 화면 꽉 차게 */
+    min-height: 100vh;
+    /* 화면 꽉 차게 */
 }
 
 /* 로딩 화면 */
@@ -42,7 +43,30 @@
 
 .video-label {
     margin-bottom: 10px;
-    color: #333;
+    color: #4a3b32;
+    /* Changed from #333 */
+}
+
+.card-date {
+    font-size: 14px;
+    color: #6b5b4e;
+    /* Changed from #666 */
+    margin-bottom: 5px;
+}
+
+.teacher-name {
+    margin: 5px 0;
+    font-size: 18px;
+    font-weight: bold;
+    color: #4a3b32;
+    /* Changed from #333 */
+}
+
+.class-topic {
+    margin: 0;
+    font-size: 14px;
+    color: #6b5b4e;
+    /* Changed from #888 */
 }
 
 .video-placeholder {
@@ -93,12 +117,13 @@
 }
 
 /* 버튼 공통 스타일 */
-.lang-btn, .action-btn {
+.lang-btn,
+.action-btn {
     border: none;
     cursor: pointer;
     font-weight: bold;
     transition: 0.2s;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 /* 언어 버튼 */
@@ -107,11 +132,18 @@
     border-radius: 15px;
     font-size: 12px;
     background-color: #ddd;
-    color: #333;
+    color: #4a3b32;
 }
 
-.lang-btn.active.ko { background-color: #2196F3; color: white; }
-.lang-btn.active.en { background-color: #FF9800; color: white; }
+.lang-btn.active.ko {
+    background-color: #2196F3;
+    color: white;
+}
+
+.lang-btn.active.en {
+    background-color: #FF9800;
+    color: white;
+}
 
 /* 액션 버튼 (자막, 나가기) */
 .action-btn {
@@ -120,9 +152,17 @@
     color: white;
 }
 
-.action-btn.stt-on { background-color: #4CAF50; }
-.action-btn.stt-off { background-color: #666; }
-.action-btn.exit { background-color: #ff4444; }
+.action-btn.stt-on {
+    background-color: #4CAF50;
+}
+
+.action-btn.stt-off {
+    background-color: #666;
+}
+
+.action-btn.exit {
+    background-color: #ff4444;
+}
 
 /* --- 자막 오버레이 (중요!) --- */
 .subtitle-overlay {
@@ -136,12 +176,13 @@
     border-radius: 10px;
     font-size: 20px;
     font-weight: 600;
-    z-index: 9999; /* 최상단 노출 */
+    z-index: 9999;
+    /* 최상단 노출 */
     text-align: center;
     white-space: pre-wrap;
     pointer-events: none;
     max-width: 80vw;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     display: flex;
     align-items: center;
     gap: 12px;

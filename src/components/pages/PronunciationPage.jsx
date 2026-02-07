@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import './SubPage.css';
 import './PronunciationPage.css';
 import { getCurriculumList, getCurriculumDetail, getUserCurriculumStats } from '../../api/curriculum';
+import useScrollAnimation from '../../hooks/useScrollAnimation';
+import stamp from '../../assets/img/stamp.png';
 
 const PronunciationPage = () => {
     // IPA 타입 매핑
@@ -24,6 +26,8 @@ const PronunciationPage = () => {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const location = useLocation(); // ✅ location 변경 감지
+    // Pass dependency to re-run observer when loading finishes or tab changes
+    const containerRef = useScrollAnimation([loading]);
 
     // curr.sql <- SET NAMES utf8mb4; 한 줄 넣어주니 변환 필요 X
     const fixEncoding = (str) => {
@@ -181,10 +185,10 @@ const PronunciationPage = () => {
     const currentList = ipaItems.filter(item => item.korType === activeTab);
 
     return (
-        <div className="subpage-container">
-            <h1 className="subpage-title">발음기호 학습</h1>
+        <div className="subpage-container" ref={containerRef}>
+            <h1 className="subpage-title anim-target delay-1">발음기호 학습</h1>
 
-            <div className="tabs">
+            <div className="tabs anim-target delay-2">
                 {TABS.map(tab => (
                     <button
                         key={tab}
@@ -196,7 +200,7 @@ const PronunciationPage = () => {
                 ))}
             </div>
 
-            <div className="card-grid col-3" style={{ gap: '1.5rem' }}>
+            <div className="card-grid col-3 anim-target delay-3" style={{ gap: '1.5rem' }}>
                 {loading ? (
                     <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem' }}>로딩 중...</div>
                 ) : currentList.length > 0 ? (
@@ -206,13 +210,28 @@ const PronunciationPage = () => {
                             className="epa-card"
                             onClick={() => handleCardClick(item)}
                         >
+                            {item.isCompleted && (
+                                <div className="completed-stamp">
+                                    <img src={stamp} alt="완료" />
+                                </div>
+                            )}
                             <h2 className="epa-symbol">{item.ipa ? item.ipa.replace(/[\/\[\]]/g, '') : ''}</h2>
                             <p className="epa-word">{item.displayText} <span className="epa-kor">{item.korPronunciation}</span></p>
+
+                            {item.tryCount > 0 && (
+                                <div className="stats-above-progress">
+                                    <span className="stat-badge-left">{item.tryCount}회</span>
+                                    <span className="stat-badge-right">{item.score}점</span>
+                                </div>
+                            )}
 
                             <div className="epa-progress-bg">
                                 <div
                                     className="epa-progress-fill"
-                                    style={{ width: `${item.tryCount > 0 ? 100 : 0}%` }}
+                                    style={{
+                                        width: `${item.tryCount > 0 ? 100 : 0}%`,
+                                        background: item.tryCount > 0 ? '#4CAF50' : '#a67c00'
+                                    }}
                                 ></div>
                             </div>
                         </div>

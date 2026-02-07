@@ -9,7 +9,7 @@ import './TutoringPage.css';
 const TutoringPage = () => {
     const { roomId } = useParams();
     const navigate = useNavigate();
-    
+
     const [session, setSession] = useState(undefined);
     const [mainStreamManager, setMainStreamManager] = useState(undefined);
     const [publisher, setPublisher] = useState(undefined);
@@ -21,7 +21,7 @@ const TutoringPage = () => {
     const [isSTTActive, setIsSTTActive] = useState(false);
     const [sttLang, setSttLang] = useState('ko-KR');
     const [showSubtitles, setShowSubtitles] = useState(true);
-    
+
     // Refs
     const subtitleTimerRef = useRef(null);
     const recognitionRef = useRef(null);
@@ -31,8 +31,8 @@ const TutoringPage = () => {
 
     // 역할 상수 (DB 값 기준)
     const ROLE = {
-        TEACHER: 'TUTOR',   
-        STUDENT: 'USER'    
+        TEACHER: 'TUTOR',
+        STUDENT: 'USER'
     };
 
     useEffect(() => {
@@ -85,7 +85,7 @@ const TutoringPage = () => {
             session.on('signal:subtitleStatus', (event) => {
                 // 선생님(TUTOR)일 때만 알림 받음
                 if (event.data === 'OFF' && currentMember?.role === ROLE.TEACHER) {
-                    alert("⚠️ 학생(admin)이 자막 기능을 껐습니다!");
+                    alert("학생이 자막 기능을 껐습니다!");
                 }
             });
         }
@@ -243,7 +243,7 @@ const TutoringPage = () => {
                                 <button onClick={() => changeLang('en-US')} className={`lang-btn ${sttLang === 'en-US' ? 'active en' : ''}`}>🇺🇸 English</button>
                             </div>
                             <button onClick={toggleMicSTT} className={`action-btn ${isSTTActive ? 'stt-on' : 'stt-off'}`}>
-                                {isSTTActive ? '마이크 ON 🎙️' : '마이크 OFF 🔇'}
+                                {isSTTActive ? '마이크 ON' : '마이크 OFF'}
                             </button>
                         </>
                     )}
@@ -251,20 +251,20 @@ const TutoringPage = () => {
                     {/* 학생 UI */}
                     {currentMember?.role === ROLE.STUDENT && (
                         <button onClick={toggleSubtitleVisibility} className={`action-btn ${showSubtitles ? 'stt-on' : 'stt-off'}`}>
-                            {showSubtitles ? '자막 보는 중 👀' : '자막 숨김 🙈'}
+                            {showSubtitles ? '자막 보는 중' : '자막 숨김'}
                         </button>
                     )}
 
-                    <button onClick={() => leaveSession(true)} className="action-btn exit">나가기 🚪</button>
+                    <button onClick={() => leaveSession(true)} className="action-btn exit">나가기</button>
                 </div>
             )}
 
-            <h1 className="subpage-title">{session ? "💻 1:1 튜터링" : "강의실 입장 중..."}</h1>
-            
+            <h1 className="subpage-title">1:1 튜터링</h1>
+
             {!session ? (
                 <div className="loading-container">
                     <div className="spinner"></div>
-                    <h3>🚀 강의실에 입장하고 있습니다...</h3>
+                    <h3>강의실에 입장 중 ...</h3>
                 </div>
             ) : (
                 <div className="video-grid">
@@ -276,7 +276,7 @@ const TutoringPage = () => {
                         <h3 className="video-label">
                             {currentMember?.role === ROLE.TEACHER ? '학생' : '선생님'}(상대방)</h3>
                         {subscribers.length === 0 ? (
-                            <div className="waiting-box">⏳ 상대방을 기다리는 중...</div>
+                            <div className="waiting-box">상대방을 기다리는 중 ...</div>
                         ) : (
                             subscribers.map((sub, i) => <UserVideoComponent key={i} streamManager={sub} />)
                         )}

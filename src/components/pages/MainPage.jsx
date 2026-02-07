@@ -22,23 +22,44 @@ const MainPage = () => {
             setHeaderMoved(true);
         }, 1500);
 
-        const checkOnboarding = () => {
+        const checkOnboarding = (userData) => {
             const loggedInEmail = localStorage.getItem('userEmail') || 'guest';
             const storageKey = `onboardingCompleted_${userRole}_${loggedInEmail}`;
-            const status = localStorage.getItem(storageKey);
-            if (status !== 'true') setShowOnboarding(true);
+            const localStatus = localStorage.getItem(storageKey);
+
+            // 1. If locally marked as done, trust it
+            if (localStatus === 'true') {
+                return;
+            }
+
+            // 2. If backend data is available, check it
+            if (userData) {
+                // Check common field names for tutorial status
+                const isDone = userData.tutorialYn === 'Y' || userData.tutorialCompleted === true;
+                if (isDone) {
+                    // Sync local
+                    localStorage.setItem(storageKey, 'true');
+                    return;
+                }
+            }
+
+            // 3. If we get here, show onboarding (New User or not synced)
+            setShowOnboarding(true);
         };
 
         const fetchProfile = async () => {
             try {
                 const userData = await getUserProfile();
                 setUserName(userData?.nickname || '');
+                // Pass userData to checkOnboarding
+                checkOnboarding(userData);
             } catch (err) {
                 console.error('메인 프로필 로딩 실패', err);
+                // Fallback check without backend data
+                checkOnboarding(null);
             }
         };
 
-        checkOnboarding();
         fetchProfile();
 
         return () => clearTimeout(timer);
@@ -86,7 +107,7 @@ const MainPage = () => {
     const menuItems = allMenuItems.filter(item => item.roles.includes(userRole));
 
     return (
-        <div className="main-home main-home--bg">
+        <div className="main-home">
             <div className="main-home__overlay" />
 
             {/* Header moved outside content to be relative to screen */}

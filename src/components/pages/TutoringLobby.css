@@ -1,80 +1,112 @@
 .lobby-container {
-    max-width: 900px;
+    max-width: 1000px;
     margin: 0 auto;
-    padding: 50px 20px;
+    padding: 2rem;
     font-family: 'Noto Sans KR', sans-serif;
-}
-
-/* 섹션 타이틀 (나의 수업 일정용) */
-.section-title {
-    font-size: 22px;
-    font-weight: bold;
-    color: #333;
-    margin-bottom: 25px;
 }
 
 .divider {
     height: 1px;
-    background-color: #eee;
-    margin: 60px 0;
+    background-color: rgba(0, 0, 0, 0.05);
+    margin: 40px 0;
 }
 
-/* 헤더: 버튼 우측 정렬 */
-.tutor-header {
+/* 섹션 타이틀 (나의 수업 일정용) */
+.subpage-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin-bottom: 2rem;
+    margin-top: -8px;
+    color: #a67c00;
+}
+
+.section-title {
+    font-size: 22px;
+    font-weight: bold;
+    color: #4a3b32;
+    margin-bottom: 25px;
+}
+
+.tutor-header-right {
     display: flex;
-    justify-content: flex-end;
+    justify-content: flex-start;
     margin-bottom: 15px;
 }
 
-/* 예약하러 가기 버튼 */
+/* Glassmorphism Shared Style */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+    border-radius: 24px;
+    padding: 24px;
+}
+
 .more-btn {
     background: none;
     border: none;
     font-size: 15px;
     font-weight: bold;
-    color: #666;
+    color: #6b5b4e;
     cursor: pointer;
     transition: color 0.2s;
-    padding: 5px 10px;
+    padding: 5px 0 5px 10px;
+    /* Right padding 0 for strict edge alignment */
+}
+
+.tutor-name {
+    font-size: 22px;
+    font-weight: bold;
+    color: #4a3b32;
+    margin: 0 0 5px 0;
+}
+
+.tutor-desc {
+    font-size: 13px;
+    color: #6b5b4e;
+    margin: 0;
+    line-height: 1.4;
+    word-break: keep-all;
 }
 
 .more-btn:hover {
-    color: #4CAF50;
+    color: #a67c00;
     text-decoration: underline;
 }
 
 /* 그리드 레이아웃 */
+/* 그리드 레이아웃 */
 .tutor-grid {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 20px;
-    /* 줄바꿈을 막거나 제어해야 함. 여기선 Flex로 처리 */
+    width: 100%;
 }
 
 /* 튜터 카드 */
 .tutor-card-mini {
     flex: 1;
-    background-color: white;
-    border-radius: 20px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    padding: 20px;
-    box-sizing: border-box;
+    /* Glass styles moved to .glass-panel class */
     cursor: pointer;
     transition: transform 0.2s;
-    border: 1px solid #f0f0f0;
-    
+
     /* 내용물 정렬 */
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    
+
     /* 높이 고정 */
-    height: 270px;
+    min-height: 350px;
+    height: auto;
+    /* Increased from 270px, now auto for button */
 }
 
 .tutor-card-mini:hover {
-    transform: translateY(-12px); /* 5px보다 조금 더 역동적으로 변경 */
+    transform: translateY(-12px);
+    /* 5px보다 조금 더 역동적으로 변경 */
     box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
     border-color: #f5e6cc;
 }
@@ -86,7 +118,7 @@
 
 /* 튜터 이미지 컨테이너 */
 .tutor-img-wrapper {
-    width: 80px;  
+    width: 80px;
     height: 80px;
     margin-bottom: 15px;
     display: flex;
@@ -98,9 +130,9 @@
 .tutor-img {
     width: 100%;
     height: 100%;
-    object-fit: cover;    
-    border-radius: 50%;  
-    border: 2px solid #f0f0f0; 
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #f0f0f0;
 }
 
 /* 사진이 없을 때 나오는 플레이스홀더 */
@@ -115,13 +147,13 @@
     font-size: 24px;
     font-weight: bold;
     color: #4CAF50;
-    margin: 0; 
+    margin: 0;
 }
 
 .tutor-name {
     font-size: 22px;
     font-weight: bold;
-    color: #333;
+    color: #4a3b32;
     margin: 0 0 5px 0;
 }
 
@@ -133,10 +165,35 @@
     word-break: keep-all;
 }
 
+.tutor-action-btn {
+    margin-top: 20px;
+    padding: 0.8rem 2rem;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 24px;
+    color: #4a3b32;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s;
+}
+
+.tutor-action-btn:hover {
+    background: rgba(255, 255, 255, 0.6);
+    color: #a67c00;
+    transform: translateY(-2px);
+    border-color: #f5e6cc;
+    box-shadow: 0 6px 15px rgba(166, 124, 0, 0.1);
+}
+
 /* 반응형 처리 */
 
 /* 화면이 중간(태블릿 등)으로 줄어들면 */
 @media (max-width: 768px) {
+
     /* 3번째 카드를 숨겨서 스크롤이 길어지는 걸 방지 */
     .tutor-card:nth-child(3) {
         display: none;
@@ -146,15 +203,21 @@
 /* 화면이 아주 좁으면*/
 @media (max-width: 480px) {
     .tutor-card:nth-child(2) {
-        display: none; 
+        display: none;
     }
-    
+
     /* 버튼 폰트 살짝 줄임 */
-    .more-btn { font-size: 13px; }
+    .more-btn {
+        font-size: 13px;
+    }
 }
 
 
 /* 2. 예약 목록 */
+.appointment-section {
+    margin-top: 20px;
+}
+
 .appointment-list {
     display: flex;
     flex-direction: column;
@@ -165,11 +228,15 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: white;
-    padding: 25px;
-    border-radius: 15px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    border: 1px solid #eee;
+    background-color: transparent;
+    backdrop-filter: none;
+    padding: 10px 0;
+    /* Reduced padding, horizontal 0 */
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
+    border-bottom: 1px solid rgba(74, 59, 50, 0.1);
+    /* Soft divider instead */
 }
 
 /* (반응형) 예약 목록 카드 */
@@ -179,32 +246,43 @@
         align-items: flex-start;
         gap: 15px;
     }
-    .card-action { width: 100%; }
-    .join-btn { width: 100%; }
+
+    .card-action {
+        width: 100%;
+    }
+
+    .join-btn {
+        width: 100%;
+    }
 }
 
-.card-date { 
-    font-size: 14px; 
-    color: #666; 
-    margin-bottom: 5px; 
+.card-date {
+    font-size: 1.2rem;
+    color: #6b5b4e;
+    margin-bottom: 8px;
+    font-weight: 600;
 }
+
 .time-badge {
-    background-color: #e3f2fd; 
+    background-color: #e3f2fd;
     color: #1976d2;
-    padding: 2px 8px; 
-    border-radius: 12px; 
-    font-weight: bold; 
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: bold;
     margin-left: 5px;
 }
-.teacher-name { 
-    margin: 5px 0; 
-    font-size: 18px; 
-    font-weight: bold; 
-    color: #333; 
+
+.teacher-name {
+    margin: 5px 0;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #4a3b32;
 }
-.class-topic { margin: 0; 
-    font-size: 14px; 
-    color: #888; 
+
+.class-topic {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #6b5b4e;
 }
 
 .join-btn {
@@ -216,12 +294,14 @@
     border: none;
     min-width: 180px;
 }
-.join-btn.active { 
-    background-color: #4CAF50; 
-    color: white; 
+
+.join-btn.active {
+    background-color: #4CAF50;
+    color: white;
 }
-.join-btn.disabled { 
-    background-color: #e0e0e0; 
-    color: #999; 
+
+.join-btn.disabled {
+    background-color: #e0e0e0;
+    color: #999;
     cursor: not-allowed;
 }
