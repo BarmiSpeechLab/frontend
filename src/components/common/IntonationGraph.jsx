@@ -97,54 +97,71 @@ const IntonationGraph = ({
             drawLine(alignedUserPitch, '#00ff22ff');
 
 
-            // 3. 단어/세그먼트 경계 표시 (문장일 경우)
-            if (standardSegments && standardSegments.length > 0) {
-                const totalLength = standardPitch.length || 1;
+            // 3. 단어/세그먼트 경계 및 라벨 표시
+            const drawSegments = (segments, yPos, isStandard = true) => {
+                if (!segments || segments.length === 0) return;
+                const activePitch = isStandard ? standardPitch : alignedUserPitch;
+                const totalLength = activePitch.length || 1;
                 let currentIdx = 0;
 
-                ctx.font = 'bold 14px "Pretendard", sans-serif';
-                ctx.fillStyle = '#555';
+                ctx.font = 'bold 13px "Pretendard", sans-serif';
+                ctx.fillStyle = isStandard ? '#e24a4a' : '#2e7d32'; // 표준은 빨강 계열, 사용자는 초록 계열
                 ctx.textAlign = 'center';
-                ctx.textBaseline = 'bottom';
-                ctx.strokeStyle = '#ccc';
-                ctx.lineWidth = 1;
+                ctx.textBaseline = isStandard ? 'top' : 'bottom';
 
-                standardSegments.forEach((seg, idx) => {
+                segments.forEach((seg, idx) => {
                     const segLen = (seg.curve_pitch || []).length;
                     if (segLen === 0) return;
 
-                    // 경계선 그리기 (마지막 세그먼트 제외)
-                    if (idx < standardSegments.length - 1) {
-                        const boundaryX = ((currentIdx + segLen) / totalLength) * canvasWidth;
+                    // 경계선 그리기 (곡선을 만나는 지점까지만)
+                    if (idx < segments.length - 1) {
+                        const boundaryIdx = currentIdx + segLen;
+                        const boundaryX = (boundaryIdx / totalLength) * canvasWidth;
+
+                        // 해당 경계 지점의 피치 값에 따른 Y 좌표 계산
+                        const pitchVal = activePitch[boundaryIdx] || 0;
+                        const curveY = getY(pitchVal);
 
                         ctx.beginPath();
-                        ctx.moveTo(boundaryX, 0);
-                        ctx.lineTo(boundaryX, canvasHeight);
-                        ctx.setLineDash([4, 4]);
+                        ctx.strokeStyle = isStandard ? 'rgba(226, 74, 74, 0.25)' : 'rgba(46, 125, 50, 0.25)';
+                        ctx.lineWidth = 1.2;
+
+                        if (isStandard) {
+                            ctx.moveTo(boundaryX, 0); // 위에서 시작
+                            ctx.lineTo(boundaryX, curveY); // 곡선까지 내려옴
+                        } else {
+                            ctx.moveTo(boundaryX, canvasHeight); // 아래서 시작
+                            ctx.lineTo(boundaryX, curveY); // 곡선까지 올라옴
+                        }
+
+                        ctx.setLineDash([5, 5]);
                         ctx.stroke();
+                        ctx.setLineDash([]);
                     }
 
                     // 단어 라벨 그리기
-                    // 세그먼트의 중심 X 좌표 계산
                     const startX = (currentIdx / totalLength) * canvasWidth;
                     const endX = ((currentIdx + segLen) / totalLength) * canvasWidth;
                     const centerX = (startX + endX) / 2;
 
-                    // 세그먼트에 텍스트 정보가 있다면 (없으면 pass)
                     const label = seg.word || seg.text || '';
                     if (label) {
-                        ctx.fillText(label, centerX, canvasHeight - 10);
+                        ctx.fillText(label, centerX, yPos);
                     }
 
                     currentIdx += segLen;
                 });
-                ctx.setLineDash([]);
-            }
+            };
+
+            // 상단: 표준 단어 라벨
+            drawSegments(standardSegments, 20, true);
+            // 하단: 사용자 인식 단어 라벨
+            drawSegments(userSegments, canvasHeight - 10, false);
 
         };
 
         drawGraph();
-    }, [standardPitch, userPitch, standardSegments, width, height]);
+    }, [standardPitch, userPitch, standardSegments, userSegments, width, height]);
 
     return (
         <div className="graph-card">
@@ -152,7 +169,7 @@ const IntonationGraph = ({
                 <span>억양 분석</span>
                 <div style={{ fontSize: '0.8rem', marginLeft: 'auto' }}>
                     <span style={{ color: '#e24a4aff', marginRight: '10px' }}>· 표준</span>
-                    <span style={{ color: '#00ff22ff' }}>· 내 발음 (보정됨)</span>
+                    <span style={{ color: '#00ff22ff' }}>· 내 발음</span>
                 </div>
             </div>
             <canvas

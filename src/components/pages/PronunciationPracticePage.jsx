@@ -439,23 +439,26 @@ const PronunciationPracticePage = () => {
                     {/* Row 3: 억양 그래프 */}
                     <div className="row-3-intonation">
                         <IntonationGraph
-                            standardPitch={analysisResult ? analysisResult.standardPitch : (() => {
-                                // 초기 로드: 목표 억양 데이터 구성
-                                const stdData = item.inton || item.intonData;
-                                let pitchData = [];
-                                if (Array.isArray(stdData)) {
-                                    stdData.forEach(p => {
-                                        if (p && Array.isArray(p.curve_pitch)) {
-                                            pitchData = [...pitchData, ...p.curve_pitch];
+                            standardPitch={
+                                (analysisResult && analysisResult.standardPitch && analysisResult.standardPitch.length > 0)
+                                    ? analysisResult.standardPitch
+                                    : (() => {
+                                        const stdData = item.inton || item.intonData;
+                                        let pitchData = [];
+                                        if (Array.isArray(stdData)) {
+                                            stdData.forEach(p => {
+                                                if (p && Array.isArray(p.curve_pitch)) {
+                                                    pitchData = [...pitchData, ...p.curve_pitch];
+                                                }
+                                            });
                                         }
-                                    });
-                                }
-                                return pitchData;
-                            })()}
+                                        return pitchData;
+                                    })()
+                            }
                             userPitch={analysisResult ? (analysisResult.userPitch || []) : []}
-                            standardSegments={analysisResult ? analysisResult.standardSegments : (item.inton || item.intonData)}
+                            standardSegments={(analysisResult && analysisResult.standardSegments && analysisResult.standardSegments.length > 0) ? analysisResult.standardSegments : (item.inton || item.intonData)}
                             userSegments={analysisResult ? (analysisResult.userSegments || []) : []}
-                            width={800} height={150}
+                            width={800} height={270}
                         />
                     </div>
 
