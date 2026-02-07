@@ -1,0 +1,191 @@
+import React, { useEffect, useRef } from 'react';
+import { Activity } from 'lucide-react';
+import './IntonationGraph.css';
+
+const IntonationGraph = ({
+    standardPitch = [],
+    userPitch = [],
+    standardSegments = [],
+    userSegments = [],
+    width = 800,
+    height = 300
+}) => {
+    const canvasRef = useRef(null);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const drawGraph = () => {
+            const ctx = canvas.getContext('2d');
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+            // 데이터가 없으면 리턴 (혹은 빈 캔버스)
+            if ((!standardPitch || standardPitch.length === 0) && (!userPitch || userPitch.length === 0)) {
+                return;
+            }
+
+            // 1. 상대 억양 정렬 (Relative Pitch Alignment)
+            // 사용자 피치의 시작점을 표준 피치의 시작점과 맞춤
+            let alignedUserPitch = [];
+            let pitchOffset = 0;
+
+            if (standardPitch.length > 0 && userPitch.length > 0) {
+                // 0이 아닌 첫 번째 유효값 찾기
+                const stdStart = standardPitch.find(v => v > 0);
+                const userStart = userPitch.find(v => v > 0);
+
+                if (stdStart && userStart) {
+                    pitchOffset = stdStart - userStart;
+                    alignedUserPitch = userPitch.map(v => (v > 0 ? v + pitchOffset : 0));
+                } else {
+                    alignedUserPitch = userPitch;
+                }
+            } else {
+                alignedUserPitch = userPitch;
+            }
+
+            // 2. Y축 정규화 (스케일링)
+            const allValues = [...(standardPitch || []), ...(alignedUserPitch || [])].filter(v => v > 0);
+
+            // 데이터가 아예 없거나 전부 0이면 그리지 않음
+            if (allValues.length === 0) return;
+
+            const minVal = Math.min(...allValues) * 0.9;
+            const maxVal = Math.max(...allValues) * 1.1;
+            const range = maxVal - minVal || 1;
+
+            const getY = (val) => {
+                if (val <= 0) return canvasHeight;
+                return canvasHeight - ((val - minVal) / range) * canvasHeight;
+            };
+
+            const drawLine = (data, color, isDashed = false) => {
+                if (!data || data.length === 0) return;
+
+                ctx.beginPath();
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                if (isDashed) ctx.setLineDash([5, 5]);
+                else ctx.setLineDash([]);
+
+                const stepX = canvasWidth / (data.length - 1 || 1);
+
+                data.forEach((val, idx) => {
+                    const x = idx * stepX;
+                    const y = getY(val);
+
+                    if (idx === 0) ctx.moveTo(x, y);
+                    else {
+                        // 중간에 0이 있으면 끊어서 그리기 (옵션)
+                        // 여기서는 0이면 바닥으로 떨어지게 둠 (getY(0) == canvasHeight)
+                        // 만약 끊고 싶다면 moveTo로 이동
+                        if (val <= 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                });
+                ctx.stroke();
+                ctx.setLineDash([]);
+            };
+
+            // 표준 억양 (빨강)
+            drawLine(standardPitch, '#ef4444');
+            // 사용자 억양 (초록) - 보정된 데이터 사용
+            drawLine(alignedUserPitch, '#15803d');
+
+
+            // 3. 단어/세그먼트 경계 및 라벨 표시
+            const drawSegments = (segments, yPos, isStandard = true) => {
+                if (!segments || segments.length === 0) return;
+                const activePitch = isStandard ? standardPitch : alignedUserPitch;
+                const totalLength = activePitch.length || 1;
+                let currentIdx = 0;
+
+                ctx.font = 'bold 16px "Pretendard", sans-serif';
+                ctx.fillStyle = isStandard ? '#ef4444' : '#15803d';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = isStandard ? 'top' : 'bottom';
+
+                segments.forEach((seg, idx) => {
+                    const segLen = (seg.curve_pitch || []).length;
+                    if (segLen === 0) return;
+
+                    // 경계선 그리기 (곡선을 만나는 지점까지만)
+                    if (idx < segments.length - 1) {
+                        const boundaryIdx = currentIdx + segLen;
+                        const boundaryX = (boundaryIdx / totalLength) * canvasWidth;
+
+                        // 해당 경계 지점의 피치 값에 따른 Y 좌표 계산
+                        const pitchVal = activePitch[boundaryIdx] || 0;
+                        const curveY = getY(pitchVal);
+
+                        ctx.beginPath();
+                        ctx.strokeStyle = isStandard ? 'rgba(239, 68, 68, 0.25)' : 'rgba(21, 128, 61, 0.25)';
+                        ctx.lineWidth = 1.2;
+
+                        if (isStandard) {
+                            ctx.moveTo(boundaryX, 0); // 위에서 시작
+                            ctx.lineTo(boundaryX, curveY); // 곡선까지 내려옴
+                        } else {
+                            ctx.moveTo(boundaryX, canvasHeight); // 아래서 시작
+                            ctx.lineTo(boundaryX, curveY); // 곡선까지 올라옴
+                        }
+
+                        ctx.setLineDash([5, 5]);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                    }
+
+                    // 단어 라벨 그리기
+                    const startX = (currentIdx / totalLength) * canvasWidth;
+                    const endX = ((currentIdx + segLen) / totalLength) * canvasWidth;
+                    const centerX = (startX + endX) / 2;
+
+                    const label = seg.word || seg.text || '';
+                    if (label) {
+                        ctx.fillText(label, centerX, yPos);
+                    }
+
+                    currentIdx += segLen;
+                });
+            };
+
+            // 상단: 표준 단어 라벨
+            drawSegments(standardSegments, 20, true);
+            // 하단: 사용자 인식 단어 라벨
+            drawSegments(userSegments, canvasHeight - 10, false);
+
+        };
+
+        drawGraph();
+    }, [standardPitch, userPitch, standardSegments, userSegments, width, height]);
+
+    return (
+        <div className="graph-card">
+            <div className="graph-header">
+                <div className="graph-title-group">
+                    <Activity size={20} fill="#a67c00" color="#a67c00" />
+                    <span className="graph-header-title">억양 분석</span>
+                </div>
+                <div className="graph-legend">
+                    <span style={{ color: '#ef4444', marginRight: '10px' }}>· 표준</span>
+                    <span style={{ color: '#15803d' }}>· 내 발음</span>
+                </div>
+            </div>
+            <canvas
+                ref={canvasRef}
+                className="intonation-canvas-display"
+                width={width}
+                height={height}
+                style={{ width: '100%', height: 'auto' }}
+            />
+        </div>
+    );
+};
+
+export default IntonationGraph;

@@ -109,17 +109,24 @@ const PronunciationPage = () => {
 
                     formattedData = (data || []).map(item => {
                         const parsed = parseText(item.text); // word와 examples 추출
+                        console.log('[발음 데이터 매핑] 커리큘럼 ID:', item.id, '억양 데이터:', item.inton || item.intonData);
                         return {
                             ...item,
                             displayText: parsed.word,
                             examples: parsed.examples.map(ex => ({
                                 ex_text: fixEncoding(ex.ex_text),
-                                ex_mean: fixEncoding(ex.ex_mean)
+                                ex_mean: fixEncoding(ex.ex_mean),
+                                // 예시 문장에도 억양 데이터 전달 (있다면)
+                                inton: ex.inton || ex.intonData,
+                                intonData: ex.inton || ex.intonData
                             })),
                             korPronunciation: fixEncoding(item.korPronunciation),
                             meaning: fixEncoding(item.meaning),
                             ipa: fixEncoding(item.ipa),
-                            korType: getKorType(fixEncoding(item.meaning))
+                            korType: getKorType(fixEncoding(item.meaning)),
+                            // ✅ 억양 데이터 포함
+                            inton: item.inton || item.intonData,
+                            intonData: item.inton || item.intonData
                         };
                     });
 
@@ -167,13 +174,17 @@ const PronunciationPage = () => {
     }, [location.pathname]); // ✅ location 변경 시 재실행 (Stats만 다시 조회)
 
     const handleCardClick = (item) => {
+        console.log('[카드 클릭] 전달할 아이템:', item);
         const practiceItem = {
             ...item,
             symbol: item.ipa,
             word: item.displayText,
             pronunciation: item.ipa,
-            examples: item.examples // 실습 페이지로 예시 전달
+            examples: item.examples, // 실습 페이지로 예시 전달
+            inton: item.inton || item.intonData, // ✅ 억양 데이터 전달
+            intonData: item.inton || item.intonData
         };
+        console.log('[카드 클릭] practiceItem 생성:', practiceItem);
         navigate('/pronunciationPractice?mode=PRON', { state: practiceItem });
     };
 
