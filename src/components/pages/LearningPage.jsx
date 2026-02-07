@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getUserCurriculumStats, getCurriculumListStatic } from '../../api/curriculum';
-import stamp from '../../assets/img/stamp.png'; 
+import stamp from '../../assets/img/stamp.png';
 import ipaImg from '../../assets/img/ipa_img.png';
 import wordImg from '../../assets/img/word_img.png';
 import sentImg from '../../assets/img/sent_img.png';
@@ -12,7 +12,7 @@ function LearningPage() {
     const location = useLocation();
 
     const searchParams = new URLSearchParams(location.search);
-    const modeParam = searchParams.get('mode'); 
+    const modeParam = searchParams.get('mode');
 
     const [topics, setTopics] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -77,7 +77,7 @@ function LearningPage() {
             try {
                 setLoading(true);
                 let curriculumsStatic;
-                const staticCacheKey = 'curriculums_static';
+                const staticCacheKey = 'curriculums_static_v2';
                 const staticCached = sessionStorage.getItem(staticCacheKey);
                 const STATIC_CACHE_DURATION = 24 * 60 * 60 * 1000;
 
@@ -112,7 +112,9 @@ function LearningPage() {
                                 meaning: fixEncoding(item.meaning),
                                 ipa: fixEncoding(item.ipa),
                                 korPronunciation: fixEncoding(item.korPronunciation),
-                                examples: parsed.examples
+                                examples: parsed.examples,
+                                inton: item.inton || item.intonData,
+                                intonData: item.inton || item.intonData
                             };
                         }),
                         sentences: sentenceData.map(item => {
@@ -124,7 +126,9 @@ function LearningPage() {
                                 meaning: fixEncoding(item.meaning),
                                 ipa: fixEncoding(item.ipa),
                                 korPronunciation: fixEncoding(item.korPronunciation),
-                                examples: parsed.examples
+                                examples: parsed.examples,
+                                inton: item.inton || item.intonData,
+                                intonData: item.inton || item.intonData
                             };
                         })
                     }));
@@ -203,7 +207,7 @@ function LearningPage() {
                             <img src={ipaImg} alt="발음기호" className="selection-card-img" />
                         </div>
                         <h2>발음기호</h2>
-                        <p>영어의 기초가 되는<br/>발음기호부터 차근차근</p>
+                        <p>영어의 기초가 되는<br />발음기호부터 차근차근</p>
                         <button className="select-btn">시작하기</button>
                     </div>
                     <div className="selection-card word" onClick={() => navigate('/learning?mode=WORD')}>
@@ -211,7 +215,7 @@ function LearningPage() {
                             <img src={wordImg} alt="단어 학습" className="selection-card-img" />
                         </div>
                         <h2>단어 학습</h2>
-                        <p>주제별 필수 단어로<br/>어휘력을 쑥쑥</p>
+                        <p>주제별 필수 단어로<br />어휘력을 쑥쑥</p>
                         <button className="select-btn">시작하기</button>
                     </div>
                     <div className="selection-card sentence" onClick={() => navigate('/learning?mode=SENTENCE')}>
@@ -219,7 +223,7 @@ function LearningPage() {
                             <img src={sentImg} alt="문장 학습" className="selection-card-img" />
                         </div>
                         <h2>문장 학습</h2>
-                        <p>실생활 문장을 통해<br/>자연스러운 회화 연습</p>
+                        <p>실생활 문장을 통해<br />자연스러운 회화 연습</p>
                         <button className="select-btn">시작하기</button>
                     </div>
                 </div>

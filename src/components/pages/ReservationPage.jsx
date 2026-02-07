@@ -5,6 +5,17 @@ import api from '../../api/index';
 import 'react-calendar/dist/Calendar.css';
 import './ReservationPage.css';
 
+// ✅ 이미지 Import 추가
+import rmitu1 from '../../assets/img/rmitu1.png';
+import rmitu2 from '../../assets/img/rmitu2.png';
+import rmitu3 from '../../assets/img/rmitu3.png';
+import rmitu4 from '../../assets/img/rmitu4.png';
+import rmitu5 from '../../assets/img/rmitu5.png';
+import rmitu6 from '../../assets/img/rmitu6.png';
+import rmitu7 from '../../assets/img/rmitu7.png';
+
+const RANDOM_IMAGES = [rmitu1, rmitu2, rmitu3, rmitu4, rmitu5, rmitu6, rmitu7];
+
 const ReservationPage = () => {
     const { tutorId } = useParams();
     const navigate = useNavigate();
@@ -18,7 +29,11 @@ const ReservationPage = () => {
     const [availableMeetings, setAvailableMeetings] = useState([]); 
     const [displayTimes, setDisplayTimes] = useState([]);
 
-    // 📅 데이터 로드 (수정된 로직)
+    // ✅ 튜터 ID 기반 고정 이미지 매칭
+    const tId = Number(tutorId);
+    const tutorImg = RANDOM_IMAGES[(tId - 1) % RANDOM_IMAGES.length];
+
+    // 📅 데이터 로드
     useEffect(() => {
         if (!tutorId) {
             alert("잘못된 접근입니다.");
@@ -28,23 +43,20 @@ const ReservationPage = () => {
 
         const fetchSchedule = async () => {
             try {
-                // 1. 말씀하신 튜터 일정 조회 API 호출
                 const res = await api.get(`/meetings/tutor/${tutorId}/available`);
                 const allMeetings = res.data.data || res.data || [];
 
-                // ✅ 2. [핵심] 이미 예약된(roomId가 생성된) 수업은 UI에서 삭제
-                // web_rtc_room_id가 null인 것만 '진짜 예약 가능'한 슬롯입니다.
                 const purelyAvailable = allMeetings.filter(m => 
                     m.roomId === null || m.roomId === undefined
                 );
 
                 setAvailableMeetings(purelyAvailable);
 
-                // 3. 만약 튜터 정보가 없다면 응답 데이터에서 추출 (새로고침 대응)
                 if (!tutorInfo && purelyAvailable.length > 0) {
                     setTutorInfo({
                         id: tutorId,
-                        nickname: purelyAvailable[0].tutorNickname || "선생님"
+                        nickname: purelyAvailable[0].tutorNickname || "선생님",
+                        organization: "바르미 어학원" // 기본값
                     });
                 }
             } catch (error) {
@@ -53,7 +65,7 @@ const ReservationPage = () => {
         };
 
         fetchSchedule();
-    }, [tutorId, navigate]);
+    }, [tutorId, navigate, tutorInfo]);
 
     // 📅 날짜 선택 시 시간 필터링 및 정렬
     useEffect(() => {
@@ -73,7 +85,6 @@ const ReservationPage = () => {
                 id: m.id, 
                 time: m.datetime.split('T')[1].substring(0, 5) 
             }))
-            // ✅ 시간순 정렬 (09:00 -> 20:00 순)
             .sort((a, b) => a.time.localeCompare(b.time));
         
         setDisplayTimes(timesForDay);
@@ -83,41 +94,50 @@ const ReservationPage = () => {
         if (!window.confirm("이 수업을 예약하시겠습니까?")) return;
 
         try {
-            // ✅ 학생의 튜터링 참여 API (POST /api/meetings/{id}/join)
             await api.post(`/meetings/${meetingId}/join`);
             alert("예약이 완료되었습니다! 내 강의실로 이동합니다.");
             navigate('/tutoring');
         } catch (error) {
             console.error("예약 실패:", error);
-            // 409 에러 등 발생 시 서버 메시지 노출
             const msg = error.response?.data?.message || "이미 예약되었거나 참여할 수 없는 수업입니다.";
             alert(msg);
         }
     };
 
-    // 로딩 처리 보강
     if (!tutorId) return null;
     if (!tutorInfo && availableMeetings.length === 0) return <div className="loading">일정을 불러오는 중입니다...</div>;
 
     return (
         <div className="reservation-page">
-            <h2>{tutorInfo?.nickname || 'Amy'} 선생님 수업 예약</h2>
+            {/* ✅ 추가된 튜터 프로필 섹션 */}
+            <div className="tutor-summary-card">
+                <div className="tutor-summary-img-wrapper">
+                    <img src={tutorImg} alt={tutorInfo?.nickname} className="tutor-summary-img" />
+                </div>
+                <div className="tutor-summary-info">
+                    <span className="tutor-summary-label">Selected Tutor</span>
+                    <h2 className="tutor-summary-name">{tutorInfo?.nickname} 선생님</h2>
+                    <p className="tutor-summary-org">{tutorInfo?.organization || '바르미 어학원'}</p>
+                </div>
+                <button className="reservation-back-btn" onClick={() => navigate(-1)}>교체하기</button>
+            </div>
+
             <div className="reservation-content">
                 <div className="calendar-section">
+                    <h3>수업 날짜 선택</h3>
                     <Calendar 
                         onChange={setSelectedDate} 
                         value={selectedDate}
                         formatDay={(locale, date) => date.getDate()} 
                         tileDisabled={({ date }) => {
                             const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-                            // 예약 가능한(roomId가 null인) 일정이 있는 날짜만 활성화
                             return !availableMeetings.some(m => m.datetime && m.datetime.startsWith(dateStr));
                         }}
                     />
                 </div>
 
                 <div className="time-grid-section">
-                    <h3>{selectedDate.toLocaleDateString()} 가능 시간</h3>
+                    <h3>{selectedDate.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })} 예약 가능 시간</h3>
                     <div className="time-buttons-grid">
                         {displayTimes.length > 0 ? (
                             displayTimes.map(item => (

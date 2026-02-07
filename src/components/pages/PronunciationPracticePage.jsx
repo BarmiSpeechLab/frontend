@@ -7,6 +7,8 @@ import { convertWebMToWav } from '../../utils/audioConverter';
 import { getIpaImages, getIpaImagesBySymbol } from '../../utils/ipaLoader';
 import { getArticulationGifByCipa } from "../../assets/ArticulationMap";
 import PronunciationAnalysisResult from "../common/PronunciationAnalysisResult";
+import IntonationGraph from '../common/IntonationGraph';
+import AiFeedback from '../common/AiFeedback';
 
 const PronunciationPracticePage = () => {
     const location = useLocation();
@@ -19,7 +21,6 @@ const PronunciationPracticePage = () => {
     const [isRecording, setIsRecording] = useState(false);
     const [cameraStream, setCameraStream] = useState(null);
     const canvasRef = useRef(null);
-    const graphCanvasRef = useRef(null);
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
 
@@ -39,78 +40,7 @@ const PronunciationPracticePage = () => {
         setIsAnalyzing(false);
     };
 
-    // 억양 그래프 그리기
-    useEffect(() => {
-        const drawGraph = (canvas, standardPitch, userPitch) => {
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            const width = canvas.width;
-            const height = canvas.height;
 
-            ctx.clearRect(0, 0, width, height);
-
-            const stdPitch = standardPitch || [];
-            const usrPitch = userPitch || [];
-
-            if (stdPitch.length === 0 && usrPitch.length === 0) return;
-
-            // Y축 정규화
-            const allValues = [...stdPitch, ...usrPitch].filter(v => v > 0);
-            if (allValues.length === 0) return;
-
-            const minVal = Math.min(...allValues) * 0.9;
-            const maxVal = Math.max(...allValues) * 1.1;
-            const range = maxVal - minVal || 1;
-
-            const getY = (val) => {
-                if (val <= 0) return height;
-                return height - ((val - minVal) / range) * height;
-            };
-
-            const drawLine = (data, color) => {
-                if (!data || data.length === 0) return;
-
-                ctx.beginPath();
-                ctx.strokeStyle = color;
-                ctx.lineWidth = 3;
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-
-                const stepX = width / (data.length - 1 || 1);
-
-                data.forEach((val, idx) => {
-                    const x = idx * stepX;
-                    const y = getY(val);
-
-                    if (idx === 0) ctx.moveTo(x, y);
-                    else ctx.lineTo(x, y);
-                });
-                ctx.stroke();
-            };
-
-            drawLine(stdPitch, '#e24a4aff');
-            drawLine(usrPitch, '#00ff22ff');
-        };
-
-        // 초기 로드: 목표 억양만 그리기
-        if (!analysisResult) {
-            const stdData = item.inton || item.intonData;
-            let pitchData = [];
-            if (Array.isArray(stdData)) {
-                stdData.forEach(p => {
-                    if (p && Array.isArray(p.curve_pitch)) {
-                        pitchData = [...pitchData, ...p.curve_pitch];
-                    }
-                });
-            }
-            if (pitchData.length > 0) {
-                drawGraph(graphCanvasRef.current, pitchData, []);
-            }
-        } else {
-            // 분석 결과 있을 때: 표준 + 사용자 억양 그리기
-            drawGraph(graphCanvasRef.current, analysisResult.standardPitch, analysisResult.userPitch || []);
-        }
-    }, [analysisResult, item]);
 
     const startRecording = async () => {
         try {
@@ -228,7 +158,7 @@ const PronunciationPracticePage = () => {
 
                         if (res.pronunciation && !mergedResult.pronunciation) {
                             mergedResult.pronunciation = res.pronunciation;
-                            const pronData = res.pronunciation.analysisResult;
+                            const pronData = res.pronunciation.analysisResult || res.pronunciation.analysis_result;
                             if (Array.isArray(pronData)) {
                                 mergedResult.wordSegments = pronData;
                                 const totalScore = pronData.reduce((acc, cur) => acc + (cur.score || (100 - (cur.error_rate || 0)) || 0), 0);
@@ -239,7 +169,7 @@ const PronunciationPracticePage = () => {
 
                         if (res.intonations && !mergedResult.intonations) {
                             mergedResult.intonations = res.intonations;
-                            const intonData = res.intonations.analysisResult;
+                            const intonData = res.intonations.analysisResult || res.intonations.analysis_result;
                             if (Array.isArray(intonData)) {
                                 let combinedUserPitch = [];
                                 intonData.forEach(itm => {
@@ -265,7 +195,7 @@ const PronunciationPracticePage = () => {
                         if (res.llmFeedback && !mergedResult.llmFeedback) {
                             mergedResult.llmFeedback = res.llmFeedback;
                             const llm = res.llmFeedback;
-                            mergedResult.feedback = llm.analysisResult || mergedResult.feedback;
+                            mergedResult.feedback = llm.analysisResult || llm.analysis_result || mergedResult.feedback;
                         }
 
                         if (!hasUpdated && (mergedResult.pronunciation || mergedResult.intonations || mergedResult.llmFeedback)) {
@@ -300,7 +230,7 @@ const PronunciationPracticePage = () => {
 
                 if (res.pronunciation && !mergedResult.pronunciation) {
                     mergedResult.pronunciation = res.pronunciation;
-                    const pronData = res.pronunciation.analysisResult;
+                    const pronData = res.pronunciation.analysisResult || res.pronunciation.analysis_result;
                     if (Array.isArray(pronData)) {
                         mergedResult.wordSegments = pronData;
                         const totalScore = pronData.reduce((acc, cur) => acc + (cur.score || (100 - (cur.error_rate || 0)) || 0), 0);
@@ -311,7 +241,7 @@ const PronunciationPracticePage = () => {
 
                 if (res.intonations && !mergedResult.intonations) {
                     mergedResult.intonations = res.intonations;
-                    const intonData = res.intonations.analysisResult;
+                    const intonData = res.intonations.analysisResult || res.intonations.analysis_result;
                     if (Array.isArray(intonData)) {
                         let combinedUserPitch = [];
                         intonData.forEach(itm => {
@@ -320,6 +250,7 @@ const PronunciationPracticePage = () => {
                             }
                         });
                         mergedResult.userPitch = combinedUserPitch;
+                        mergedResult.userSegments = intonData; // 사용자 세그먼트 저장
 
                         const stdData = item.inton || item.intonData;
                         if (stdData && Array.isArray(stdData)) {
@@ -330,8 +261,10 @@ const PronunciationPracticePage = () => {
                                 }
                             });
                             mergedResult.standardPitch = combinedStdPitch;
+                            mergedResult.standardSegments = stdData; // 표준 세그먼트 저장
                         } else {
                             mergedResult.standardPitch = [];
+                            mergedResult.standardSegments = [];
                         }
                     }
                 }
@@ -339,7 +272,7 @@ const PronunciationPracticePage = () => {
                 if (res.llmFeedback && !mergedResult.llmFeedback) {
                     mergedResult.llmFeedback = res.llmFeedback;
                     const llm = res.llmFeedback;
-                    mergedResult.feedback = llm.analysisResult || mergedResult.feedback;
+                    mergedResult.feedback = llm.analysisResult || llm.analysis_result || mergedResult.feedback;
                 }
 
                 mergedResult.taskId = taskId;
@@ -582,30 +515,33 @@ const PronunciationPracticePage = () => {
                 <div className="analysis-grid">
                     {/* Row 3: 억양 그래프 */}
                     <div className="row-3-intonation">
-                        <div className="graph-card">
-                            <div className="graph-title">
-                                <span>억양 분석</span>
-                                <div style={{ fontSize: '0.8rem', marginLeft: 'auto' }}>
-                                    <span style={{ color: '#e24a4aff', marginRight: '10px' }}>· 표준</span>
-                                    <span style={{ color: '#00ff22ff' }}>· 내 발음</span>
-                                </div>
-                            </div>
-                            <canvas ref={graphCanvasRef} width={800} height={150} style={{ width: '100%', height: 'auto' }} />
-                        </div>
+                        <IntonationGraph
+                            standardPitch={
+                                (analysisResult && analysisResult.standardPitch && analysisResult.standardPitch.length > 0)
+                                    ? analysisResult.standardPitch
+                                    : (() => {
+                                        const stdData = item.inton || item.intonData;
+                                        let pitchData = [];
+                                        if (Array.isArray(stdData)) {
+                                            stdData.forEach(p => {
+                                                if (p && Array.isArray(p.curve_pitch)) {
+                                                    pitchData = [...pitchData, ...p.curve_pitch];
+                                                }
+                                            });
+                                        }
+                                        return pitchData;
+                                    })()
+                            }
+                            userPitch={analysisResult ? (analysisResult.userPitch || []) : []}
+                            standardSegments={(analysisResult && analysisResult.standardSegments && analysisResult.standardSegments.length > 0) ? analysisResult.standardSegments : (item.inton || item.intonData)}
+                            userSegments={analysisResult ? (analysisResult.userSegments || []) : []}
+                            width={800} height={270}
+                        />
                     </div>
 
                     {/* Row 4: AI 피드백 */}
                     <div className="row-4-feedback">
-                        <div className="feedback-card">
-                            <div className="feedback-title">AI 피드백</div>
-                            <div className="feedback-content">
-                                {analysisResult && analysisResult.feedback ? (
-                                    <p>{analysisResult.feedback}</p>
-                                ) : (
-                                    <p style={{ color: '#999', fontStyle: 'italic' }}>발음 분석 중...피드백을 기다리는 중입니다.</p>
-                                )}
-                            </div>
-                        </div>
+                        <AiFeedback feedback={analysisResult ? analysisResult.feedback : null} />
                     </div>
                 </div>
             </div>
