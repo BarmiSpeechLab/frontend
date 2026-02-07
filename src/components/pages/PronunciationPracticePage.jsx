@@ -247,6 +247,7 @@ const PronunciationPracticePage = () => {
                             }
                         });
                         mergedResult.userPitch = combinedUserPitch;
+                        mergedResult.userSegments = intonData; // 사용자 세그먼트 저장
 
                         const stdData = item.inton || item.intonData;
                         if (stdData && Array.isArray(stdData)) {
@@ -257,8 +258,10 @@ const PronunciationPracticePage = () => {
                                 }
                             });
                             mergedResult.standardPitch = combinedStdPitch;
+                            mergedResult.standardSegments = stdData; // 표준 세그먼트 저장
                         } else {
                             mergedResult.standardPitch = [];
+                            mergedResult.standardSegments = [];
                         }
                     }
                 }
@@ -450,6 +453,8 @@ const PronunciationPracticePage = () => {
                                 return pitchData;
                             })()}
                             userPitch={analysisResult ? (analysisResult.userPitch || []) : []}
+                            standardSegments={analysisResult ? analysisResult.standardSegments : (item.inton || item.intonData)}
+                            userSegments={analysisResult ? (analysisResult.userSegments || []) : []}
                             width={800} height={150}
                         />
                     </div>
