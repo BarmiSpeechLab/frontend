@@ -222,29 +222,31 @@ const ProfilePage = () => {
                         </div>
                     </section>
 
-                    {/* 학습 통계 */}
-                    <section className="profile-card stats-card">
-                        <h2 className="card-title">학습 현황</h2>
-                        <div className="stats-content">
-                            <div className="main-stat">
-                                {/* user_expression_stats의 학습 시간 합계 또는 로그 기반 계산 */}
-                                <span className="stat-value highlight-blue">{formatTime(stats.totalLearningTime)}</span>
-                                <span className="stat-label">총 학습 일수</span>
-                            </div>
-                            <div className="sub-stats">
-                                <div className="sub-stat">
-                                    {/* user_expression_stats.success_count (완료한 학습) */}
-                                    <span className="sub-value">{stats.completedLearning}회</span>
-                                    <span className="sub-label">총 발음 시도</span>
+                    {/* 학습 통계 - 튜터에게는 숨김 */}
+                    {localStorage.getItem('userRole') !== 'TUTOR' && (
+                        <section className="profile-card stats-card">
+                            <h2 className="card-title">학습 현황</h2>
+                            <div className="stats-content">
+                                <div className="main-stat">
+                                    {/* user_expression_stats의 학습 시간 합계 또는 로그 기반 계산 */}
+                                    <span className="stat-value highlight-blue">{formatTime(stats.totalLearningTime)}</span>
+                                    <span className="stat-label">총 학습 일수</span>
                                 </div>
-                                <div className="sub-stat">
-                                    {/* pronunciation_logs.accuracy_score 평균 */}
-                                    <span className="sub-value">{stats.averageAccuracy}점</span>
-                                    <span className="sub-label">최고 점수</span>
+                                <div className="sub-stats">
+                                    <div className="sub-stat">
+                                        {/* user_expression_stats.success_count (완료한 학습) */}
+                                        <span className="sub-value">{stats.completedLearning}회</span>
+                                        <span className="sub-label">총 발음 시도</span>
+                                    </div>
+                                    <div className="sub-stat">
+                                        {/* pronunciation_logs.accuracy_score 평균 */}
+                                        <span className="sub-value">{stats.averageAccuracy}점</span>
+                                        <span className="sub-label">최고 점수</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </section>
+                        </section>
+                    )}
                 </div>
 
                 {/* 회원 탈퇴 */}

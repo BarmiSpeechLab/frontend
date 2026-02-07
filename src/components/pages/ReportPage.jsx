@@ -240,8 +240,8 @@ const ReportPage = () => {
                         <section className="status-section-card">
                             <div className="status-cards">
                                 <div className="status-item-large" style={{ cursor: 'default' }}>
-                                    <span className="card-label">담당 학생 수</span>
-                                    <span className="card-value highlight-gold">-명</span>
+                                    <span className="card-label">담당 학생</span>
+                                    <span className="card-value highlight-gold">-</span>
                                     <span className="click-hint">학생 정보 확인</span>
                                 </div>
                             </div>

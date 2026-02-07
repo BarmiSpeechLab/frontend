@@ -200,7 +200,7 @@ const TutoringLobby = () => {
 
     return (
         <div className="lobby-container">
-            <h1 className="subpage-title">1:1 튜터링</h1>
+            {userRole !== 'TUTOR' && <h1 className="subpage-title">1:1 튜터링</h1>}
 
             {userRole !== 'TUTOR' && (
                 <section className="tutor-section">

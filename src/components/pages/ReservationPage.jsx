@@ -135,7 +135,7 @@ const ReservationPage = () => {
 
             <div className="reservation-content">
                 <div className="calendar-section">
-                    <h3>수업 날짜 선택</h3>
+                    <h2 className="section-title">수업 날짜를 선택해주세요!</h2>
 
                     {/* ✅ 커스텀 달력 헤더 구현 (StudyCalendar와 동일한 구조) */}
                     <div className="study-calendar-wrapper">
@@ -176,7 +176,7 @@ const ReservationPage = () => {
                 </div>
 
                 <div className="time-grid-section">
-                    <h3>예약 가능 시간</h3>
+                    <h2 className="section-title">예약 가능 시간</h2>
                     <div className="time-buttons-grid">
                         {displayTimes.length > 0 ? (
                             displayTimes.map(item => (
