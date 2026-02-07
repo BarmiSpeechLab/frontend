@@ -5,18 +5,21 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 0.5rem;
+    /* Reduced gap */
 }
 
 .feedback-header {
     display: flex;
     align-items: center;
-    gap: 0.8rem;
-    margin-bottom: 0.5rem;
+    gap: 0.5rem;
+    margin-bottom: 0.2rem;
+    /* Reduced margin */
 }
 
 .feedback-header-title {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
+    /* Slightly smaller */
     font-weight: 800;
     color: #8a6d3b;
     letter-spacing: -0.5px;
@@ -27,12 +30,12 @@
     background: #ffffff;
     border: 1px solid #eaddcf;
     border-radius: 12px;
-    padding: 1.8rem;
+    padding: 1.2rem;
+    /* Reduced padding */
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1rem;
     box-shadow: 0 4px 12px rgba(166, 124, 0, 0.05);
-    /* 카드 자체에 그림자 추가 */
 }
 
 /* 피드백 대상 (단어/발음기호) */
@@ -59,6 +62,8 @@
     font-size: 1rem;
     display: inline-flex;
     align-items: center;
+    margin-top: 3px;
+    /* Push arrow down */
 }
 
 .feedback-target-highlight {
@@ -70,10 +75,12 @@
 }
 
 /* 상세 내용 (오류 내용, 교정 방법) */
+/* 상세 내용 (오류 내용, 교정 방법) */
 .feedback-detail-block {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
+    gap: 0.2rem;
+    /* Reduced gap */
 }
 
 .feedback-label-row {
@@ -114,7 +121,8 @@
     line-height: 1.6;
     word-break: keep-all;
     padding-left: 2px;
-    /* 살짝 들여쓰기 느낌 */
+    margin: 0;
+    /* Remove default margin */
 }
 
 /* 로딩/대기 상태 */

@@ -71,14 +71,27 @@ const AiFeedback = ({ feedback }) => {
         );
     }
 
+    const renderTargetText = (text) => {
+        if (!text.includes('->')) return <span>{text}</span>;
+
+        const parts = text.split('->');
+        return (
+            <span className="feedback-target-text">
+                {parts[0]}
+                <span className="target-arrow"><ArrowRight size={16} strokeWidth={3} /></span>
+                {parts[1]}
+            </span>
+        );
+    };
+
     return (
         <div className="feedback-card-container">
             <div className="feedback-header">
-                <Sparkles size={24} fill="#a67c00" color="#a67c00" />
+                <Sparkles size={20} fill="#a67c00" color="#a67c00" />
                 <span className="feedback-header-title">AI 상세 코칭</span>
             </div>
 
-            <div className="feedback-list">
+            <div className="feedback-list" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {parsedFeedback.map((item, idx) => (
                     <div key={idx} className="feedback-item">
                         {item.raw ? (
@@ -86,25 +99,31 @@ const AiFeedback = ({ feedback }) => {
                         ) : (
                             <>
                                 <div className="feedback-target">
-                                    🎯 <span className="feedback-target-text">{item.target}</span>
+                                    🎯 {renderTargetText(item.target)}
                                 </div>
                                 {item.error && (
-                                    <div className="feedback-detail-row">
-                                        <div className="feedback-icon-wrapper error">
-                                            <AlertTriangle size={16} />
+                                    <div className="feedback-detail-block">
+                                        <div className="feedback-label-row">
+                                            <div className="feedback-icon-wrapper error">
+                                                <AlertTriangle size={18} />
+                                            </div>
+                                            <span className="feedback-label" style={{ color: '#d32f2f' }}>문제점</span>
                                         </div>
                                         <p className="feedback-content-text">
-                                            <strong>문제점:</strong> {item.error}
+                                            {item.error}
                                         </p>
                                     </div>
                                 )}
                                 {item.correction && (
-                                    <div className="feedback-detail-row">
-                                        <div className="feedback-icon-wrapper correction">
-                                            <CheckCircle size={16} />
+                                    <div className="feedback-detail-block">
+                                        <div className="feedback-label-row">
+                                            <div className="feedback-icon-wrapper correction">
+                                                <CheckCircle size={18} />
+                                            </div>
+                                            <span className="feedback-label" style={{ color: '#2e7d32' }}>솔루션</span>
                                         </div>
                                         <p className="feedback-content-text">
-                                            <strong>솔루션:</strong> {item.correction}
+                                            {item.correction}
                                         </p>
                                     </div>
                                 )}
