@@ -158,8 +158,8 @@
     -webkit-backdrop-filter: none;
     border: none !important;
     box-shadow: none !important;
-    padding: 1rem 0;
-    /* Reduced padding since no border */
+    padding: 0 !important;
+    /* Removed padding to align width with chart */
     transition: none;
     /* Remove hover lift from wrapper */
 }
@@ -196,7 +196,9 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    aspect-ratio: 1.4;
+    aspect-ratio: 1.1;
+    /* Taller cards (bigger) */
+    min-height: 180px;
     transition: transform 0.2s ease;
 }
 
