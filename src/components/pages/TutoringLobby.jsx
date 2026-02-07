@@ -2,6 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/index';
 import './TutoringLobby.css';
+import rmitu1 from '../../assets/img/rmitu1.png';
+import rmitu2 from '../../assets/img/rmitu2.png';
+import rmitu3 from '../../assets/img/rmitu3.png';
+import rmitu4 from '../../assets/img/rmitu4.png';
+import rmitu5 from '../../assets/img/rmitu5.png';
+import rmitu6 from '../../assets/img/rmitu6.png';
+import rmitu7 from '../../assets/img/rmitu7.png';
+
+const RANDOM_INTRODUCTIONS = [
+    "꼼꼼한 피드백으로 영어 발음의 기초를 확실히 잡아드립니다!",
+    "비즈니스 회화 실력을 단기간에 끌어올려 드릴게요.",
+    "원어민 같은 억양, 저와 함께라면 가능합니다.",
+    "실전 영어를 쉽고 재미있게 가르쳐 드리는 튜터입니다.",
+    "초보자도 당당하게 말할 수 있도록 도와드립니다."
+];
+
+const RANDOM_IMAGES = [rmitu1, rmitu2, rmitu3, rmitu4, rmitu5, rmitu6, rmitu7];
 
 const TutoringLobby = () => {
     const navigate = useNavigate();
@@ -9,12 +26,10 @@ const TutoringLobby = () => {
     const [recommendedTutors, setRecommendedTutors] = useState([]);
     const [appointments, setAppointments] = useState([]);
    
-    // ✅ 사용자 역할 및 ID 확인
     const userRole = localStorage.getItem('userRole');
     const myId = localStorage.getItem('userId');
     const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
 
-    // 🔍 디버깅: 로컬스토리지 전체 확인
     useEffect(() => {
         console.log("=== 로컬스토리지 상태 확인 ===");
         console.log("userRole:", userRole);
@@ -23,10 +38,10 @@ const TutoringLobby = () => {
         console.log("전체 localStorage:", { ...localStorage });
     }, []);
 
-    // 1. [조회] 나의 수업 일정 불러오기
+    // 1. 나의 수업 일정 불러오기
     useEffect(() => {
         const fetchMyAppointments = async () => {
-            // 🔒 토큰 확인
+            // 토큰 확인
             if (!token) {
                 console.error("토큰이 없습니다. 로그인이 필요합니다.");
                 alert("로그인이 필요한 서비스입니다.");
@@ -43,7 +58,7 @@ const TutoringLobby = () => {
                 console.log(`[API 요청] 내 일정 조회: ${endpoint}`);
                 console.log(`[사용자 정보] Role: ${userRole}, ID: ${myId}`);
 
-                // 🔧 헤더 확인을 위한 로그
+                // 헤더 확인 로그
                 console.log("요청 헤더 (api 인스턴스):", api.defaults.headers);
 
                 const res = await api.get(endpoint);
@@ -53,7 +68,7 @@ const TutoringLobby = () => {
                 console.log("서버 원본 데이터:", serverData);
                 console.log("데이터 개수:", serverData.length);
 
-                // ✅ 필터 제거 - 서버에서 받은 데이터를 그대로 사용
+                // 필터 제거 - 서버에서 받은 데이터를 그대로 사용
                 const processedData = serverData.map(appt => {
                     console.log("개별 예약 데이터:", appt);
                     
@@ -105,7 +120,7 @@ const TutoringLobby = () => {
         }
     }, [userRole, myId, token, navigate]);
 
-    // 2. [추천] 튜터 목록 조회 (학생일 때만 실행)
+    // 2.튜터 목록 조회 (학생일 때만 실행)
     useEffect(() => {
         if (userRole === 'TUTOR') {
             console.log("튜터 모드 - 추천 튜터 섹션 미표시");
@@ -117,7 +132,20 @@ const TutoringLobby = () => {
                 const res = await api.get('/users/tutors');
                 const allTutors = res.data.data || [];
                 const shuffled = [...allTutors].sort(() => 0.5 - Math.random());
-                setRecommendedTutors(shuffled.slice(0, 3));
+                
+                const randomizedTutors = shuffled.slice(0, 3).map(tutor => {
+                    const tId = Number(tutor.id);
+                    const imgIndex = (tId - 1) % RANDOM_IMAGES.length;
+                    const introIndex = (tId - 1) % RANDOM_INTRODUCTIONS.length;
+                    
+                    return {
+                        ...tutor,
+                        profileImgUrl: RANDOM_IMAGES[imgIndex], 
+                        introduction: RANDOM_INTRODUCTIONS[introIndex] // 한줄 소개 랜덤 할당
+                    };
+                });
+
+                setRecommendedTutors(randomizedTutors);
             } catch (error) {
                 console.error("추천 튜터 로드 실패:", error);
                 setRecommendedTutors([]);
@@ -132,7 +160,7 @@ const TutoringLobby = () => {
         return () => clearInterval(timer);
     }, []);
 
-    // ✅ 입장 가능 여부 및 버튼 상태 계산 로직
+    // 입장 가능 여부 및 버튼 상태 계산 로직
     const getButtonStatus = (dateTimeStr, hasRoomId) => {
         if (!dateTimeStr) {
             return { active: false, label: '일정 정보 없음', className: 'disabled' };
@@ -182,8 +210,9 @@ const TutoringLobby = () => {
                     <div className="tutor-grid">
                         {recommendedTutors.length > 0 ? (
                             recommendedTutors.map((tutor) => (
-                                <div key={tutor.id} className="tutor-card" onClick={() => navigate(`/tutoring/reserve/${tutor.id}`)}>
+                                <div key={tutor.id} className="tutor-card-mini" onClick={() => navigate(`/tutoring/reserve/${tutor.id}`)}>
                                     <div className="tutor-img-wrapper">
+                                        {/* profileImgUrl 출력 */}
                                         {tutor.profileImgUrl ? (
                                             <img src={tutor.profileImgUrl} alt={tutor.nickname} className="tutor-img" />
                                         ) : (
@@ -192,7 +221,8 @@ const TutoringLobby = () => {
                                     </div>
                                     <div className="tutor-info">
                                         <h3 className="tutor-name">{tutor.nickname}</h3>
-                                        <p className="tutor-desc">{tutor.introduction || "반가워요! 함께 공부해요."}</p>
+                                        {/* introduction 출력 */}
+                                        <p className="tutor-desc">{tutor.introduction}</p>
                                     </div>
                                 </div>
                             ))

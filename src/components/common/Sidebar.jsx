@@ -68,6 +68,13 @@ const Sidebar = () => {
                 );
             }
 
+            // 튜터링 예약 페이지 하위 경로 대응 추가
+            if (!target && location.pathname.startsWith('/tutoring')) {
+                target = Array.from(allLinks).find(link => 
+                    link.getAttribute('href') === '/tutoring'
+                );
+            }
+
             // 3. 상세페이지 대응 로직
             if (!target && location.pathname === '/pronunciationPractice') {
                 const params = new URLSearchParams(location.search);
@@ -191,7 +198,7 @@ const Sidebar = () => {
                                     {item.name}
                                 </div>
                             ) : (
-                                <Link to={item.path} className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}>
+                                <Link to={item.path} className={`nav-link ${location.pathname.startsWith(item.path) && item.path === '/tutoring' ? 'active' : (location.pathname === item.path ? 'active' : '')}`}>
                                     {item.name}
                                 </Link>
                             )}
