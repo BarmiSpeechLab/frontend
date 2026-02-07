@@ -248,7 +248,7 @@ const LoginPage = () => {
 
             {/* 섹션 1: 히어로 */}
             <section className="section hero-section">
-                <h1 className="hero-title anim-target delay-1">바르미 마을에 입주해보세요!</h1>
+                <h1 className="hero-title anim-target delay-1">바르미 마을의 주민이 되어보세요!</h1>
                 <p className="hero-subtitle anim-target delay-2">가장 쉽고 재미있는 영어 학습 서비스</p>
                 <div style={{ marginTop: '50px' }} className="anim-target delay-3">
                     <img
