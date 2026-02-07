@@ -5,6 +5,7 @@ import './PronunciationPracticePage.css';
 import { submitPronunciation, checkAnalysisStatus } from '../../api/ai';
 import { convertWebMToWav } from '../../utils/audioConverter';
 import { getIpaImages, getIpaImagesBySymbol } from '../../utils/ipaLoader';
+import { getArticulationGifByCipa } from "../../assets/ArticulationMap";
 import PronunciationAnalysisResult from "../common/PronunciationAnalysisResult";
 
 const PronunciationPracticePage = () => {
@@ -25,6 +26,7 @@ const PronunciationPracticePage = () => {
     // [New] 분석 대기 상태 (로딩 & 취소)
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysisResult, setAnalysisResult] = useState(null);
+    const [selectedCipa, setSelectedCipa] = useState(null);
     const [userAudioUrl, setUserAudioUrl] = useState(null);
     const pollIntervalRef = useRef(null);
     const audioRef = useRef(null);
@@ -371,13 +373,25 @@ const PronunciationPracticePage = () => {
                     const phonemes =
                         mergedResult?.pronunciation?.analysis_result
                         ?.flatMap((r) => r?.phonemes ?? []) ?? [];
+
+                    const phonemeRows = phonemes.map((p) => ({
+                        cipa: p?.cipa ?? "",
+                        uipa: p?.uipa ?? "",
+                        ok: typeof p?.is_correct === "boolean" ? p.is_correct : p?.cipa === p?.uipa,
+                    }));
+                    
+                    const analysisRows =
+                        mergedResult?.pronunciation?.analysis_result ??
+                        mergedResult?.pronunciation?.analysisResult ??
+                        [];
+                        
+                    const targetWords  =
+                        analysisRows.map((r) => r?.target_word).filter(Boolean);
                     
                     setAnalysisResult({
-                        phonemes: phonemes.map((p) => ({
-                            cipa: p?.cipa ?? "",
-                            uipa: p?.uipa ?? "",
-                            ok: typeof p?.is_correct === "boolean" ? p.is_correct : p?.cipa === p?.uipa, // 정답판정
-                        })),
+                        ...mergedResult, // 기존 mergedResult 데이터 유지
+                        targetWords,
+                        phonemes: phonemeRows,
 
                         ckor: 
                             mergedResult?.pronunciation?.analysis_result
@@ -389,6 +403,10 @@ const PronunciationPracticePage = () => {
                             ?.map(r => r?.kor?.ukor)
                             .filter(Boolean) ?? [],
                     });
+
+                    // 첫 번째 오답을 자동 선택
+                    const firstWrong = phonemeRows.find((p) => p && p.ok === false);
+                    setSelectedCipa(firstWrong ? firstWrong.cipa : null);
 
                     clearInterval(pollIntervalRef.current);
                     pollIntervalRef.current = null;
@@ -502,9 +520,16 @@ const PronunciationPracticePage = () => {
                     {/* 분석 완료 후: 결과 표시 */}
                     {!isAnalyzing && analysisResult && (
                         <PronunciationAnalysisResult
+                            targetWords={analysisResult.targetWords}   
                             phonemes={analysisResult.phonemes}
                             ckor={analysisResult.ckor}
                             ukor={analysisResult.ukor}
+                            selectedCipa={selectedCipa}
+                            onSelectCipa={setSelectedCipa}
+                            onRedo={() => {
+                                setAnalysisResult(null);
+                                setSelectedCipa(null);
+                            }}
                         />
                     )}
 
@@ -530,33 +555,27 @@ const PronunciationPracticePage = () => {
                         </div>
                         </div>
                     )}
-
-                    {/* 분석 완료 후: “다시 녹음(녹음 버튼)”만 남기기 */}
-                    {!isAnalyzing && analysisResult && (
-                        <div className="record-controls">
-                        <button
-                            className="record-btn-merged"
-                            onClick={() => {
-                            setAnalysisResult(null); // 결과 지우고 다시 녹음 화면으로
-                            handleRecordToggle();    // 바로 녹음 시작하고 싶으면 유지, “버튼만 보여주고 싶으면” 이 줄 제거
-                            }}
-                        >
-                            <Mic size={40} />
-                        </button>
-                        <div className="record-status">
-                            <p className="status-text">다시 녹음하기</p>
-                        </div>
-                        </div>
-                    )}
                     </div>
                    
-                    <div className="visual-card visual-card-compact">
+                    <div 
+                        className={`visual-card visual-card-compact ${analysisResult ? "articulation--done" : "articulation--idle"}`}
+                    >
                         <div className="visual-label">조음 위치</div>
-                        {(localTongue || item.tonguePositionUrl) ? (
-                            <img src={localTongue || item.tonguePositionUrl} alt="조음 위치" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                        ) : (
-                            <div style={{ fontSize: '3rem', opacity: 0.3 }}>-</div>
-                        )}
+                        {(() => {
+                            // selectedCipa가 있으면 그에 해당하는 GIF 우선 표시
+                            const wrongGif = selectedCipa ? getArticulationGifByCipa(selectedCipa) : null;
+                            const imageSrc = wrongGif || localTongue || item.tonguePositionUrl;
+                            
+                            return imageSrc ? (
+                                <img 
+                                    src={imageSrc} 
+                                    alt="조음 위치" 
+                                    style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
+                                />
+                            ) : (
+                                <div style={{ fontSize: '3rem', opacity: 0.3 }}>-</div>
+                            );
+                        })()}
                     </div>
                 </div>
 
