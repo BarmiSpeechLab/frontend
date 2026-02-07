@@ -24,7 +24,7 @@
   border: 2px solid #e5e7eb;
   min-width: 200px;
   flex: 1;
-  max-width: 300px;
+  max-width: 500px;
 }
 
 /* 목표 단어 헤더 */
@@ -45,14 +45,17 @@
 .pa-phonemes-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  /* Center horizontally */
+  gap: 12px;
 }
 
 .pa-phonemes-label {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   color: #6b7280;
-  min-width: 45px;
+  min-width: 55px;
+  /* Slightly wider for better balance */
   text-align: center;
   background: #ffffff;
   padding: 4px 8px;
@@ -64,7 +67,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  flex: 1;
+  justify-content: center;
+  /* Center tokens if they wrap */
 }
 
 /* 음소 토큰 */
@@ -72,11 +76,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 36px;
-  height: 36px;
-  padding: 0 10px;
-  border-radius: 8px;
-  font-size: 16px;
+  min-width: 42px;
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-size: 20px;
   font-weight: 700;
   border: 2px solid transparent;
   background: transparent;
@@ -114,10 +118,13 @@
 /* 화살표 */
 .pa-arrow {
   text-align: center;
-  font-size: 18px;
+  font-size: 24px;
   color: #9ca3af;
   font-weight: 600;
-  margin: -4px 0;
+  margin: 4px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 /* 한글 발음 비교 */
@@ -128,7 +135,7 @@
 }
 
 .pa-korean-comparison {
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 600;
   color: #6b7280;
   font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
@@ -175,6 +182,14 @@
   position: relative;
 }
 
+.pa-hint {
+  font-size: 13px;
+  color: #9ca3af;
+  margin-top: 10px;
+  text-align: right;
+  font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+}
+
 /* 우하단 다시 녹음 버튼 */
 .pa-redo-btn {
   position: absolute;
@@ -187,7 +202,7 @@
 
   padding: 8px 10px;
   border-radius: 10px;
-  border: 1px solid rgba(0,0,0,0.12);
+  border: 1px solid rgba(0, 0, 0, 0.12);
   background: #ff5252;
   color: #fff;
   font-weight: 700;

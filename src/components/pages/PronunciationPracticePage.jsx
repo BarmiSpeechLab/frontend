@@ -9,6 +9,7 @@ import { getArticulationGifByCipa } from "../../assets/ArticulationMap";
 import PronunciationAnalysisResult from "../common/PronunciationAnalysisResult";
 import IntonationGraph from '../common/IntonationGraph';
 import AiFeedback from '../common/AiFeedback';
+import ResultCarousel from '../common/ResultCarousel';
 
 const PronunciationPracticePage = () => {
     const location = useLocation();
@@ -122,244 +123,106 @@ const PronunciationPracticePage = () => {
         }
 
         // 2. 폴링 및 분석 데이터 수집
-        setIsAnalyzing(true); // 분석 시작 상태
+        setIsAnalyzing(true);
+        setAnalysisResult(null);
 
-        let mergedResult = {
-            item: item,
-            userAudioUrl: audioUrl,
-            nativeVideoUrl: item.nativeVideoUrl,
-            standardPitch: null
-        };
-
-        let hasUpdated = false;
         let pollCount = 0;
-
         if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
 
         pollIntervalRef.current = setInterval(async () => {
             pollCount++;
 
-            if (pollCount > 5) {
-                // Exponential backoff: 2초 간격으로 계속 폴링
+            if (pollCount > 40) { // 약 80초 타임아웃
                 clearInterval(pollIntervalRef.current);
-                pollIntervalRef.current = setInterval(async () => {
-                    console.log(`[분석 진행 중] 폴링 수행 ${pollCount}회 (TaskId: ${taskId})`);
-                    const statusRes = await checkAnalysisStatus(item.id, taskId);
-
-                    if (statusRes.status === 'ERROR') {
-                        clearInterval(pollIntervalRef.current);
-                        setIsAnalyzing(false);
-                        alert('분석 중 오류가 발생했습니다.');
-                        return;
-                    }
-
-                    if ((statusRes.status === 'COMPLETED' || statusRes.status === 'PROCESSING') && statusRes.result) {
-                        const res = statusRes.result;
-
-                        if (res.pronunciation && !mergedResult.pronunciation) {
-                            mergedResult.pronunciation = res.pronunciation;
-                            const pronData = res.pronunciation.analysisResult || res.pronunciation.analysis_result;
-                            if (Array.isArray(pronData)) {
-                                mergedResult.wordSegments = pronData;
-                                const totalScore = pronData.reduce((acc, cur) => acc + (cur.score || (100 - (cur.error_rate || 0)) || 0), 0);
-                                const avgScore = pronData.length > 0 ? totalScore / pronData.length : 0;
-                                mergedResult.grade = avgScore >= 80 ? 'EXCELLENT' : (avgScore >= 50 ? 'GOOD' : 'BAD');
-                            }
-                        }
-
-                        if (res.intonations && !mergedResult.intonations) {
-                            mergedResult.intonations = res.intonations;
-                            const intonData = res.intonations.analysisResult || res.intonations.analysis_result;
-                            if (Array.isArray(intonData)) {
-                                let combinedUserPitch = [];
-                                intonData.forEach(itm => {
-                                    if (itm.curve_pitch && Array.isArray(itm.curve_pitch)) {
-                                        combinedUserPitch = [...combinedUserPitch, ...itm.curve_pitch];
-                                    }
-                                });
-                                mergedResult.userPitch = combinedUserPitch;
-
-                                const stdData = item.inton || item.intonData;
-                                if (stdData && Array.isArray(stdData)) {
-                                    let combinedStdPitch = [];
-                                    stdData.forEach(p => {
-                                        if (p && p.curve_pitch) {
-                                            combinedStdPitch = [...combinedStdPitch, ...p.curve_pitch];
-                                        }
-                                    });
-                                    mergedResult.standardPitch = combinedStdPitch;
-                                }
-                            }
-                        }
-
-                        if (res.llmFeedback && !mergedResult.llmFeedback) {
-                            mergedResult.llmFeedback = res.llmFeedback;
-                            const llm = res.llmFeedback;
-                            mergedResult.feedback = llm.analysisResult || llm.analysis_result || mergedResult.feedback;
-                        }
-
-                        if (!hasUpdated && (mergedResult.pronunciation || mergedResult.intonations || mergedResult.llmFeedback)) {
-                            hasUpdated = true;
-                            setAnalysisResult(mergedResult);
-                        }
-
-                        const isAllArrived = mergedResult.pronunciation && mergedResult.intonations && mergedResult.llmFeedback;
-                        if (isAllArrived) {
-                            clearInterval(pollIntervalRef.current);
-                            pollIntervalRef.current = null;
-                            setIsAnalyzing(false);
-                        }
-                    }
-                }, 2000);
-                return;
-            }
-
-            console.log(`[분석 진행 중] 폴링 수행 ${pollCount}회 (TaskId: ${taskId})`);
-            const statusRes = await checkAnalysisStatus(item.id, taskId);
-
-            if (statusRes.status === 'ERROR') {
-                console.error('[분석 에러] 서버에서 에러 반환');
-                clearInterval(pollIntervalRef.current);
+                pollIntervalRef.current = null;
                 setIsAnalyzing(false);
-                alert('분석 중 오류가 발생했습니다.');
+                alert('분석 응답 시간이 초과되었습니다.');
                 return;
             }
 
-            if ((statusRes.status === 'COMPLETED' || statusRes.status === 'PROCESSING') && statusRes.result) {
-                const res = statusRes.result;
+            try {
+                const statusRes = await checkAnalysisStatus(item.id, taskId);
 
-                if (res.pronunciation && !mergedResult.pronunciation) {
-                    mergedResult.pronunciation = res.pronunciation;
-                    const pronData = res.pronunciation.analysisResult || res.pronunciation.analysis_result;
-                    if (Array.isArray(pronData)) {
-                        mergedResult.wordSegments = pronData;
-                        const totalScore = pronData.reduce((acc, cur) => acc + (cur.score || (100 - (cur.error_rate || 0)) || 0), 0);
-                        const avgScore = pronData.length > 0 ? totalScore / pronData.length : 0;
-                        mergedResult.grade = avgScore >= 80 ? 'EXCELLENT' : (avgScore >= 50 ? 'GOOD' : 'BAD');
-                    }
+                if (statusRes.status === 'ERROR') {
+                    clearInterval(pollIntervalRef.current);
+                    pollIntervalRef.current = null;
+                    setIsAnalyzing(false);
+                    alert('분석 중 오류가 발생했습니다.');
+                    return;
                 }
 
-                if (res.intonations && !mergedResult.intonations) {
-                    mergedResult.intonations = res.intonations;
-                    const intonData = res.intonations.analysisResult || res.intonations.analysis_result;
-                    if (Array.isArray(intonData)) {
-                        let combinedUserPitch = [];
-                        intonData.forEach(itm => {
-                            if (itm.curve_pitch && Array.isArray(itm.curve_pitch)) {
-                                combinedUserPitch = [...combinedUserPitch, ...itm.curve_pitch];
-                            }
-                        });
-                        mergedResult.userPitch = combinedUserPitch;
-                        mergedResult.userSegments = intonData; // 사용자 세그먼트 저장
+                if (statusRes.status === 'COMPLETED' && statusRes.result) {
+                    const res = statusRes.result;
+
+                    const finalResult = {
+                        item: item,
+                        userAudioUrl: audioUrl,
+                        nativeVideoUrl: item.nativeVideoUrl,
+                        standardPitch: null
+                    };
+
+                    if (res.pronunciation) {
+                        finalResult.pronunciation = res.pronunciation;
+                        const analysisRows = (res.pronunciation?.analysis_result || res.pronunciation?.analysisResult) ?? [];
+                        finalResult.targetWords = analysisRows.map(r => r?.target_word).filter(Boolean);
+                        finalResult.ckor = analysisRows.map(r => r?.kor?.ckor).filter(Boolean);
+                        finalResult.ukor = analysisRows.map(r => r?.kor?.ukor).filter(Boolean);
+
+                        const phonemes = analysisRows.flatMap(r => r?.phonemes ?? []);
+                        finalResult.phonemes = phonemes.map(p => ({
+                            cipa: p?.cipa ?? "",
+                            uipa: p?.uipa ?? "",
+                            ok: typeof p?.is_correct === "boolean" ? p.is_correct : p?.cipa === p?.uipa,
+                        }));
+
+                        const firstWrong = finalResult.phonemes.find(p => p && p.ok === false);
+                        if (firstWrong) setSelectedCipa(firstWrong.cipa);
+                    }
+
+                    if (res.intonations) {
+                        finalResult.intonations = res.intonations;
+                        const intonData = res.intonations.analysisResult || res.intonations.analysis_result;
+                        if (Array.isArray(intonData)) {
+                            let combinedUserPitch = [];
+                            intonData.forEach(itm => {
+                                if (itm.curve_pitch) combinedUserPitch = [...combinedUserPitch, ...itm.curve_pitch];
+                            });
+                            finalResult.userPitch = combinedUserPitch;
+                            finalResult.userSegments = intonData;
+                        }
 
                         const stdData = item.inton || item.intonData;
                         if (stdData && Array.isArray(stdData)) {
                             let combinedStdPitch = [];
                             stdData.forEach(p => {
-                                if (p && p.curve_pitch) {
-                                    combinedStdPitch = [...combinedStdPitch, ...p.curve_pitch];
-                                }
+                                if (p && p.curve_pitch) combinedStdPitch = [...combinedStdPitch, ...p.curve_pitch];
                             });
-                            mergedResult.standardPitch = combinedStdPitch;
-                            mergedResult.standardSegments = stdData; // 표준 세그먼트 저장
-                        } else {
-                            mergedResult.standardPitch = [];
-                            mergedResult.standardSegments = [];
+                            finalResult.standardPitch = combinedStdPitch;
+                            finalResult.standardSegments = stdData;
                         }
                     }
-                }
 
-                if (res.llmFeedback && !mergedResult.llmFeedback) {
-                    mergedResult.llmFeedback = res.llmFeedback;
-                    const llm = res.llmFeedback;
-                    mergedResult.feedback = llm.analysisResult || llm.analysis_result || mergedResult.feedback;
-                }
-
-                mergedResult.taskId = taskId;
-                mergedResult.rawResult = res;
-
-                // 결과 업데이트 (화면에 표시)
-                if (!hasUpdated && (mergedResult.pronunciation || mergedResult.intonations || mergedResult.llmFeedback)) {
-                    hasUpdated = true;
-                    setAnalysisResult(mergedResult);
-                }
-
-                const isAllArrived = mergedResult.pronunciation && mergedResult.intonations && mergedResult.llmFeedback;
-
-                if (isAllArrived) {
-                    const stdData = item.inton || item.intonData;
-                    if ((!mergedResult.standardPitch || mergedResult.standardPitch.length === 0) && stdData) {
-                        let combinedStdPitch = [];
-                        if (Array.isArray(stdData)) {
-                            stdData.forEach(p => {
-                                if (p && p.curve_pitch) {
-                                    combinedStdPitch = [...combinedStdPitch, ...p.curve_pitch];
-                                }
-                            });
-                        }
-                        mergedResult.standardPitch = combinedStdPitch;
-                        setAnalysisResult(mergedResult);
+                    if (res.llmFeedback) {
+                        finalResult.llmFeedback = res.llmFeedback;
+                        finalResult.feedback = res.llmFeedback.analysisResult || res.llmFeedback.analysis_result;
                     }
 
-                    console.log('%c[분석 완료]', 'color: green; font-weight: bold;', mergedResult);
-                    
-                    const phonemes =
-                        mergedResult?.pronunciation?.analysis_result
-                        ?.flatMap((r) => r?.phonemes ?? []) ?? [];
-
-                    const phonemeRows = phonemes.map((p) => ({
-                        cipa: p?.cipa ?? "",
-                        uipa: p?.uipa ?? "",
-                        ok: typeof p?.is_correct === "boolean" ? p.is_correct : p?.cipa === p?.uipa,
-                    }));
-                    
-                    const analysisRows =
-                        mergedResult?.pronunciation?.analysis_result ??
-                        mergedResult?.pronunciation?.analysisResult ??
-                        [];
-                        
-                    const targetWords  =
-                        analysisRows.map((r) => r?.target_word).filter(Boolean);
-                    
-                    setAnalysisResult({
-                        ...mergedResult, // 기존 mergedResult 데이터 유지
-                        targetWords,
-                        phonemes: phonemeRows,
-
-                        ckor: 
-                            mergedResult?.pronunciation?.analysis_result
-                            ?.map(r => r?.kor?.ckor)
-                            .filter(Boolean) ?? [],
-
-                        ukor: 
-                            mergedResult?.pronunciation?.analysis_result
-                            ?.map(r => r?.kor?.ukor)
-                            .filter(Boolean) ?? [],
-                    });
-
-                    // 첫 번째 오답을 자동 선택
-                    const firstWrong = phonemeRows.find((p) => p && p.ok === false);
-                    setSelectedCipa(firstWrong ? firstWrong.cipa : null);
+                    finalResult.taskId = taskId;
+                    setAnalysisResult(finalResult);
 
                     clearInterval(pollIntervalRef.current);
                     pollIntervalRef.current = null;
                     setIsAnalyzing(false);
+                    console.log('%c[분석 완료]', 'color: green; font-weight: bold;', res);
                 }
+            } catch (err) {
+                console.error("폴링 오류:", err);
             }
-        }, 1000);
-
-        setTimeout(() => {
-            if (pollIntervalRef.current) {
-                clearInterval(pollIntervalRef.current);
-                pollIntervalRef.current = null;
-                setIsAnalyzing(false);
-                console.warn('[타임아웃] 분석 응답 시간 초과');
-                alert('분석 시간이 초과되었습니다. 다시 시도해주세요.');
-            }
-        }, 30000);
+        }, 2000);
     };
 
     const fixEncoding = (str) => {
+        if (!str) return '';
         return str;
     };
 
@@ -369,9 +232,7 @@ const PronunciationPracticePage = () => {
             key = key.replace(/[\[\]\/]/g, '').trim();
         }
         const bySymbol = getIpaImagesBySymbol(key);
-        if (bySymbol.mouth || bySymbol.tongue) {
-            return bySymbol;
-        }
+        if (bySymbol.mouth || bySymbol.tongue) return bySymbol;
         return getIpaImages(item.id);
     };
 
@@ -387,25 +248,27 @@ const PronunciationPracticePage = () => {
     const handleBack = () => {
         if (item.returnPath) {
             navigate(item.returnPath);
-            return;
+        } else {
+            navigate(-1);
         }
-        navigate(-1);
     };
+
+    useEffect(() => {
+        return () => {
+            if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+        };
+    }, []);
 
     return (
         <div className="practice-container-merged">
             {/* 헤더 */}
             <div className="practice-header">
                 <div className="header-top">
-                    <button className="back-button" onClick={handleBack}>
-                        뒤로가기
-                    </button>
+                    <button className="back-button" onClick={handleBack}>뒤로가기</button>
                 </div>
                 <div className="header-row">
                     <div className="header-text">
-                        <h1 className="practice-title">
-                            {fixEncoding(item.word || item.symbol)}
-                        </h1>
+                        <h1 className="practice-title">{fixEncoding(item.word || item.symbol)}</h1>
                         <div className="practice-subtitle">
                             <div className="subtitle-row">
                                 <span className="subtitle-ipa">
@@ -441,125 +304,92 @@ const PronunciationPracticePage = () => {
                 </div>
             </div>
 
-            {/* 4행 레이아웃 */}
             <div className="merged-layout">
-                {/* Row 1: 내 발음 + 조음 위치 */}
+                {/* Row 1: 결과 및 녹음 제어 */}
                 <div className="row-2-myrecording">
                     <div className="record-section">
-                    <div className="record-title">
-                        {!isAnalyzing && analysisResult ? "분석 결과" : "내 발음 녹음"}
+                        {!analysisResult && <div className="record-title">내 발음 녹음</div>}
+
+                        {analysisResult && (
+                            <PronunciationAnalysisResult
+                                targetWords={analysisResult.targetWords}
+                                phonemes={analysisResult.phonemes}
+                                ckor={analysisResult.ckor}
+                                ukor={analysisResult.ukor}
+                                selectedCipa={selectedCipa}
+                                onSelectCipa={setSelectedCipa}
+                                onRedo={() => { setAnalysisResult(null); setSelectedCipa(null); }}
+                            />
+                        )}
+
+                        {!analysisResult && (
+                            <div className="record-controls">
+                                <button
+                                    className={`record-btn-merged ${isRecording ? "recording" : ""}`}
+                                    onClick={handleRecordToggle}
+                                    disabled={isAnalyzing}
+                                >
+                                    {isRecording ? <Mic size={40} /> : <Mic size={40} />}
+                                </button>
+                                <div className="record-status">
+                                    <p className="status-text">{isRecording ? "🔴 녹음 중..." : "준비 완료"}</p>
+                                    {userAudioUrl && (
+                                        <button className="play-btn" onClick={handlePlayAudio} disabled={isAnalyzing}>
+                                            <Play size={20} /> 다시 듣기
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
-                    {/* 분석 완료 후: 결과 표시 */}
-                    {!isAnalyzing && analysisResult && (
-                        <PronunciationAnalysisResult
-                            targetWords={analysisResult.targetWords}   
-                            phonemes={analysisResult.phonemes}
-                            ckor={analysisResult.ckor}
-                            ukor={analysisResult.ukor}
-                            selectedCipa={selectedCipa}
-                            onSelectCipa={setSelectedCipa}
-                            onRedo={() => {
-                                setAnalysisResult(null);
-                                setSelectedCipa(null);
-                            }}
-                        />
-                    )}
-
-                    {/* 분석 완료 전: 기존 UI 그대로 */}
-                    {!analysisResult && (
-                        <div className="record-controls">
-                        <button
-                            className={`record-btn-merged ${isRecording ? "recording" : ""}`}
-                            onClick={handleRecordToggle}
-                            disabled={isAnalyzing}
-                        >
-                            {isRecording ? <Square size={40} /> : <Mic size={40} />}
-                        </button>
-
-                        <div className="record-status">
-                            <p className="status-text">{isRecording ? "🔴 녹음 중..." : "준비 완료"}</p>
-
-                            {userAudioUrl && (
-                            <button className="play-btn" onClick={handlePlayAudio} disabled={isAnalyzing}>
-                                <Play size={20} /> 다시 듣기
-                            </button>
-                            )}
-                        </div>
-                        </div>
-                    )}
-                    </div>
-                   
-                    <div 
-                        className={`visual-card visual-card-compact ${analysisResult ? "articulation--done" : "articulation--idle"}`}
-                    >
+                    <div className={`visual-card visual-card-compact ${analysisResult ? "articulation--done" : "articulation--idle"}`}>
                         <div className="visual-label">조음 위치</div>
                         {(() => {
-                            // selectedCipa가 있으면 그에 해당하는 GIF 우선 표시
                             const wrongGif = selectedCipa ? getArticulationGifByCipa(selectedCipa) : null;
                             const imageSrc = wrongGif || localTongue || item.tonguePositionUrl;
-                            
                             return imageSrc ? (
-                                <img 
-                                    src={imageSrc} 
-                                    alt="조음 위치" 
-                                    style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
-                                />
+                                <img src={imageSrc} alt="조음 위치" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                             ) : (
                                 <div style={{ fontSize: '3rem', opacity: 0.3 }}>-</div>
                             );
                         })()}
                     </div>
+
+                    {!isAnalyzing && analysisResult && (
+                        <button className="redo-btn-absolute" onClick={() => { setAnalysisResult(null); setSelectedCipa(null); }}>
+                            다시시도
+                        </button>
+                    )}
                 </div>
 
                 <div className="analysis-grid">
-                    {/* Row 3: 억양 그래프 */}
                     <div className="row-3-intonation">
                         <IntonationGraph
-                            standardPitch={
-                                (analysisResult && analysisResult.standardPitch && analysisResult.standardPitch.length > 0)
-                                    ? analysisResult.standardPitch
-                                    : (() => {
-                                        const stdData = item.inton || item.intonData;
-                                        let pitchData = [];
-                                        if (Array.isArray(stdData)) {
-                                            stdData.forEach(p => {
-                                                if (p && Array.isArray(p.curve_pitch)) {
-                                                    pitchData = [...pitchData, ...p.curve_pitch];
-                                                }
-                                            });
-                                        }
-                                        return pitchData;
-                                    })()
-                            }
-                            userPitch={analysisResult ? (analysisResult.userPitch || []) : []}
-                            standardSegments={(analysisResult && analysisResult.standardSegments && analysisResult.standardSegments.length > 0) ? analysisResult.standardSegments : (item.inton || item.intonData)}
-                            userSegments={analysisResult ? (analysisResult.userSegments || []) : []}
+                            standardPitch={analysisResult?.standardPitch || []}
+                            userPitch={analysisResult?.userPitch || []}
+                            standardSegments={analysisResult?.standardSegments || []}
+                            userSegments={analysisResult?.userSegments || []}
                             width={800} height={270}
                         />
                     </div>
 
-                    {/* Row 4: AI 피드백 */}
                     <div className="row-4-feedback">
-                        <AiFeedback feedback={analysisResult ? analysisResult.feedback : null} />
+                        <AiFeedback feedback={analysisResult?.feedback || null} />
                     </div>
                 </div>
             </div>
 
-            {/* 분석 중 오버레이 */}
             {isAnalyzing && (
                 <div className="analysis-overlay">
                     <div className="analysis-spinner-box">
                         <div className="spinner-circle"></div>
                         <p className="analysis-text">발음을 분석 중입니다...</p>
-                        <button className="analysis-cancel-btn" onClick={handleCancelAnalysis}>
-                            취소
-                        </button>
+                        <button className="analysis-cancel-btn" onClick={handleCancelAnalysis}>취소</button>
                     </div>
                 </div>
             )}
 
-            {/* 숨겨진 오디오 엘리먼트 */}
             <audio ref={audioRef} />
         </div>
     );

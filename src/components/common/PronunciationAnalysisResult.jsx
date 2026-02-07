@@ -1,14 +1,15 @@
 import "./PronunciationAnalysisResult.css";
+import ResultCarousel from "./ResultCarousel";
 
-export default function PronunciationAnalysisResult({ 
-  phonemes = [], 
+export default function PronunciationAnalysisResult({
+  phonemes = [],
   targetWords = [],
-  ckor, 
-  ukor, 
+  ckor,
+  ukor,
   selectedCipa,
   onSelectCipa,
-  className = "" ,
-  onRedo, 
+  className = "",
+  onRedo,
 }) {
   const ckorArray = Array.isArray(ckor) ? ckor : [];
   const ukorArray = Array.isArray(ukor) ? ukor : [];
@@ -28,7 +29,7 @@ export default function PronunciationAnalysisResult({
 
     return {
       targetWord: targetWords[wordIdx] || '',
-      ckorWord: ckorWord, 
+      ckorWord: ckorWord,
       userWord: ukorArray[wordIdx] || '',
       phonemes: wordPhonemes
     };
@@ -36,14 +37,11 @@ export default function PronunciationAnalysisResult({
 
   return (
     <section className={`pa-result ${className}`.trim()} aria-live="polite">
-      <div className="pa-words-container">
+      <ResultCarousel
+        titles={wordGroups.map(w => w.targetWord || '단어 분석')}
+      >
         {wordGroups.map((word, wordIdx) => (
           <div key={wordIdx} className="pa-word-group">
-            {/* 상단: 목표 단어 */}
-            <div className="pa-word-header">
-              <span className="pa-target-word">{word.targetWord}</span>
-            </div>
-
             {/* 중간: IPA 음소들 비교 */}
             <div className="pa-phonemes-row">
               <div className="pa-phonemes-label">표준</div>
@@ -73,7 +71,7 @@ export default function PronunciationAnalysisResult({
               </div>
             </div>
 
-            <div className="pa-arrow">→</div>
+            <div className="pa-arrow">↓</div>
 
             <div className="pa-phonemes-row">
               <div className="pa-phonemes-label">내발음</div>
@@ -93,26 +91,23 @@ export default function PronunciationAnalysisResult({
             <div className="pa-korean-row">
               <span className="pa-korean-comparison">
                 {word.ckorWord} →{" "}
-                <span 
+                <span
                   className={
-                    word.phonemes.every(p => p.ok) 
+                    word.phonemes.every(p => p.ok)
                       ? "pa-korean-user--ok"
                       : "pa-korean-user--bad"
-                    }
-                  >{word.userWord}
+                  }
+                >{word.userWord}
                 </span>
               </span>
             </div>
           </div>
         ))}
+      </ResultCarousel>
+
+      <div className="pa-hint">
+        * IPA 기호를 클릭하면 상세 조음 위치를 확인할 수 있습니다.
       </div>
-
-      {!!onRedo && (
-        <button type="button" className="pa-redo-btn" onClick={onRedo}>
-          다시 녹음
-        </button>
-      )}
-
     </section>
   );
 }
