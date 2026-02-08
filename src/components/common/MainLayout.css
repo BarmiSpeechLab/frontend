@@ -132,8 +132,8 @@
     left: 0;
     width: 100%;
     height: 100%;
-    /* 흰색 반투명 레이어를 30% 정도 올려서 배경을 흐릿하게 만듦 */
-    background-color: rgba(255, 255, 255, 0.3);
+    /* 흰색 반투명 레이어를 50% 정도 올려서 배경을 은은하게 만듦 */
+    background-color: rgba(255, 255, 255, 0.35);
     z-index: -1;
     pointer-events: none;
 }
