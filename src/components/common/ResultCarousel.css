@@ -3,7 +3,7 @@
     width: 100%;
     max-width: 600px;
     margin: 10px auto;
-    padding: 10px 60px;
+    padding: 10px 45px;
     /* Increased horizontal padding to clear arrows */
     background: transparent;
     border-radius: 16px;
@@ -67,8 +67,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    /* Changed from flex-start to center */
-    padding: 20px;
+    padding: 10px;
 }
 
 .carousel-card-wrapper {

@@ -2,9 +2,115 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { OpenVidu } from 'openvidu-browser';
 import { createSession, createToken } from '../../api/openviduApi';
-// import { getUserProfile } from '../../api/user';
+import { getIpaRadarStats, getIpaAiReport } from '../../api/user';
 import UserVideoComponent from '../common/UserVideoComponent';
+import PronunciationWeaknessRadar from '../common/PronunciationWeaknessRadar';
+import AiFeedback from '../common/AiFeedback';
 import './TutoringPage.css';
+import './ReportModal.css';
+
+// ----------------------------------------------------------------------------
+// IPA 데이터 매핑 유틸리티 (ReportPage.jsx에서 복사)
+// ----------------------------------------------------------------------------
+const TYPE_TO_CATEGORY = {
+    vowel: 'vowel', semivowel: 'semivowel', glide: 'semivowel',
+    plosive: 'plosive', stop: 'plosive', affricate: 'affricate',
+    fricative: 'fricative', aspirate: 'aspirate', liquid: 'liquid',
+    nasal: 'nasal', consonant: 'consonant'
+};
+
+const toNumber = (value) => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const mapIpaRadarData = (raw = {}) => {
+    const koreanKeyMap = {
+        'ë§ˆì°°ìŒ': '마찰음', 'íŒŒì—­ìŒ': '파열음', 'ë¹„ìŒ': '비음',
+        'ë° ëª¨ìŒ': '반모음', 'ëª¨ìŒ': '모음', 'íŒŒì°¾ìŒ': '파찰음',
+        'ê¸°ìŒ': '기식음', 'ìœ ìŒ': '유음'
+    };
+    const mapped = {};
+    Object.entries(raw || {}).forEach(([rawType, symbols]) => {
+        let normalizedType = koreanKeyMap[rawType] || String(rawType || '').trim().toLowerCase();
+        const categoryKey = TYPE_TO_CATEGORY[normalizedType] || normalizedType;
+        if (!categoryKey || !symbols || typeof symbols !== 'object') return;
+        let totalCount = 0; let wrongCount = 0;
+        const ipaStats = [];
+        Object.entries(symbols).forEach(([symbol, stat]) => {
+            const totalTryCount = toNumber(stat?.totalTryCount);
+            const successCount = toNumber(stat?.successCount);
+            const localWrongCount = Math.max(0, totalTryCount - successCount);
+            totalCount += totalTryCount; wrongCount += localWrongCount;
+            ipaStats.push({ ipa: symbol, wrongCount: localWrongCount, totalCount: totalTryCount });
+        });
+        mapped[categoryKey] = { wrongCount, totalCount, ipaStats };
+    });
+    return mapped;
+};
+
+// ----------------------------------------------------------------------------
+// 리포트 모달 컴포넌트
+// ----------------------------------------------------------------------------
+const ReportModal = ({ studentId, onClose }) => {
+    const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState({});
+    const [aiReport, setAiReport] = useState('');
+
+    useEffect(() => {
+        const fetchStudentReport = async () => {
+            setLoading(true);
+
+            // 1. 레이더 차트 데이터 가져오기
+            try {
+                const statsRaw = await getIpaRadarStats(studentId);
+                setStats(mapIpaRadarData(statsRaw));
+            } catch (error) {
+                console.error('학생 통계 로드 실패', error);
+            }
+
+            // 2. AI 리포트 가져오기 (실패해도 차트는 보여야 함)
+            try {
+                const aiReportRaw = await getIpaAiReport(studentId);
+                setAiReport(aiReportRaw);
+            } catch (error) {
+                console.error('AI 리포트 로드 실패', error);
+                setAiReport('AI 리포트를 불러오는 중 오류가 발생했습니다. (OpenAI 인증 오류 등)');
+            } finally {
+                setLoading(false);
+            }
+        };
+        if (studentId) fetchStudentReport();
+    }, [studentId]);
+
+    return (
+        <div className="report-modal-backdrop" onClick={onClose}>
+            <div className="report-modal-container" onClick={e => e.stopPropagation()}>
+                <div className="report-modal-header">
+                    <h2>학생 발음 리포트</h2>
+                    <button className="modal-close-btn" onClick={onClose}>&times;</button>
+                </div>
+                <div className="report-modal-body">
+                    {loading ? (
+                        <div className="loading-container">
+                            <div className="spinner" />
+                            <p>학생 데이터를 분석 중입니다...</p>
+                        </div>
+                    ) : (
+                        <div className="report-modal-grid">
+                            <div className="report-modal-radar-col">
+                                <PronunciationWeaknessRadar weaknessStats={stats} />
+                            </div>
+                            <div className="report-modal-ai-col">
+                                <AiFeedback feedback={aiReport} />
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const TutoringPage = () => {
     const { roomId } = useParams();
@@ -15,6 +121,10 @@ const TutoringPage = () => {
     const [publisher, setPublisher] = useState(undefined);
     const [subscribers, setSubscribers] = useState([]);
     const [currentMember, setCurrentMember] = useState(null);
+
+    // 튜터 전용: 학생 관리 상태
+    const [studentId, setStudentId] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // STT & 학생 기능 상태
     const [subtitles, setSubtitles] = useState('');
@@ -50,17 +160,19 @@ const TutoringPage = () => {
 
         const storedRole = localStorage.getItem('userRole');
         const storedNickname = localStorage.getItem('userNickname');
+        const storedId = localStorage.getItem('userId');
 
-        console.log(`로컬 정보로 입장: ${storedNickname} / ${storedRole}`);
+        console.log(`로컬 정보로 입장: ${storedNickname} / ${storedRole} (ID: ${storedId})`);
 
         setCurrentMember({
+            id: storedId,
             nickname: storedNickname,
             role: storedRole
         });
 
     }, [navigate]);
 
-    // 방 입장 로직 (currentMember 준비되면 실행)
+    // 방 입장 로직
     useEffect(() => {
         if (roomId && currentMember && !hasJoined.current) {
             hasJoined.current = true;
@@ -83,13 +195,40 @@ const TutoringPage = () => {
             });
 
             session.on('signal:subtitleStatus', (event) => {
-                // 선생님(TUTOR)일 때만 알림 받음
                 if (event.data === 'OFF' && currentMember?.role === ROLE.TEACHER) {
                     alert("학생이 자막 기능을 껐습니다!");
                 }
             });
+
+            // 학생 정보를 받는 시그널 추가 (선생님 전용)
+            session.on('signal:studentInfo', (event) => {
+                if (currentMember?.role === ROLE.TEACHER) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        console.log('학생 ID 수신:', data.userId);
+                        setStudentId(data.userId);
+                    } catch (e) { console.error('학생 정보 파싱 에러', e); }
+                }
+            });
+
+            // 선생님이 들어왔을 때 이미 들어와있던 학생이 정보를 다시 쏘도록 함
+            session.on('signal:requestInfo', () => {
+                if (currentMember?.role === ROLE.STUDENT) {
+                    sendInfoSignal();
+                }
+            });
         }
     }, [session, currentMember]);
+
+    // 정보 송신 시그널
+    const sendInfoSignal = () => {
+        if (sessionRef.current && currentMember?.role === ROLE.STUDENT) {
+            sessionRef.current.signal({
+                data: JSON.stringify({ userId: currentMember.id }),
+                type: 'studentInfo'
+            }).catch(e => console.error(e));
+        }
+    };
 
     // STT 시작 함수
     const startRecognition = (lang) => {
@@ -171,6 +310,14 @@ const TutoringPage = () => {
             try {
                 const subscriber = mySession.subscribe(event.stream, undefined);
                 setSubscribers((prev) => [...prev, subscriber]);
+
+                // 새로운 스트림이 생겼을 때 (상대방 입장 등) 정보 요청
+                if (currentMember?.role === ROLE.TEACHER) {
+                    mySession.signal({ type: 'requestInfo' }).catch(() => { });
+                }
+                if (currentMember?.role === ROLE.STUDENT) {
+                    sendInfoSignal();
+                }
             } catch (error) {
                 console.warn("구독 실패:", error);
             }
@@ -178,6 +325,11 @@ const TutoringPage = () => {
 
         mySession.on('streamDestroyed', (event) => {
             setSubscribers((prev) => prev.filter(sub => sub !== event.stream.streamManager));
+            // 학생이 나가면 ID 초기화
+            if (currentMember?.role === ROLE.TEACHER) {
+                setStudentId(null);
+                setIsModalOpen(false);
+            }
         });
 
         try {
@@ -196,6 +348,11 @@ const TutoringPage = () => {
             setMainStreamManager(newPublisher);
             setPublisher(newPublisher);
             publisherRef.current = newPublisher;
+
+            // 입장 직후 학생이라면 정보 전송 시도
+            if (currentMember?.role === ROLE.STUDENT) {
+                setTimeout(sendInfoSignal, 1000);
+            }
 
         } catch (error) {
             console.error('입장 실패:', error);
@@ -238,6 +395,13 @@ const TutoringPage = () => {
                     {/* 선생님 UI */}
                     {currentMember?.role === ROLE.TEACHER && (
                         <>
+                            <button
+                                onClick={() => setIsModalOpen(true)}
+                                className={`action-btn ${studentId ? 'stt-on' : 'stt-off'}`}
+                                disabled={!studentId}
+                            >
+                                {studentId ? '학생 리포트 보기' : '학생 대기 중'}
+                            </button>
                             <div className="lang-toggle-box">
                                 <button onClick={() => changeLang('ko-KR')} className={`lang-btn ${sttLang === 'ko-KR' ? 'active ko' : ''}`}>🇰🇷 한국어</button>
                                 <button onClick={() => changeLang('en-US')} className={`lang-btn ${sttLang === 'en-US' ? 'active en' : ''}`}>🇺🇸 English</button>
@@ -288,6 +452,13 @@ const TutoringPage = () => {
                     <span className="lang-badge">{sttLang === 'ko-KR' ? 'KO' : 'EN'}</span>
                     {subtitles}
                 </div>
+            )}
+
+            {isModalOpen && studentId && (
+                <ReportModal
+                    studentId={studentId}
+                    onClose={() => setIsModalOpen(false)}
+                />
             )}
         </div>
     );

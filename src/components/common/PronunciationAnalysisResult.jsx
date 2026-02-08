@@ -6,6 +6,7 @@ export default function PronunciationAnalysisResult({
   targetWords = [],
   ckor,
   ukor,
+  wordSegments, // 신규 추가
   selectedCipa,
   onSelectCipa,
   className = "",
@@ -14,26 +15,41 @@ export default function PronunciationAnalysisResult({
   const ckorArray = Array.isArray(ckor) ? ckor : [];
   const ukorArray = Array.isArray(ukor) ? ukor : [];
 
-  if (!phonemes.length) return null;
+  if (!phonemes.length && (!wordSegments || !wordSegments.length)) return null;
 
-  // phonemes를 단어별로 그룹화
-  // phonemes는 이미 flatMap으로 펼쳐진 상태이므로, 
-  // ckor/ukor 길이를 기준으로 다시 그룹화 필요
-  const wordsCount = ckorArray.length;
-  const phonemesPerWord = Math.ceil(phonemes.length / wordsCount) || 1;
+  // 1. wordSegments가 명시적으로 전달된 경우 (이상적)
+  // 2. 전달되지 않은 경우 기존 로직으로 fallback
+  let wordGroups = [];
 
-  const wordGroups = ckorArray.map((ckorWord, wordIdx) => {
-    const startIdx = wordIdx * phonemesPerWord;
-    const endIdx = Math.min(startIdx + phonemesPerWord, phonemes.length);
-    const wordPhonemes = phonemes.slice(startIdx, endIdx);
+  if (Array.isArray(wordSegments) && wordSegments.length > 0) {
+    wordGroups = wordSegments.map((ws, idx) => ({
+      targetWord: ws.word,
+      ckorWord: ckorArray[idx] || '', // ckor/ukor는 여전히 인덱스로 매칭
+      userWord: ukorArray[idx] || '',
+      phonemes: ws.phonemes.map(p => ({
+        cipa: p.symbol,
+        uipa: p.userSymbol,
+        ok: p.isCorrect
+      }))
+    }));
+  } else {
+    // 하위 호환성용 fallback (Math.ceil 기반)
+    const wordsCount = ckorArray.length || targetWords.length || 1;
+    const phonemesPerWord = Math.ceil(phonemes.length / wordsCount) || 1;
 
-    return {
-      targetWord: targetWords[wordIdx] || '',
-      ckorWord: ckorWord,
-      userWord: ukorArray[wordIdx] || '',
-      phonemes: wordPhonemes
-    };
-  });
+    wordGroups = (ckorArray.length ? ckorArray : targetWords).map((_, wordIdx) => {
+      const startIdx = wordIdx * phonemesPerWord;
+      const endIdx = Math.min(startIdx + phonemesPerWord, phonemes.length);
+      const wordPhonemes = phonemes.slice(startIdx, endIdx);
+
+      return {
+        targetWord: targetWords[wordIdx] || '',
+        ckorWord: ckorArray[wordIdx] || '',
+        userWord: ukorArray[wordIdx] || '',
+        phonemes: wordPhonemes
+      };
+    });
+  }
 
   return (
     <section className={`pa-result ${className}`.trim()} aria-live="polite">

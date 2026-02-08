@@ -10,7 +10,7 @@ const gifModules = import.meta.glob("./img/articulation_img/*.gif", {
 export const ARTICULATION_GIF_BY_CIPA = Object.fromEntries(
   Object.entries(gifModules)
     .map(([path, url]) => {
-      // 예: ./articulation_img/1_ɑ.gif  -> key: "ɑ"
+      // 예: ./img/articulation_img/1_ɑ.gif  -> key: "ɑ"
       const m = path.match(/\/\d+_(.+)\.gif$/);
       if (!m) return null;
       return [m[1], url];
