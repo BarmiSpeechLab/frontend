@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Mic, Square, Play } from 'lucide-react';
@@ -44,6 +44,22 @@ const PronunciationPracticePage = () => {
     const audioRef = useRef(null);
     const answerVideoRef = useRef(null);
     const [isAnswerPlaying, setIsAnswerPlaying] = useState(false);
+
+    // [New] 정답 억양 데이터 미리 추출 (분석 전 표시용)
+    const { itemStandardPitch, itemStandardSegments } = useMemo(() => {
+        const stdData = item.inton || item.intonData;
+        if (stdData && Array.isArray(stdData)) {
+            let combinedStdPitch = [];
+            stdData.forEach(p => {
+                if (p && p.curve_pitch) combinedStdPitch = [...combinedStdPitch, ...p.curve_pitch];
+            });
+            return {
+                itemStandardPitch: combinedStdPitch,
+                itemStandardSegments: stdData
+            };
+        }
+        return { itemStandardPitch: [], itemStandardSegments: [] };
+    }, [item]);
 
     const handleCancelAnalysis = () => {
         if (pollIntervalRef.current) {
@@ -433,9 +449,9 @@ const PronunciationPracticePage = () => {
                 <div className="analysis-grid">
                     <div className="row-3-intonation">
                         <IntonationGraph
-                            standardPitch={analysisResult?.standardPitch || []}
+                            standardPitch={analysisResult?.standardPitch || itemStandardPitch}
                             userPitch={analysisResult?.userPitch || []}
-                            standardSegments={analysisResult?.standardSegments || []}
+                            standardSegments={analysisResult?.standardSegments || itemStandardSegments}
                             userSegments={analysisResult?.userSegments || []}
                             width={800} height={450}
                         />
