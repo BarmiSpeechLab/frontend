@@ -176,12 +176,26 @@ const PronunciationPracticePage = () => {
                     if (res.pronunciation) {
                         finalResult.pronunciation = res.pronunciation;
                         const analysisRows = (res.pronunciation?.analysis_result || res.pronunciation?.analysisResult) ?? [];
-                        finalResult.targetWords = analysisRows.map(r => r?.target_word).filter(Boolean);
+
+                        // 단어별 세그먼트 생성 (구조 유지)
+                        finalResult.wordSegments = analysisRows.map(row => ({
+                            word: row.target_word || row.targetWord,
+                            phonemes: (row.phonemes || []).map(p => ({
+                                symbol: p.cipa, // 표준 기호
+                                userSymbol: p.uipa, // 유저 기호
+                                isCorrect: typeof p.is_correct === "boolean" ? p.is_correct : p.cipa === p.uipa
+                            })),
+                            score: row.error_rate === 0 ? 100 : Math.max(0, 100 - (row.error_rate || 0))
+                        }));
+
+                        // 기존 호환성을 위한 데이터 (필요 시)
+                        finalResult.targetWords = finalResult.wordSegments.map(w => w.word);
                         finalResult.ckor = analysisRows.map(r => r?.kor?.ckor).filter(Boolean);
                         finalResult.ukor = analysisRows.map(r => r?.kor?.ukor).filter(Boolean);
 
-                        const phonemes = analysisRows.flatMap(r => r?.phonemes ?? []);
-                        finalResult.phonemes = phonemes.map(p => ({
+                        // 전체 flat phonemes (기존 컴포넌트 호환용)
+                        const flatPhonemes = analysisRows.flatMap(r => r?.phonemes ?? []);
+                        finalResult.phonemes = flatPhonemes.map(p => ({
                             cipa: p?.cipa ?? "",
                             uipa: p?.uipa ?? "",
                             ok: typeof p?.is_correct === "boolean" ? p.is_correct : p?.cipa === p?.uipa,
@@ -383,6 +397,7 @@ const PronunciationPracticePage = () => {
                                 phonemes={analysisResult.phonemes}
                                 ckor={analysisResult.ckor}
                                 ukor={analysisResult.ukor}
+                                wordSegments={analysisResult.wordSegments}
                                 selectedCipa={selectedCipa}
                                 onSelectCipa={setSelectedCipa}
                                 onRedo={() => { setAnalysisResult(null); setSelectedCipa(null); }}

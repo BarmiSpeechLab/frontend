@@ -102,6 +102,7 @@ const PronunciationResultPage = () => {
     // Windows-1252(Latin-1 Sup)로 잘못 해석된 UTF-8 복구 (ResultPage용 안전장치) --> 삭제
     // DB 인코딩 수정 완료로 더 이상 변환 필요 X
     const fixEncoding = (str) => {
+        if (!str || typeof str !== 'string') return str || '';
         return str;
     };
 
@@ -167,51 +168,44 @@ const PronunciationResultPage = () => {
                 <div className="graph-card" style={{ textAlign: 'center' }}>
                     <div className="graph-title">상세 분석</div>
 
-                    {/* 발음 기호 상세 분석 (복구 및 수정) */}
-                    <div className="phoneme-analysis" style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '2rem', marginBottom: '2rem' }}>
+                    {/* 발음 기호 상세 분석 (카드 형태 레이아웃) */}
+                    <div className="phoneme-analysis">
                         {Array.isArray(resultData.wordSegments) && resultData.wordSegments.length > 0 ? (
                             resultData.wordSegments
-                                .filter(word => word.word && word.phonemes && word.phonemes.length > 0) // 유효한 데이터만 필터링
-                                .map((word, wIdx) => (
-                                    <div key={wIdx} className="word-block" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                        {/* 음소 나열 */}
-                                        <div className="phoneme-row" style={{ display: 'flex', gap: '4px', alignItems: 'flex-end', height: '60px' }}>
-                                            {word.phonemes.map((pho, pIdx) => (
-                                                <div
-                                                    key={pIdx}
-                                                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end' }}
-                                                >
-                                                    {/* 내 발음 (틀렸을 때만 표시, 빈 값 방지) */}
-                                                    {/* 내 발음 표시는 삭제 */}
-                                                    {/* 
-                                                    {!pho.isCorrect && pho.userSymbol && pho.userSymbol !== 'noise' && (
-                                                        <span style={{ fontSize: '0.8rem', color: '#dc3545', marginBottom: '4px' }}>
-                                                            {pho.userSymbol}
+                                .filter(word => word.word && word.phonemes && word.phonemes.length > 0)
+                                .map((word, wIdx) => {
+                                    const isGood = (word.score || 0) >= 80;
+                                    const scoreColor = isGood ? '#28a745' : '#dc3545';
+
+                                    return (
+                                        <div key={wIdx} className="word-segment-card">
+                                            {/* 점수 뱃지 추가 */}
+                                            <div className="word-score-badge" style={{ color: scoreColor, borderColor: scoreColor + '33' }}>
+                                                {word.score}점
+                                            </div>
+
+                                            {/* 음소 나열 영역 */}
+                                            <div className="phoneme-row">
+                                                {word.phonemes.map((pho, pIdx) => (
+                                                    <div key={pIdx} className="phoneme-item">
+                                                        {/* 정답 발음 기호 */}
+                                                        <span className="phoneme-symbol" style={{
+                                                            color: pho.isCorrect ? '#28a745' : '#dc3545',
+                                                            borderBottom: pho.isCorrect ? '2px solid transparent' : '2px solid #dc3545'
+                                                        }}>
+                                                            {pho.symbol}
                                                         </span>
-                                                    )}
-                                                    */}
+                                                    </div>
+                                                ))}
+                                            </div>
 
-                                                    {/* 정답 발음 기호 */}
-                                                    <span style={{
-                                                        color: pho.isCorrect ? '#28a745' : '#dc3545',
-                                                        fontSize: '1.4rem',
-                                                        fontWeight: 'bold',
-                                                        fontFamily: 'monospace',
-                                                        borderBottom: pho.isCorrect ? '2px solid transparent' : '2px solid #dc3545',
-                                                        paddingBottom: '2px'
-                                                    }}>
-                                                        {pho.symbol}
-                                                    </span>
-                                                </div>
-                                            ))}
+                                            {/* 단어 텍스트 */}
+                                            <div className="word-text-label">
+                                                {word.word}
+                                            </div>
                                         </div>
-
-                                        {/* 단어 텍스트 */}
-                                        <div style={{ marginTop: '8px', fontWeight: 600, color: '#555' }}>
-                                            {word.word}
-                                        </div>
-                                    </div>
-                                ))
+                                    );
+                                })
                         ) : (
                             <p style={{ color: '#999' }}>상세 분석 데이터가 없습니다.</p>
                         )}

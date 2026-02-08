@@ -122,34 +122,8 @@ const formatRate = (rate) => `${rate.toFixed(1)}%`;
 
 // Windows-1252(Latin-1 Sup)로 잘못 해석된 UTF-8 복구 (RadarChart용 안전장치)
 const fixEncoding = (str) => {
-    if (typeof str !== 'string' || !str) return str;
-    if (/[가-힣]/.test(str)) return str; // 이미 한글이면 그대로 반환
-
-    const win1252Map = {
-        0x20AC: 0x80, 0x201A: 0x82, 0x0192: 0x83, 0x201E: 0x84, 0x2026: 0x85, 0x2020: 0x86, 0x2021: 0x87,
-        0x02C6: 0x88, 0x2030: 0x89, 0x0160: 0x8A, 0x2039: 0x8B, 0x0152: 0x8C, 0x017D: 0x8E,
-        0x2018: 0x91, 0x2019: 0x92, 0x201C: 0x93, 0x201D: 0x94, 0x2022: 0x95, 0x2013: 0x96, 0x2014: 0x97,
-        0x02DC: 0x98, 0x2122: 0x99, 0x0161: 0x9A, 0x203A: 0x9B, 0x0153: 0x9C, 0x017E: 0x9E, 0x0178: 0x9F
-    };
-
-    try {
-        const bytes = [];
-        for (let i = 0; i < str.length; i++) {
-            const code = str.charCodeAt(i);
-            if (code <= 255) {
-                bytes.push(code);
-            } else if (win1252Map[code]) {
-                bytes.push(win1252Map[code]);
-            } else {
-                return str; // 정상 특수문자(IPA) 보존
-            }
-        }
-        const decoded = new TextDecoder('utf-8').decode(new Uint8Array(bytes));
-        if (decoded.includes('\uFFFD')) return str; // 복구 실패 감지
-        return decoded;
-    } catch (e) {
-        return str;
-    }
+    if (!str || typeof str !== 'string') return str || '';
+    return str;
 };
 
 const PronunciationWeaknessRadar = ({ weaknessStats = {} }) => {
