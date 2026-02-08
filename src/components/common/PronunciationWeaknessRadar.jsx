@@ -1,4 +1,5 @@
 ﻿import React, { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import './PronunciationWeaknessRadar.css';
 
 const CATEGORY_CONFIG = [
@@ -152,7 +153,9 @@ const fixEncoding = (str) => {
 };
 
 const PronunciationWeaknessRadar = ({ weaknessStats = {} }) => {
-    const [isInfoOpen, setIsInfoOpen] = useState(false);
+    // const [isInfoOpen, setIsInfoOpen] = useState(false); // REMOVED global info toggle
+    const [focusedCategoryInfo, setFocusedCategoryInfo] = useState(null); // NEW: Track clicked card info
+
     const data = useMemo(() => normalizeStats(weaknessStats), [weaknessStats]);
     const sortedData = useMemo(() => [...data].sort((a, b) => b.errorRate - a.errorRate), [data]);
     const [selectedCategoryId, setSelectedCategoryId] = useState('vowel');
@@ -162,9 +165,9 @@ const PronunciationWeaknessRadar = ({ weaknessStats = {} }) => {
 
     const maxRate = useMemo(() => Math.max(...sortedData.map((item) => item.errorRate), 1), [sortedData]);
 
-    const size = 320;
+    const size = 380; // Increased size for padding
     const center = size / 2;
-    const outerRadius = 110;
+    const outerRadius = 100; /* Keep radius same, effectively adding padding */
     const levelCount = 4;
 
     const axisPoints = sortedData.map((item, index) => {
@@ -182,23 +185,26 @@ const PronunciationWeaknessRadar = ({ weaknessStats = {} }) => {
         .map((point) => `${point.valuePoint.x},${point.valuePoint.y}`)
         .join(' ');
 
+    const handleCardClick = (item) => {
+        setSelectedCategoryId(item.id);
+        // Find configuration to get static info (description)
+        const config = CATEGORY_CONFIG.find((c) => c.id === item.id);
+        if (config) {
+            setFocusedCategoryInfo({ ...item, ...config });
+        }
+    };
+
     return (
         <div className="weakness-radar-card">
             <div className="weakness-radar-header">
                 <div className="weakness-radar-title-wrap">
                     <h3 className="weakness-radar-title">발음 취약점 분석</h3>
-                    <button
-                        type="button"
-                        className="weakness-info-button"
-                        aria-label="발음 분류 설명 보기"
-                        onClick={() => setIsInfoOpen(true)}
-                    >
-                        i
-                    </button>
+                    {/* INFO BUTTON REMOVED */}
                 </div>
                 <p className="weakness-radar-subtitle">오답률 높은 순 정렬</p>
             </div>
 
+            {/* NEW: CARD GRID LAYOUT */}
             <div className="weakness-radar-layout">
                 <svg className="weakness-radar-svg" viewBox={`0 0 ${size} ${size}`} role="img" aria-label="발음 취약점 레이더 차트">
                     {Array.from({ length: levelCount }).map((_, idx) => {
@@ -255,10 +261,19 @@ const PronunciationWeaknessRadar = ({ weaknessStats = {} }) => {
                             key={item.id}
                             type="button"
                             className={`weakness-radar-item ${selectedCategory?.id === item.id ? 'selected' : ''}`}
-                            onClick={() => setSelectedCategoryId(item.id)}
+                            onClick={() => handleCardClick(item)}
                         >
-                            <span>{fixEncoding(item.label)}</span>
-                            <strong>{formatRate(item.errorRate)}</strong>
+                            <div className="card-header-row">
+                                <span>{fixEncoding(item.label)}</span>
+                                <strong>{formatRate(item.errorRate)}</strong>
+                            </div>
+
+                            <div className="card-progress-bg">
+                                <div
+                                    className="card-progress-fill"
+                                    style={{ width: `${item.errorRate}%` }}
+                                />
+                            </div>
                         </button>
                     ))}
                 </div>
@@ -285,25 +300,21 @@ const PronunciationWeaknessRadar = ({ weaknessStats = {} }) => {
                 )}
             </div>
 
-            {isInfoOpen && (
-                <div className="weakness-info-backdrop" onClick={() => setIsInfoOpen(false)} role="presentation">
+            {focusedCategoryInfo && createPortal(
+                <div className="weakness-info-backdrop" onClick={() => setFocusedCategoryInfo(null)} role="presentation">
                     <div className="weakness-info-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
                         <div className="weakness-info-modal-header">
-                            <h4>발음 분류 설명</h4>
-                            <button type="button" className="weakness-info-close" onClick={() => setIsInfoOpen(false)} aria-label="닫기">
+                            <h4>{fixEncoding(focusedCategoryInfo.label)}</h4>
+                            <button type="button" className="weakness-info-close" onClick={() => setFocusedCategoryInfo(null)} aria-label="닫기">
                                 ×
                             </button>
                         </div>
-                        <div className="weakness-info-list">
-                            {CATEGORY_CONFIG.map((category) => (
-                                <div key={category.id} className="weakness-info-item">
-                                    <strong>{fixEncoding(category.label)}</strong>
-                                    <p>{fixEncoding(category.info)}</p>
-                                </div>
-                            ))}
+                        <div className="weakness-info-content" style={{ padding: '1rem', background: '#fdfaf3', borderRadius: '10px', fontSize: '1.1rem', lineHeight: '1.6', color: '#6f6448' }}>
+                            <p>{fixEncoding(focusedCategoryInfo.info)}</p>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

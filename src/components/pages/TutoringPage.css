@@ -2,7 +2,10 @@
 .subpage-container {
     position: relative;
     width: 100%;
-    min-height: 100vh; /* 화면 꽉 차게 */
+    min-height: 100vh;
+    padding: 0 40px;
+    /* 좌우 여백 확보 */
+    box-sizing: border-box;
 }
 
 /* 로딩 화면 */
@@ -16,33 +19,98 @@
     gap: 20px;
 }
 
-/* 비디오 그리드 레이아웃 */
+/* 비디오 그리드 레이아웃 (유리 컨테이너 적용) */
 .video-grid {
     display: flex;
-    flex-wrap: wrap;
+    /* 중요: flex-wrap: nowrap; - 데스크탑에서 절대 줄바꿈 금지 */
+    flex-wrap: nowrap;
     justify-content: center;
     align-items: flex-start;
     gap: 40px;
-    margin-top: 30px;
+    /* 간격 유지 */
+    margin: 70px auto 30px;
+
+    /* 유리 효과 추가 */
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+    border-radius: 30px;
+    padding: 20px 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+
     width: 100%;
-    max-width: 1200px;
-    margin: 30px auto;
+    max-width: 1400px;
+    /* 충분히 넓게 */
+    box-sizing: border-box;
+    overflow: hidden;
+    /* 넘치는 것 방지 */
+}
+
+/* 타이틀 여백 추가 (버튼과 겹침 방지) */
+.subpage-title {
+    margin-bottom: 80px;
+    /* 컨테이너 아래 여백 확보 */
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #a67c00;
 }
 
 .video-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
-    flex: 1 1 400px;
+
+    /* 중요: flex: 1; - 공간을 공평하게 나눠갖도록 설정 */
+    flex: 1;
+    width: auto;
+    /* 고정 너비 제거 */
     max-width: 600px;
-    min-width: 320px;
+    /* 최대 크기 제한 */
+    min-width: 300px;
+    /* 최소 크기 보장 */
+
     padding: 10px;
     box-sizing: border-box;
 }
 
+/* 모바일 대응: 화면 작을 때만 줄바꿈 허용 */
+@media (max-width: 1024px) {
+    .video-grid {
+        flex-wrap: wrap;
+        padding: 20px;
+    }
+
+    .video-wrapper {
+        flex: 1 1 100%;
+        max-width: 100%;
+    }
+}
+
 .video-label {
-    margin-bottom: 10px;
-    color: #333;
+    margin-bottom: 15px;
+    color: #4a3b32;
+    font-size: 1.5rem;
+    /* 라벨 크기 조금 키움 */
+    font-weight: bold;
+}
+
+.card-date {
+    font-size: 14px;
+    color: #6b5b4e;
+    margin-bottom: 5px;
+}
+
+.teacher-name {
+    margin: 5px 0;
+    font-size: 18px;
+    font-weight: bold;
+    color: #4a3b32;
+}
+
+.class-topic {
+    margin: 0;
+    font-size: 14px;
+    color: #6b5b4e;
 }
 
 .video-placeholder {
@@ -53,28 +121,41 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 1.2rem;
 }
 
-/* 대기 박스 */
+.video-wrapper video {
+    border-radius: 10px;
+    overflow: hidden;
+    width: 100%;
+    /* 부모 너비에 맞춤 */
+    height: auto;
+    object-fit: cover;
+}
+
+/* 대기 박스 (우측 하얀 박스 - 실선 변경) */
 .waiting-box {
     width: 100%;
-    height: 240px;
-    min-height: 240px;
-    background-color: #f0f0f0;
-    border: 2px dashed #ccc;
+    aspect-ratio: 4/3;
+    background-color: #fff;
+    border: 2px solid #ccc;
+    /* 실선 */
     border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #aaa;
     font-weight: bold;
+    box-sizing: border-box;
 }
 
 /* --- 컨트롤 패널 (버튼 영역) --- */
 .control-panel {
     position: absolute;
-    top: 20px;
-    right: 20px;
+    top: 2.5rem;
+    right: 2rem;
     display: flex;
     gap: 10px;
     align-items: center;
@@ -93,12 +174,13 @@
 }
 
 /* 버튼 공통 스타일 */
-.lang-btn, .action-btn {
+.lang-btn,
+.action-btn {
     border: none;
     cursor: pointer;
     font-weight: bold;
     transition: 0.2s;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 /* 언어 버튼 */
@@ -107,22 +189,45 @@
     border-radius: 15px;
     font-size: 12px;
     background-color: #ddd;
-    color: #333;
+    color: #4a3b32;
 }
 
-.lang-btn.active.ko { background-color: #2196F3; color: white; }
-.lang-btn.active.en { background-color: #FF9800; color: white; }
+.lang-btn.active.ko {
+    background-color: #2196F3;
+    color: white;
+}
+
+.lang-btn.active.en {
+    background-color: #FF9800;
+    color: white;
+}
 
 /* 액션 버튼 (자막, 나가기) */
 .action-btn {
     padding: 8px 16px;
     border-radius: 20px;
     color: white;
+    opacity: 0.9;
+    /* Transparent buttons */
+    transition: all 0.3s ease;
 }
 
-.action-btn.stt-on { background-color: #4CAF50; }
-.action-btn.stt-off { background-color: #666; }
-.action-btn.exit { background-color: #ff4444; }
+.action-btn:hover {
+    opacity: 1;
+    transform: translateY(-2px);
+}
+
+.action-btn.stt-on {
+    background-color: #4CAF50;
+}
+
+.action-btn.stt-off {
+    background-color: #666;
+}
+
+.action-btn.exit {
+    background-color: #ff4444;
+}
 
 /* --- 자막 오버레이 (중요!) --- */
 .subtitle-overlay {
@@ -136,12 +241,13 @@
     border-radius: 10px;
     font-size: 20px;
     font-weight: 600;
-    z-index: 9999; /* 최상단 노출 */
+    z-index: 9999;
+    /* 최상단 노출 */
     text-align: center;
     white-space: pre-wrap;
     pointer-events: none;
     max-width: 80vw;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     display: flex;
     align-items: center;
     gap: 12px;

@@ -9,6 +9,7 @@ import PronunciationWeaknessRadar from '../common/PronunciationWeaknessRadar';
 import OverallLearningStats from '../common/OverallLearningStats';
 import { completeOnboarding, getCalendarLogs, getIpaRadarStats, getUserProfile, getUserStats } from '../../api/user';
 import { logout } from '../../api/auth';
+import useScrollAnimation from '../../hooks/useScrollAnimation';
 
 const TYPE_TO_CATEGORY = {
     vowel: 'vowel',
@@ -96,6 +97,7 @@ const mapIpaRadarData = (raw = {}) => {
 
 const ReportPage = () => {
     const navigate = useNavigate();
+    const containerRef = useScrollAnimation();
     const [lastStudy, setLastStudy] = useState(null);
     const [showOnboarding, setShowOnboarding] = useState(false);
     const [user, setUser] = useState(null);
@@ -228,98 +230,58 @@ const ReportPage = () => {
     };
 
     return (
-        <div className="dashboard-container">
-            <header className="dashboard-header">
-                <div className="header-left">
-                    <h1 className="welcome-text">
-                        {user ? `${user.nickname}님, 안녕하세요!` : '안녕하세요!'}
-                    </h1>
-                </div>
-
-                <div className="header-center" onClick={() => navigate('/main')}>
-                    <span className="header-logo-text">바르미</span>
-                </div>
-
-                <div className="header-right">
-                    <div
-                        className="profile-widget"
-                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    >
-                        <div className="profile-circle-small">
-                            <img src={rmi} alt="프로필" className="profile-img-small" />
-                        </div>
-                        <span className="profile-name-small">
-                            {user ? user.nickname : '게스트'}
-                        </span>
-                    </div>
-                    {isDropdownOpen && (
-                        <div className="profile-dropdown">
-                            <div className="dropdown-item" onClick={handleProfileClick}>
-                                👤 마이페이지
-                            </div>
-                            <div className="dropdown-item logout-item" onClick={handleLogout}>
-                                🔓 로그아웃
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </header>
+        <div className="dashboard-container" ref={containerRef}>
+            {/* Header removed as per request */}
 
             {user?.role === 'TUTOR' ? (
                 <>
-                    <section className="status-section">
+                    <div className="report-group anim-target delay-1">
                         <h2 className="section-title">담당 학생 관리</h2>
-                        <div className="status-cards">
-                            <div className="status-item-large" style={{ cursor: 'default' }}>
-                                <span className="card-label">담당 학생 수</span>
-                                <span className="card-value highlight-gold">-명</span>
-                                <span className="click-hint">학생 정보 확인</span>
+                        <section className="status-section-card">
+                            <div className="status-cards">
+                                <div className="status-item-large" style={{ cursor: 'default' }}>
+                                    <span className="card-label">담당 학생</span>
+                                    <span className="card-value highlight-gold">-</span>
+                                    <span className="click-hint">학생 정보 확인</span>
+                                </div>
                             </div>
-                        </div>
-                    </section>
+                        </section>
+                    </div>
 
-                    <section className="report-section">
+                    <div className="report-group anim-target delay-2">
                         <h2 className="section-title">학생 리포트</h2>
-                        <div className="placeholder-box" />
-                    </section>
+                        <section className="report-section-card">
+                            <div className="placeholder-box" />
+                        </section>
+                    </div>
                 </>
             ) : (
                 <>
-                    <section className="status-section">
+                    <div className="report-group anim-target delay-1">
                         <h2 className="section-title">내 학습 현황</h2>
-                        <div className="report-charts-container">
-                            <div className="report-left-column">
-                                <OverallLearningStats stats={overallStats} />
-                                <WeeklyChart weeklyStats={weeklyChartData} />
-                            </div>
-                            <StudyCalendar
-                                studyData={studyCalendarData}
-                                studyCounts={studyCountsData}
-                                onMonthChange={handleMonthChange}
-                            />
-                        </div>
-                    </section>
-
-                    <section className="report-section">
-                        <h2 className="section-title">학습 리포트</h2>
-                        <div className="report-cards-container">
-                            <PronunciationWeaknessRadar weaknessStats={weaknessStats} />
-                        </div>
-                    </section>
-
-                    {lastStudy?.path && (
-                        <section className="status-section">
-                            <div
-                                className="status-item-large clickable"
-                                onClick={() => navigate(lastStudy.path)}
-                                style={{ cursor: 'pointer' }}
-                            >
-                                <span className="card-label">최근 학습</span>
-                                <span className="card-value highlight-gold">{lastStudy.title}</span>
-                                <span className="click-hint">이어서 학습하기</span>
+                        <section className="status-section-card">
+                            <div className="report-charts-container">
+                                <div className="report-left-column">
+                                    <OverallLearningStats stats={overallStats} />
+                                    <WeeklyChart weeklyStats={weeklyChartData} />
+                                </div>
+                                <StudyCalendar
+                                    studyData={studyCalendarData}
+                                    studyCounts={studyCountsData}
+                                    onMonthChange={handleMonthChange}
+                                />
                             </div>
                         </section>
-                    )}
+                    </div>
+
+                    <div className="report-group anim-target delay-2">
+                        <h2 className="section-title">학습 리포트</h2>
+                        <section className="report-section-card">
+                            <div className="report-cards-container">
+                                <PronunciationWeaknessRadar weaknessStats={weaknessStats} />
+                            </div>
+                        </section>
+                    </div>
                 </>
             )}
 

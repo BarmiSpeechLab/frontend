@@ -4,6 +4,7 @@ import Button from '../common/Button';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './LoginPage.css';
 import { login } from '../../api/auth';
+import { getUserProfile } from '../../api/user';
 import { jwtDecode } from "jwt-decode";
 
 // 이미지 에셋
@@ -180,12 +181,36 @@ const LoginPage = () => {
         e.preventDefault();
         try {
             const response = await login(email, password);
-            const nickname = response.nickname || response.data?.nickname;
 
-            // 2. 토큰 및 이메일 저장
+            // Try robustly to find nickname from various probable paths
+            let nickname = response.nickname
+                || response.data?.nickname
+                || response.nickName
+                || response.data?.nickName;
+
+            // 2. 토큰 및 이메일 저장 (먼저 저장해야 getUserProfile 호출 시 헤더에 실림)
             localStorage.setItem('accessToken', response.accessToken);
-            localStorage.setItem('userEmail', email); // 튜토리얼 완료 여부 확인 위해 저장
-            localStorage.setItem('userNickname', nickname);
+            localStorage.setItem('userEmail', email);
+
+            // 닉네임이 없으면 정보 조회 시도
+            if (!nickname || nickname === 'undefined') {
+                try {
+                    const userInfo = await getUserProfile();
+                    // userInfo is likely response.data.data from api/user.js
+                    nickname = userInfo.nickname || userInfo.data?.nickname || userInfo.nickName;
+                } catch (infoError) {
+                    console.error('사용자 정보 조회 실패:', infoError);
+                }
+            }
+
+            // 최종 닉네임 저장
+            if (nickname && nickname !== 'undefined') {
+                localStorage.setItem('userNickname', nickname);
+            } else {
+                // If we still don't have a valid nickname, try to use part of email or fallback
+                // But better to remove it so OnboardingModal handles the default
+                localStorage.removeItem('userNickname');
+            }
 
             try {
                 const decoded = jwtDecode(response.accessToken);
@@ -223,7 +248,7 @@ const LoginPage = () => {
 
             {/* 섹션 1: 히어로 */}
             <section className="section hero-section">
-                <h1 className="hero-title anim-target delay-1">바르미 마을에 입주해보세요!</h1>
+                <h1 className="hero-title anim-target delay-1">바르미 마을의 주민이 되어보세요!</h1>
                 <p className="hero-subtitle anim-target delay-2">가장 쉽고 재미있는 영어 학습 서비스</p>
                 <div style={{ marginTop: '50px' }} className="anim-target delay-3">
                     <img

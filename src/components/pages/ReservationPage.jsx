@@ -24,9 +24,11 @@ const ReservationPage = () => {
     // 1. 이전 페이지에서 넘겨준 튜터 정보 (없으면 null)
     const passedTutorInfo = location.state?.tutorInfo;
     const [tutorInfo, setTutorInfo] = useState(passedTutorInfo || null);
-    
+
     const [selectedDate, setSelectedDate] = useState(new Date());
-    const [availableMeetings, setAvailableMeetings] = useState([]); 
+    // ✅ 달력의 현재 보이는 월을 제어하기 위한 state
+    const [activeStartDate, setActiveStartDate] = useState(new Date());
+    const [availableMeetings, setAvailableMeetings] = useState([]);
     const [displayTimes, setDisplayTimes] = useState([]);
 
     // ✅ 튜터 ID 기반 고정 이미지 매칭
@@ -46,7 +48,7 @@ const ReservationPage = () => {
                 const res = await api.get(`/meetings/tutor/${tutorId}/available`);
                 const allMeetings = res.data.data || res.data || [];
 
-                const purelyAvailable = allMeetings.filter(m => 
+                const purelyAvailable = allMeetings.filter(m =>
                     m.roomId === null || m.roomId === undefined
                 );
 
@@ -82,11 +84,11 @@ const ReservationPage = () => {
         const timesForDay = availableMeetings
             .filter(m => m.datetime && m.datetime.startsWith(dateStr))
             .map(m => ({
-                id: m.id, 
-                time: m.datetime.split('T')[1].substring(0, 5) 
+                id: m.id,
+                time: m.datetime.split('T')[1].substring(0, 5)
             }))
             .sort((a, b) => a.time.localeCompare(b.time));
-        
+
         setDisplayTimes(timesForDay);
     }, [selectedDate, availableMeetings]);
 
@@ -104,8 +106,17 @@ const ReservationPage = () => {
         }
     };
 
+    // ✅ 커스텀 네비게이션 핸들러
+    const handlePrevMonth = () => {
+        setActiveStartDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+    };
+
+    const handleNextMonth = () => {
+        setActiveStartDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+    };
+
     if (!tutorId) return null;
-    if (!tutorInfo && availableMeetings.length === 0) return <div className="loading">일정을 불러오는 중입니다...</div>;
+    if (!tutorInfo && availableMeetings.length === 0) return <div className="loading">일정을 불러오는 중 ...</div>;
 
     return (
         <div className="reservation-page">
@@ -124,26 +135,54 @@ const ReservationPage = () => {
 
             <div className="reservation-content">
                 <div className="calendar-section">
-                    <h3>수업 날짜 선택</h3>
-                    <Calendar 
-                        onChange={setSelectedDate} 
-                        value={selectedDate}
-                        formatDay={(locale, date) => date.getDate()} 
-                        tileDisabled={({ date }) => {
-                            const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-                            return !availableMeetings.some(m => m.datetime && m.datetime.startsWith(dateStr));
-                        }}
-                    />
+                    <h2 className="section-title">수업 날짜를 선택해주세요!</h2>
+
+                    {/* ✅ 커스텀 달력 헤더 구현 (StudyCalendar와 동일한 구조) */}
+                    <div className="study-calendar-wrapper">
+                        <button
+                            className="calendar-nav-btn-outside prev"
+                            onClick={handlePrevMonth}
+                        >
+                            {'<'}
+                        </button>
+
+                        <div className="study-calendar">
+                            <div className="calendar-header-split">
+                                <span className="header-month">{activeStartDate.getMonth() + 1}월</span>
+                                <span className="header-year">{activeStartDate.getFullYear()}</span>
+                            </div>
+
+                            <Calendar
+                                onChange={setSelectedDate}
+                                value={selectedDate}
+                                activeStartDate={activeStartDate}
+                                onActiveStartDateChange={({ activeStartDate }) => setActiveStartDate(activeStartDate)}
+                                showNavigation={false} // 기본 네비게이션 숨김
+                                formatDay={(locale, date) => date.getDate()} // 날짜 숫자만 표시
+                                tileDisabled={({ date }) => {
+                                    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                                    return !availableMeetings.some(m => m.datetime && m.datetime.startsWith(dateStr));
+                                }}
+                            />
+                        </div>
+
+                        <button
+                            className="calendar-nav-btn-outside next"
+                            onClick={handleNextMonth}
+                        >
+                            {'>'}
+                        </button>
+                    </div>
                 </div>
 
                 <div className="time-grid-section">
-                    <h3>{selectedDate.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })} 예약 가능 시간</h3>
+                    <h2 className="section-title">예약 가능 시간</h2>
                     <div className="time-buttons-grid">
                         {displayTimes.length > 0 ? (
                             displayTimes.map(item => (
-                                <button 
-                                    key={item.id} 
-                                    onClick={() => handleConfirm(item.id)} 
+                                <button
+                                    key={item.id}
+                                    onClick={() => handleConfirm(item.id)}
                                     className="time-btn"
                                 >
                                     {item.time}

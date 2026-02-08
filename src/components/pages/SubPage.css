@@ -6,9 +6,12 @@
 }
 
 .subpage-title {
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-size: 2.2rem;
+    /* Increased from 1.5rem */
+    font-weight: 800;
     margin-bottom: 2rem;
+    margin-top: -8px;
+    /* Pull up to align with Sidebar Logo (approx 42px) */
     color: #a67c00;
 }
 
@@ -24,14 +27,24 @@
 }
 
 .tab-btn {
-    padding: 0.625rem 1.25rem;
+    padding: 0.5rem 1.2rem;
     border-radius: 10px;
-    border: 1px solid #ddd;
-    background: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
     font-weight: 600;
-    color: #666;
+    font-size: 0.95rem;
+    color: #4a3b32;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.tab-btn:hover {
+    background: rgba(255, 255, 255, 0.6);
+    /* Semi-transparent hover */
+    color: #a67c00;
+    border-color: #f5e6cc;
 }
 
 .tab-btn.active {

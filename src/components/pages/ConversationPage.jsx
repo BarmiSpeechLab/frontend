@@ -9,11 +9,11 @@ import avatarThinking from '../../assets/img/conversation_thinking.png';
 import avatarFail from '../../assets/img/conversation_fail.png';
 
 const THEMES = [
-    { id: 'DAILY', label: '일상', emoji: '🏠' },
-    { id: 'TRAVEL', label: '여행', emoji: '✈️' },
-    { id: 'FOOD', label: '음식', emoji: '🍔' },
-    { id: 'SHOPPING', label: '쇼핑', emoji: '🛍️' },
-    { id: 'BUSINESS', label: '비즈니스', emoji: '💼' }
+    { id: 'DAILY', label: '일상' },
+    { id: 'TRAVEL', label: '여행' },
+    { id: 'FOOD', label: '음식' },
+    { id: 'SHOPPING', label: '쇼핑' },
+    { id: 'BUSINESS', label: '비즈니스' }
 ];
 
 const ConversationPage = () => {
@@ -30,7 +30,9 @@ const ConversationPage = () => {
     const chatEndRef = useRef(null);
 
     useEffect(() => {
-        chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        if (messages.length > 0 || isProcessing) {
+            chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
     }, [messages, isProcessing]);
 
     const getAvatarImage = () => {
@@ -178,8 +180,7 @@ const ConversationPage = () => {
             {/* 헤더 + 주제 선택 */}
             <div className="conversation-header">
                 <div className="header-top">
-                    <h1 className="header-title">바르미와 대화하기</h1>
-                    <p className="header-subtitle">자유롭게 대화하며 발음을 연습하세요</p>
+                    <h1 className="header-title">회화 연습</h1>
                 </div>
 
                 {/* 주제 버튼 (작은 칩 형태) */}
@@ -210,7 +211,7 @@ const ConversationPage = () => {
                         />
                         {showFailMessage && (
                             <div className="fail-message">
-                                <p>죄송해요, 다시 한 번 말씀해주세요 😅</p>
+                                <p>죄송해요, 다시 한 번 말씀해주세요!</p>
                             </div>
                         )}
                     </div>
@@ -221,7 +222,7 @@ const ConversationPage = () => {
                     <div className="chat-messages">
                         {messages.length === 0 && !isProcessing && (
                             <div className="empty-state">
-                                <p>👆 위에서 주제를 선택하면<br />바르미가 먼저 말을 걸어줘요!</p>
+                                <p>주제를 선택해서<br />바르미와 대화해보세요!</p>
                             </div>
                         )}
 
@@ -239,7 +240,7 @@ const ConversationPage = () => {
                         {isProcessing && messages.length > 0 && (
                             <div className="message ai">
                                 <div className="message-bubble processing">
-                                    분석 중입니다...
+                                    분석 중 ...
                                 </div>
                             </div>
                         )}
@@ -257,12 +258,12 @@ const ConversationPage = () => {
                             {isRecording ? (
                                 <>
                                     <span className="record-icon recording-pulse"></span>
-                                    <span>녹음 중... (클릭하여 종료)</span>
+                                    <span>녹음 중 ... (클릭하여 종료)</span>
                                 </>
                             ) : (
                                 <>
                                     <span className="record-icon"></span>
-                                    <span>{!currentTheme ? '주제를 먼저 선택하세요' : '답변 녹음하기'}</span>
+                                    <span>{!currentTheme ? '주제를 선택해주세요!' : '답변 녹음하기'}</span>
                                 </>
                             )}
                         </button>

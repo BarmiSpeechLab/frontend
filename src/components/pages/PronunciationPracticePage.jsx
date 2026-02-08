@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Mic, Square, Play } from 'lucide-react';
 import './PronunciationPracticePage.css';
@@ -10,6 +11,12 @@ import PronunciationAnalysisResult from "../common/PronunciationAnalysisResult";
 import IntonationGraph from '../common/IntonationGraph';
 import AiFeedback from '../common/AiFeedback';
 import ResultCarousel from '../common/ResultCarousel';
+import { getArticulationImage } from '../../utils/articulationLoader';
+import { getAnswerVideo } from '../../utils/answerVideoLoader';
+import runningGif from '../../assets/img/running.gif';
+import listeningIcon from '../../assets/img/listening.png';
+import recordIcon from '../../assets/img/record.png';
+import loadingImage from '../../assets/img/loading.png';
 
 const PronunciationPracticePage = () => {
     const location = useLocation();
@@ -18,6 +25,9 @@ const PronunciationPracticePage = () => {
         symbol: 'ɑ',
         word: 'car',
     };
+
+    // Load Answer Video (Native or Local)
+    const answerVideoSrc = item.nativeVideoUrl || getAnswerVideo(item.id);
 
     const [isRecording, setIsRecording] = useState(false);
     const [cameraStream, setCameraStream] = useState(null);
@@ -32,6 +42,8 @@ const PronunciationPracticePage = () => {
     const [userAudioUrl, setUserAudioUrl] = useState(null);
     const pollIntervalRef = useRef(null);
     const audioRef = useRef(null);
+    const answerVideoRef = useRef(null);
+    const [isAnswerPlaying, setIsAnswerPlaying] = useState(false);
 
     const handleCancelAnalysis = () => {
         if (pollIntervalRef.current) {
@@ -266,7 +278,7 @@ const PronunciationPracticePage = () => {
                 <div className="header-top">
                     <button className="back-button" onClick={handleBack}>뒤로가기</button>
                 </div>
-                <div className="header-row">
+                <div className="top-section-card">
                     <div className="header-text">
                         <h1 className="practice-title">{fixEncoding(item.word || item.symbol)}</h1>
                         <div className="practice-subtitle">
@@ -293,13 +305,43 @@ const PronunciationPracticePage = () => {
                             </div>
                         )}
                     </div>
-                    <div className="header-video">
-                        <div className="visual-label">원어민 발음</div>
-                        {item.nativeVideoUrl ? (
-                            <video src={item.nativeVideoUrl} controls />
-                        ) : (
-                            <div style={{ fontSize: '2.5rem', opacity: 0.3 }}>-</div>
-                        )}
+                    <div className="visual-col">
+                        <div className="visual-label-outside">정답 입모양</div>
+                        <div className="header-video" style={{ background: '#fff', position: 'relative' }}>
+                            {answerVideoSrc ? (
+                                <>
+                                    <video
+                                        ref={answerVideoRef}
+                                        src={answerVideoSrc}
+                                        controls
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: isAnswerPlaying ? 'block' : 'none' }}
+                                        onEnded={() => setIsAnswerPlaying(false)}
+                                        onPause={() => setIsAnswerPlaying(false)}
+                                        onPlay={() => setIsAnswerPlaying(true)}
+                                    />
+                                    {!isAnswerPlaying && (
+                                        <div
+                                            className="video-overlay-white"
+                                            onClick={() => {
+                                                if (answerVideoRef.current) {
+                                                    answerVideoRef.current.play();
+                                                    setIsAnswerPlaying(true);
+                                                }
+                                            }}
+                                            style={{
+                                                position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                                                background: 'rgba(255, 255, 255, 0.95)',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10
+                                            }}
+                                        >
+                                            <Play size={64} color="#a67c00" fill="#a67c00" />
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                <img src={loadingImage} alt="준비 중" style={{ width: '90%', height: '90%', objectFit: 'contain', opacity: 0.8 }} />
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -308,7 +350,32 @@ const PronunciationPracticePage = () => {
                 {/* Row 1: 결과 및 녹음 제어 */}
                 <div className="row-2-myrecording">
                     <div className="record-section">
-                        {!analysisResult && <div className="record-title">내 발음 녹음</div>}
+                        {!analysisResult && (
+                            <div className="record-panel-glass">
+                                <div className="record-title">내 발음 녹음하기</div>
+                                <div className="record-controls">
+                                    <button
+                                        className={`record-btn-merged ${isRecording ? "recording" : ""}`}
+                                        onClick={handleRecordToggle}
+                                        disabled={isAnalyzing}
+                                    >
+                                        <img
+                                            src={isRecording ? listeningIcon : recordIcon}
+                                            alt={isRecording ? "녹음 중" : "녹음 하기"}
+                                            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                                        />
+                                    </button>
+                                    <div className="record-status">
+                                        <p className="status-text">{isRecording ? "녹음 중 ..." : "준비 완료!"}</p>
+                                        {userAudioUrl && (
+                                            <button className="play-btn" onClick={handlePlayAudio} disabled={isAnalyzing}>
+                                                <Play size={20} /> 다시 듣기
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         {analysisResult && (
                             <PronunciationAnalysisResult
@@ -321,39 +388,24 @@ const PronunciationPracticePage = () => {
                                 onRedo={() => { setAnalysisResult(null); setSelectedCipa(null); }}
                             />
                         )}
-
-                        {!analysisResult && (
-                            <div className="record-controls">
-                                <button
-                                    className={`record-btn-merged ${isRecording ? "recording" : ""}`}
-                                    onClick={handleRecordToggle}
-                                    disabled={isAnalyzing}
-                                >
-                                    {isRecording ? <Mic size={40} /> : <Mic size={40} />}
-                                </button>
-                                <div className="record-status">
-                                    <p className="status-text">{isRecording ? "🔴 녹음 중..." : "준비 완료"}</p>
-                                    {userAudioUrl && (
-                                        <button className="play-btn" onClick={handlePlayAudio} disabled={isAnalyzing}>
-                                            <Play size={20} /> 다시 듣기
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        )}
                     </div>
 
-                    <div className={`visual-card visual-card-compact ${analysisResult ? "articulation--done" : "articulation--idle"}`}>
-                        <div className="visual-label">조음 위치</div>
-                        {(() => {
-                            const wrongGif = selectedCipa ? getArticulationGifByCipa(selectedCipa) : null;
-                            const imageSrc = wrongGif || localTongue || item.tonguePositionUrl;
-                            return imageSrc ? (
-                                <img src={imageSrc} alt="조음 위치" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                            ) : (
-                                <div style={{ fontSize: '3rem', opacity: 0.3 }}>-</div>
-                            );
-                        })()}
+                    <div className="visual-col">
+                        <div className="visual-label-outside">조음 위치</div>
+                        <div className={`visual-card visual-card-compact ${analysisResult ? "articulation--done" : "articulation--idle"}`}>
+                            {(() => {
+                                const wrongGif = selectedCipa ? getArticulationGifByCipa(selectedCipa) : null;
+                                // New Loader Logic
+                                const newImage = getArticulationImage(item.id, item.symbol);
+                                const imageSrc = wrongGif || newImage || localTongue || item.tonguePositionUrl;
+
+                                return imageSrc ? (
+                                    <img src={imageSrc} alt="조음 위치" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                ) : (
+                                    <img src={loadingImage} alt="준비 중" style={{ width: '70%', height: '70%', objectFit: 'contain', opacity: 0.8 }} />
+                                );
+                            })()}
+                        </div>
                     </div>
 
                     {!isAnalyzing && analysisResult && (
@@ -370,7 +422,7 @@ const PronunciationPracticePage = () => {
                             userPitch={analysisResult?.userPitch || []}
                             standardSegments={analysisResult?.standardSegments || []}
                             userSegments={analysisResult?.userSegments || []}
-                            width={800} height={270}
+                            width={800} height={450}
                         />
                     </div>
 
@@ -380,16 +432,20 @@ const PronunciationPracticePage = () => {
                 </div>
             </div>
 
-            {isAnalyzing && (
+            {isAnalyzing && createPortal(
                 <div className="analysis-overlay">
                     <div className="analysis-spinner-box">
-                        <div className="spinner-circle"></div>
-                        <p className="analysis-text">발음을 분석 중입니다...</p>
-                        <button className="analysis-cancel-btn" onClick={handleCancelAnalysis}>취소</button>
+                        <img src={runningGif} alt="Analyzing..." className="analysis-gif" />
+                        <p className="analysis-text">발음 분석 중 ...</p>
+                        <button className="analysis-cancel-btn" onClick={handleCancelAnalysis}>
+                            취소
+                        </button>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
+            {/* 숨겨진 오디오 엘리먼트 */}
             <audio ref={audioRef} />
         </div>
     );

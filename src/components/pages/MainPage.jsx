@@ -1,7 +1,7 @@
 ﻿import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import rmi from '../../assets/img/rmi.png';
-import rmiHandsup from '../../assets/img/rmi_handsup.png';
+import home from '../../assets/img/home.png';
+import homeRmi from '../../assets/img/home_rmi.png';
 import './MainPageHome.css';
 import OnboardingModal from '../common/OnboardingModal';
 import { getUserProfile, completeOnboarding } from '../../api/user';
@@ -12,28 +12,57 @@ const MainPage = () => {
     const [userName, setUserName] = useState('');
     const [hoveredItem, setHoveredItem] = useState(null);
     const [showOnboarding, setShowOnboarding] = useState(false);
+    const [headerMoved, setHeaderMoved] = useState(false); // New state for animation
 
     const userRole = localStorage.getItem('userRole') || 'USER';
 
     useEffect(() => {
-        const checkOnboarding = () => {
+        // Trigger animation after 1.5s
+        const timer = setTimeout(() => {
+            setHeaderMoved(true);
+        }, 1500);
+
+        const checkOnboarding = (userData) => {
             const loggedInEmail = localStorage.getItem('userEmail') || 'guest';
             const storageKey = `onboardingCompleted_${userRole}_${loggedInEmail}`;
-            const status = localStorage.getItem(storageKey);
-            if (status !== 'true') setShowOnboarding(true);
+            const localStatus = localStorage.getItem(storageKey);
+
+            // 1. If locally marked as done, trust it
+            if (localStatus === 'true') {
+                return;
+            }
+
+            // 2. If backend data is available, check it
+            if (userData) {
+                // Check common field names for tutorial status
+                const isDone = userData.tutorialYn === 'Y' || userData.tutorialCompleted === true;
+                if (isDone) {
+                    // Sync local
+                    localStorage.setItem(storageKey, 'true');
+                    return;
+                }
+            }
+
+            // 3. If we get here, show onboarding (New User or not synced)
+            setShowOnboarding(true);
         };
 
         const fetchProfile = async () => {
             try {
                 const userData = await getUserProfile();
                 setUserName(userData?.nickname || '');
+                // Pass userData to checkOnboarding
+                checkOnboarding(userData);
             } catch (err) {
                 console.error('메인 프로필 로딩 실패', err);
+                // Fallback check without backend data
+                checkOnboarding(null);
             }
         };
 
-        checkOnboarding();
         fetchProfile();
+
+        return () => clearTimeout(timer);
     }, [userRole]);
 
     const handleLogout = async () => {
@@ -78,19 +107,20 @@ const MainPage = () => {
     const menuItems = allMenuItems.filter(item => item.roles.includes(userRole));
 
     return (
-        <div className="main-home main-home--bg">
+        <div className="main-home">
             <div className="main-home__overlay" />
-            <div className="main-home__content">
-                <header className="main-home__headline">
-                    <p className="main-home__brand">Barmi Speech Lab</p>
-                    <h1 className="main-home__title">
-                        {userName ? `${userName}님, ` : ''}바르미 마을에 오신걸 환영합니다
-                    </h1>
-                    <p className="main-home__subtitle">미어캣을 눌러 학습을 시작하세요!</p>
-                </header>
 
-                <section className="main-home__menu">
-                    {menuItems.map((item) => (
+            {/* Header moved outside content to be relative to screen */}
+            <header className={`main-home__headline ${headerMoved ? 'headline-moved' : ''}`}>
+                <h1 className="main-home__title">
+                    {userName ? `${userName}님, ` : ''}바르미 마을 입주를 환영합니다!
+                </h1>
+                <p className="main-home__subtitle">미어캣을 불러 학습을 시작해보세요.</p>
+            </header>
+
+            <div className="main-home__content">
+                <section className={`main-home__menu ${headerMoved ? 'menu-visible' : ''}`}>
+                    {menuItems.map((item, index) => (
                         <button
                             key={item.label}
                             className="main-home__menu-item"
@@ -100,9 +130,9 @@ const MainPage = () => {
                             type="button"
                         >
                             <div className="main-home__menu-mascot">
-                                <img 
-                                    src={hoveredItem === item.label ? rmiHandsup : rmi} 
-                                    alt="마스코트" 
+                                <img
+                                    src={hoveredItem === item.label ? homeRmi : home}
+                                    alt="마스코트"
                                 />
                             </div>
                             <span className="main-home__menu-label">{item.label}</span>

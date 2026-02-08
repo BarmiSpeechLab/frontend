@@ -5,7 +5,9 @@ import stamp from '../../assets/img/stamp.png';
 import ipaImg from '../../assets/img/ipa_img.png';
 import wordImg from '../../assets/img/word_img.png';
 import sentImg from '../../assets/img/sent_img.png';
+import './SubPage.css'; // Ensure common styles are applied
 import './LearningPage.css';
+import useScrollAnimation from '../../hooks/useScrollAnimation';
 
 function LearningPage() {
     const navigate = useNavigate();
@@ -18,6 +20,9 @@ function LearningPage() {
     const [loading, setLoading] = useState(true);
     const [activeFilter, setActiveFilter] = useState('daily');
     const [viewMode, setViewMode] = useState(null);
+
+    // Pass dependencies to re-run observer when mode or loading changes
+    const containerRef = useScrollAnimation([viewMode, loading]);
 
     const fixEncoding = (str) => {
         if (typeof str !== 'string' || !str) return str;
@@ -198,11 +203,11 @@ function LearningPage() {
 
     if (!viewMode) {
         return (
-            <div className="subpage-container selection-page">
-                <h1 className="subpage-title">어떤 학습을 시작할까요?</h1>
-                <p className="subpage-desc">원하는 학습 모드를 선택해 보세요.</p>
+            <div className="subpage-container selection-page" ref={containerRef}>
+                <h1 className="subpage-title anim-target delay-1">어떤 학습을 시작할까요?</h1>
+                <p className="subpage-desc anim-target delay-2">원하는 학습 모드를 선택해 보세요.</p>
                 <div className="learning-selection-grid">
-                    <div className="selection-card pron" onClick={() => navigate('/pronunciation')}>
+                    <div className="selection-card pron anim-target delay-3" onClick={() => navigate('/pronunciation')}>
                         <div className="card-icon">
                             <img src={ipaImg} alt="발음기호" className="selection-card-img" />
                         </div>
@@ -210,7 +215,7 @@ function LearningPage() {
                         <p>영어의 기초가 되는<br />발음기호부터 차근차근</p>
                         <button className="select-btn">시작하기</button>
                     </div>
-                    <div className="selection-card word" onClick={() => navigate('/learning?mode=WORD')}>
+                    <div className="selection-card word anim-target delay-4" onClick={() => navigate('/learning?mode=WORD')}>
                         <div className="card-icon">
                             <img src={wordImg} alt="단어 학습" className="selection-card-img" />
                         </div>
@@ -218,7 +223,7 @@ function LearningPage() {
                         <p>주제별 필수 단어로<br />어휘력을 쑥쑥</p>
                         <button className="select-btn">시작하기</button>
                     </div>
-                    <div className="selection-card sentence" onClick={() => navigate('/learning?mode=SENTENCE')}>
+                    <div className="selection-card sentence anim-target delay-5" onClick={() => navigate('/learning?mode=SENTENCE')}>
                         <div className="card-icon">
                             <img src={sentImg} alt="문장 학습" className="selection-card-img" />
                         </div>
@@ -237,11 +242,11 @@ function LearningPage() {
         : [];
 
     return (
-        <div className="subpage-container">
-            <h1 className="subpage-title">
+        <div className="subpage-container" ref={containerRef}>
+            <h1 className="subpage-title anim-target delay-1">
                 {viewMode === 'SENTENCE' ? '주제별 문장 학습' : '주제별 단어 학습'}
             </h1>
-            <div className="tabs">
+            <div className="tabs anim-target delay-2">
                 {CATEGORIES.map(f => (
                     <button
                         key={f}
@@ -252,7 +257,7 @@ function LearningPage() {
                     </button>
                 ))}
             </div>
-            <div className="card-grid col-3">
+            <div className="card-grid col-3 anim-target delay-3">
                 {loading ? (
                     <div className="loading-state">로딩 중...</div>
                 ) : displayItems.length === 0 ? (

@@ -1,16 +1,35 @@
+@keyframes slideInSidebar {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
 .sidebar {
     width: 260px;
-    height: 100vh;
-    background-color: #ffffff;
-    border-right: 1px solid #f0f0f0;
+    background-color: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    border-right: none;
     display: flex;
     flex-direction: column;
     padding: 1.5rem 0.5rem;
     position: fixed;
     top: 0;
     left: 0;
+    bottom: 0;
+    padding-top: 42px;
+    /* Adjusted: 74 -> 42 to Move Logo UP while keeping Menu Lower with increased margin */
+    /* Extend to bottom */
+    height: auto;
+    /* Allow full height */
     z-index: 100;
     overflow: hidden;
+    animation: slideInSidebar 0.8s cubic-bezier(0.19, 1, 0.22, 1) forwards;
 }
 
 .sidebar-mascot {
@@ -35,11 +54,13 @@
     font-family: 'Barmi', sans-serif;
     font-size: 3rem;
     color: #a68b5e;
+    /* Match Login Page Hero Color */
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 0.05rem;
-    margin-bottom: 2.5rem;
+    margin-bottom: 3rem;
+    /* Expanded Margin */
     padding: 0;
     background: transparent;
     border: none;
@@ -49,15 +70,17 @@
 }
 
 .sidebar-logo-image {
-    width: 120px;
-    height: 120px;
+    width: 80px;
+    height: 80px;
+    /* Reduced size */
     object-fit: contain;
     flex-shrink: 0;
 }
 
 .sidebar-logo img {
-    width: 120px;
-    height: 120px;
+    width: 80px;
+    height: 80px;
+    /* Reduced size */
     object-fit: contain;
 }
 
@@ -81,24 +104,30 @@
 
 .nav-link {
     text-decoration: none;
-    color: #666;
+    color: #4a3b32;
+    /* Slightly darker for readability on transparency */
     font-size: 1rem;
-    font-weight: 500;
+    font-weight: 700;
     display: flex;
     align-items: center;
+    justify-content: center;
+    /* Center alignment */
     padding: 0.875rem 1.25rem;
     border-radius: 12px;
     transition: all 0.2s;
 }
 
 .nav-link:hover {
-    background-color: #f8f8f8;
+    background-color: rgba(248, 243, 235, 0.5);
+    /* Semi-transparent light beige */
     color: #333;
 }
 
 .nav-link.active {
-    background-color: #f5f0e6;
+    background-color: rgba(245, 240, 230, 0.5);
+    /* More transparent active beige */
     color: #a67c00;
+    /* Keep gold text */
     font-weight: 700;
 }
 
@@ -109,7 +138,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
-    animation: slideDown 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+    animation: slideDown 0.6s cubic-bezier(0.22, 1, 0.36, 1);
     transform-origin: top center;
     will-change: transform, opacity;
 }
@@ -119,6 +148,7 @@
         opacity: 0;
         transform: translateY(-6px) scale(0.99);
     }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -127,7 +157,8 @@
 
 .nav-sublink {
     text-decoration: none;
-    color: #9ca3af;
+    color: #4a3b32;
+    /* Changed from #9ca3af to dark brown */
     font-size: 0.9rem;
     font-weight: 500;
     display: block;
@@ -138,12 +169,12 @@
 }
 
 .nav-sublink:hover {
-    background-color: #f8f8f8;
+    background-color: rgba(248, 243, 235, 0.5);
     color: #6b7280;
 }
 
 .nav-sublink.active {
-    background-color: #f5f0e6;
+    background-color: rgba(245, 240, 230, 0.5);
     color: #a67c00;
     font-weight: 700;
 }

@@ -5,12 +5,7 @@
     color: #333;
 }
 
-.subpage-title {
-    font-size: 1.5rem;
-    color: #a67c00;
-    font-weight: 800;
-    margin-bottom: 2rem;
-}
+/* .subpage-title removed to use SubPage.css */
 
 .tabs {
     display: flex;
@@ -28,21 +23,25 @@
 }
 
 .tab-btn {
-    padding: 0.8rem 2rem;
-    border-radius: 50px;
-    border: 1px solid #ddd;
-    background: #fff;
-    color: #888;
-    font-weight: 600;
+    padding: 0.6rem 1.2rem;
+    border-radius: 10px;
+    /* Matched to Conversation Chips (was 50px) */
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    color: #4a3b32;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.2s;
-    font-size: 1rem;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     white-space: nowrap;
     flex-shrink: 0;
 }
 
 .tab-btn:hover {
-    background: #fdfaf3;
+    background: rgba(255, 255, 255, 0.55);
+    /* Semi-transparent hover */
     color: #a67c00;
     border-color: #f5e6cc;
 }
@@ -67,9 +66,11 @@
 }
 
 .epa-card {
-    background: #fdfaf3;
-    border: 1px solid #f5e6cc;
-    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    /* Reduced from 16px */
     padding: 2rem;
     display: flex;
     flex-direction: column;
@@ -79,10 +80,61 @@
     cursor: pointer;
     transition: all 0.2s;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    position: relative;
+}
+
+.completed-stamp {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 80px;
+    height: 80px;
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 10;
+    transform: rotate(45deg);
+}
+
+.completed-stamp img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Stats Badge Styles (Matched to LearningPage) */
+.stats-above-progress {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+}
+
+.stat-badge-left {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #666;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    border: 1px solid #eee;
+}
+
+.stat-badge-right {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #d4af37;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f2dfb6;
 }
 
 .epa-card:hover {
-    background: #fff;
+    background: rgba(255, 255, 255, 0.5);
+    /* More transparent (0.8 -> 0.6) */
     transform: translateY(-2px);
     box-shadow: 0 8px 16px rgba(166, 124, 0, 0.1);
     border-color: #a67c00;
@@ -97,8 +149,15 @@
 
 .epa-word {
     font-size: 1rem;
-    color: #888;
+    color: #6b5b4e;
+    font-weight: 600;
     margin: 0;
+}
+
+.epa-kor {
+    color: #8a6d3b;
+    font-weight: 600;
+    margin-left: 0.5rem;
 }
 
 .epa-progress-bg {
