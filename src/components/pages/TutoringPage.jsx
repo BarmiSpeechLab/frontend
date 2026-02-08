@@ -269,12 +269,11 @@ const TutoringPage = () => {
             ) : (
                 <div className="video-grid">
                     <div className="video-wrapper">
-                        <h3 className="video-label">나 ({currentMember?.nickname})</h3>
-                        {mainStreamManager ? <UserVideoComponent streamManager={mainStreamManager} /> : <div className="video-placeholder">카메라 로딩중...</div>}
+                        <h3 className="video-label">나</h3>
+                        {mainStreamManager ? <UserVideoComponent streamManager={mainStreamManager} /> : <div className="video-placeholder">카메라 로딩중 ...</div>}
                     </div>
                     <div className="video-wrapper">
-                        <h3 className="video-label">
-                            {currentMember?.role === ROLE.TEACHER ? '학생' : '선생님'}(상대방)</h3>
+                        <h3 className="video-label">{currentMember?.role === ROLE.TEACHER ? '학생' : '선생님'}</h3>
                         {subscribers.length === 0 ? (
                             <div className="waiting-box">상대방을 기다리는 중 ...</div>
                         ) : (

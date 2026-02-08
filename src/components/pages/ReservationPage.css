@@ -96,11 +96,11 @@
 }
 
 .reservation-page .section-title {
-    font-size: 1.9rem !important;
+    font-size: 1.5rem !important;
     font-weight: 900;
     color: #4a3b32 !important;
     /* Dark Brown */
-    margin: 0 0 1.5rem 0;
+    margin: 0 0 2rem 0;
     line-height: 1.2;
     text-shadow: 0 2px 4px rgba(74, 59, 50, 0.1);
 }
@@ -115,7 +115,7 @@
 
 .reservation-page .study-calendar-wrapper {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     /* Align to top */
     justify-content: center;
     gap: 1.5rem;
@@ -148,7 +148,6 @@
     transition: all 0.2s ease;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
     flex-shrink: 0;
-    margin-top: 20px;
     /* Adjust vertical alignment */
 }
 
