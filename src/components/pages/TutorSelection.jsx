@@ -62,14 +62,14 @@ const TutorSelection = () => {
     }, []);
 
     const handleCardClick = (tutor) => {
-        navigate(`/tutoring/reserve/${tutor.id}`, { 
-            state: { tutorInfo: tutor } 
+        navigate(`/tutoring/reserve/${tutor.id}`, {
+            state: { tutorInfo: tutor }
         });
     };
 
     return (
         <div className="tutor-selection-container">
-            <h2>선생님을 선택해주세요</h2>
+            <h2>선생님을 선택해주세요!</h2>
             <div className="tutor-grid">
                 {tutors.map(tutor => (
                     <div key={tutor.id} className="tutor-card-detail" onClick={() => handleCardClick(tutor)}>

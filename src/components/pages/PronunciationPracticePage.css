@@ -16,8 +16,10 @@
 }
 
 .back-button {
-    background: #fff;
-    border: 1px solid #e0e0e0;
+    background: rgba(255, 255, 255, 0.5);
+    /* Glass effect */
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     color: #555;
     padding: 0.5rem 1rem;
     border-radius: 10px;
@@ -27,36 +29,76 @@
 }
 
 .back-button:hover {
-    background: #f5f5f5;
+    background: rgba(255, 255, 255, 0.8);
 }
 
-.header-row {
-    display: flex;
+/* New Top Section Card - Matches row-2-myrecording */
+.top-section-card {
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 16px;
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    /* Aligns with bottom recording card */
     gap: 1.5rem;
-    align-items: stretch;
-    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
+
+/* Restore header-text */
 .header-text {
-    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
 }
 
+.visual-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.visual-label-outside {
+    /* Original .visual-label style */
+    background: rgba(166, 124, 0, 0.1);
+    color: #a67c00;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+
+    /* Formatting for inside glass wrapper */
+    margin-bottom: 0.5rem;
+    align-self: flex-start;
+}
+
+/* .visual-glass-wrapper removed */
+
+
 .header-video {
     position: relative;
-    width: 320px;
-    min-height: 220px;
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 16px;
+    width: 100%;
+    /* Match the grid column width (320px) like the bottom card */
+    height: 220px;
+    /* Match .visual-card-compact height */
+    /* Match .visual-card-compact height */
+    background: rgba(255, 255, 255, 0.7) !important;
+    /* Force 0.7 transparency */
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    margin: 0 auto;
+    /* Center in grid cell */
 }
 
 .header-video video {
@@ -147,8 +189,9 @@
 }
 
 .visual-box {
-    background: #fff;
-    border: 1px solid #ddd;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 20px;
     height: 320px;
     display: flex;
@@ -158,6 +201,14 @@
     position: relative;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     overflow: hidden;
+}
+
+/* 조음 위치 카드 박스 제거(배경/테두리/그림자) */
+.visual-card.visual-card-compact {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    overflow: visible;
 }
 
 .visual-label {
@@ -170,6 +221,14 @@
     border-radius: 20px;
     font-weight: 600;
     font-size: 0.85rem;
+}
+
+/* 조음 위치(visual-card-compact) 라벨을 가운데로 */
+.visual-card.visual-card-compact .visual-label {
+    left: 50%;
+    transform: translateX(-50%);
+    top: -3rem;
+    /* 필요하면 조절 */
 }
 
 .user-cam-placeholder {
@@ -191,8 +250,9 @@
 }
 
 .practice-controls {
-    background: #fdfaf3;
-    border: 1px solid #f5e6cc;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 20px;
     padding: 2rem;
     text-align: center;
@@ -306,13 +366,15 @@
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7);
+    /* Darker overlay as requested */
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 2000;
+    z-index: 9999;
+    /* Ensure it's on top of everything */
     animation: fadeIn 0.3s ease;
     backdrop-filter: blur(5px);
 }
@@ -326,17 +388,15 @@
     align-items: center;
     gap: 1.5rem;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    width: 300px;
+    width: 320px;
     text-align: center;
 }
 
-.spinner-circle {
-    width: 50px;
-    height: 50px;
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid #a67c00;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
+.analysis-gif {
+    width: 80px;
+    /* Adjust size as needed */
+    height: auto;
+    object-fit: contain;
 }
 
 .analysis-text {
@@ -397,8 +457,9 @@
 }
 
 .visual-card {
-    background: #fff;
-    border: 1px solid #ddd;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 16px;
     height: 260px;
     display: flex;
@@ -418,62 +479,110 @@
 }
 
 /* Row 2: 내 발음 (녹음/재생) */
+/* Row 2: 내 발음 (녹음/재생) */
 .row-2-myrecording {
-    background: #fdfaf3;
-    border: 1px solid #f5e6cc;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 16px;
-    padding: 2rem;
+    padding: 1.5rem 2rem;
     display: grid;
     grid-template-columns: 1fr 320px;
     gap: 1.5rem;
-    align-items: center;
+    align-items: stretch;
+    min-height: 260px;
 }
 
+/* Match header-video exactly */
 .record-section {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1.5rem;
+    gap: 0;
+    margin-bottom: 0;
+    width: 100%;
+    height: 100%;
+    /* Fill grid cell height */
 }
 
-.visual-card-compact {
-    height: 220px;
+.record-panel-glass {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    width: 100%;
+    height: 100%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    justify-content: center;
+}
+
+/* Match header-video exactly - Force override with specificity */
+.row-2-myrecording .visual-card.visual-card-compact {
+    height: 100%;
+    /* Force full height to match left box */
+    flex: 1;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .record-title {
-    font-size: 1.2rem;
+    font-size: 1.6rem;
     font-weight: 700;
-    color: #333;
+    color: #4c3b24;
+    margin-bottom: 0.5rem;
+    /* Small spacing to subtitle */
+}
+
+.record-subtitle {
+    font-size: 0.95rem;
+    color: #9f9f9f;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
 }
 
 .record-controls {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 2rem;
+    gap: 0.8rem;
     width: 100%;
     justify-content: center;
-    flex-wrap: wrap;
 }
 
 .record-btn-merged {
-    width: 80px;
-    height: 80px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     border: none;
-    background: #ff5252;
-    color: white;
+    background: transparent;
+    /* Remove red background */
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 12px rgba(255, 82, 82, 0.3);
-    transition: all 0.3s ease;
-    font-size: 1.5rem;
+    transition: transform 0.2s ease;
+    /* Scale effect */
+    padding: 0;
 }
 
 .record-btn-merged:hover:not(:disabled) {
-    transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(255, 82, 82, 0.4);
+    transform: scale(1.1);
+    /* Slight grow on hover */
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+    /* Add shadow to image */
 }
 
 .record-btn-merged:disabled {
@@ -482,21 +591,21 @@
 }
 
 .record-btn-merged.recording {
-    background: #d32f2f;
+    background: transparent;
     animation: pulse 1.5s infinite;
 }
 
 @keyframes pulse {
     0% {
-        box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.7);
+        transform: scale(1);
     }
 
-    70% {
-        box-shadow: 0 0 0 10px rgba(211, 47, 47, 0);
+    50% {
+        transform: scale(1.1);
     }
 
     100% {
-        box-shadow: 0 0 0 0 rgba(211, 47, 47, 0);
+        transform: scale(1);
     }
 }
 
@@ -508,9 +617,9 @@
 }
 
 .status-text {
-    font-size: 1rem;
+    font-size: 1.3rem;
     font-weight: 600;
-    color: #555;
+    color: #4c3b24;
     margin: 0;
 }
 
@@ -545,24 +654,46 @@
     align-items: stretch;
 }
 
-/* Row 3: 억양 그래프 */
+/* Row 3: 억양 그래프 - Outer container reset */
 .row-3-intonation {
     background: transparent;
     border: none;
-    border-radius: 0;
     padding: 0;
     box-shadow: none;
+    border-radius: 0;
+    backdrop-filter: none;
+}
+
+/* Inner card styling override */
+.row-3-intonation .graph-card {
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    /* Adjust padding if needed, keeping original grid card padding or matching others */
+    padding: 2rem;
+}
+
+/* Force override canvas background to 0.7 opacity */
+.row-3-intonation .graph-card canvas.intonation-canvas-display {
+    background-color: rgba(255, 255, 255, 0.7) !important;
+    background: rgba(255, 255, 255, 0.7) !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
 }
 
 
 /* Row 4: AI 피드백 */
 .row-4-feedback {
-    background: #fff7ea;
-    border: 1px solid #f1d9b3;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 16px;
-    padding: 1.2rem;
-    /* Reduced padding from 2rem */
-    box-shadow: 0 6px 16px rgba(166, 124, 0, 0.12);
+    padding: 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .feedback-card {
@@ -669,5 +800,139 @@
     .example-chip {
         font-size: 0.9rem;
         padding: 0.4rem 0.7rem;
+    }
+}
+
+/* ===== 분석 결과 캐러셀 레이아웃 ===== */
+
+.analysis-results-carousel-wrapper {
+    width: 100%;
+    margin-bottom: 2rem;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.visual-card-slide {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    gap: 1.5rem;
+}
+
+.visual-card-slide .visual-card {
+    width: 100%;
+    max-width: 400px;
+    height: 300px;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid rgba(166, 124, 0, 0.1);
+}
+
+.visual-card-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 10px;
+}
+
+.vis-desc {
+    font-size: 1rem;
+    color: #5a4a2f;
+    font-weight: 500;
+    text-align: center;
+    padding: 0 20px;
+}
+
+/* 우하단 구석 다시시도 버튼 */
+.practice-container-merged .row-2-myrecording {
+    position: relative;
+    /* Positioning context for the button */
+}
+
+.redo-btn-absolute {
+    position: absolute;
+    right: 1.5rem;
+    bottom: 1.5rem;
+    padding: 0.6rem 1.4rem;
+    background: #ff5252;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(255, 82, 82, 0.2);
+    transition: all 0.2s ease;
+    z-index: 5;
+}
+
+.redo-btn-absolute:hover {
+    background: #ff3d3d;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 82, 82, 0.3);
+}
+
+.redo-btn-absolute:active {
+    transform: translateY(0);
+}
+
+/* 녹음 섹션이 결과 화면 위에 작게 위치할 때의 스타일 (선택 사항) */
+.practice-container-merged .row-2-myrecording:not(:last-child) {
+    margin-bottom: 1rem;
+}
+
+/* 개별 컴포넌트 로딩 스피너 */
+.component-spinner-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    min-height: 150px;
+    gap: 1rem;
+    color: #a67c00;
+}
+
+.component-spinner-circle {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(166, 124, 0, 0.1);
+    border-top: 3px solid #a67c00;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.spinner-text {
+    font-size: 0.9rem;
+    font-weight: 500;
+    opacity: 0.8;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* 반응형 조정 */
+@media (max-width: 768px) {
+    .visual-card-slide .visual-card {
+        height: 240px;
+    }
+
+    .vis-desc {
+        font-size: 0.9rem;
     }
 }

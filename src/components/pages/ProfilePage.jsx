@@ -148,107 +148,112 @@ const ProfilePage = () => {
         return `${days}일`;
     };
 
-    if (loading) return <div className="profile-container">로딩 중...</div>;
-    if (error) return <div className="profile-container">{error}</div>;
+    if (loading) return <div className="profile-dashboard-container">로딩 중...</div>;
+    if (error) return <div className="profile-dashboard-container">{error}</div>;
 
     return (
-        <div className="profile-container">
-            <h1 className="profile-title">프로필 수정</h1>
-            <div className="profile-top-layout">
-                {/* 기본 정보 */}
-                <section className="profile-card basic-info">
-                    <h2 className="card-title">기본 정보</h2>
-                    <div className="info-content">
-                        <div
-                            className={`avatar-circle ${isEditing ? 'editable' : ''}`}
-                            onClick={triggerFileInput}
-                        >
-                            {/* 이미지 수정 안 넣을 경우 없어도 됨 */}
-                            {profileImage ? (
-                                <img src={profileImage} alt="Profile" className="avatar-img" />
-                            ) : (
-                                <span className="avatar-placeholder">{user.nickname?.charAt(0) || 'B'}</span>
-                            )}
-                            {isEditing && (
-                                <div className="avatar-overlay">
-                                    <span>변경</span>
-                                </div>
-                            )}
-                        </div>
-                        {/* 숨겨진 파일 인풋 */}
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            style={{ display: 'none' }}
-                            accept="image/*"
-                            onChange={handleImageChange}
-                        />
-                        <div className="info-fields">
-                            <div className="field">
-                                <label>닉네임</label>
-                                {isEditing ? (
-                                    <input
-                                        type="text"
-                                        className="edit-input"
-                                        value={editedNickname}
-                                        onChange={(e) => setEditedNickname(e.target.value)}
-                                        autoFocus
-                                    />
+        <div className="profile-dashboard-container">
+            <div className="profile-content-group">
+                <h1 className="section-title">내 프로필</h1>
+
+                <div className="profile-top-layout">
+                    {/* 기본 정보 */}
+                    <section className="profile-card basic-info">
+                        <h2 className="card-title">기본 정보</h2>
+                        <div className="info-content">
+                            <div
+                                className={`avatar-circle ${isEditing ? 'editable' : ''}`}
+                                onClick={triggerFileInput}
+                            >
+                                {/* 이미지 수정 안 넣을 경우 없어도 됨 */}
+                                {profileImage ? (
+                                    <img src={profileImage} alt="Profile" className="avatar-img" />
                                 ) : (
-                                    <div className="value">{user.nickname}</div>
+                                    <span className="avatar-placeholder">{user.nickname?.charAt(0) || 'B'}</span>
+                                )}
+                                {isEditing && (
+                                    <div className="avatar-overlay">
+                                        <span>변경</span>
+                                    </div>
                                 )}
                             </div>
-                            <div className="field">
-                                <label>이메일</label>
-                                <div className="value">{user.email}</div>
-                            </div>
-                            <div className="field">
-                                <label>가입일</label>
-                                <div className="value">{user.joinDate}</div>
+                            {/* 숨겨진 파일 인풋 */}
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                style={{ display: 'none' }}
+                                accept="image/*"
+                                onChange={handleImageChange}
+                            />
+                            <div className="info-fields">
+                                <div className="field">
+                                    <label>닉네임</label>
+                                    {isEditing ? (
+                                        <input
+                                            type="text"
+                                            className="edit-input"
+                                            value={editedNickname}
+                                            onChange={(e) => setEditedNickname(e.target.value)}
+                                            autoFocus
+                                        />
+                                    ) : (
+                                        <div className="value">{user.nickname}</div>
+                                    )}
+                                </div>
+                                <div className="field">
+                                    <label>이메일</label>
+                                    <div className="value">{user.email}</div>
+                                </div>
+                                <div className="field">
+                                    <label>가입일</label>
+                                    <div className="value">{user.joinDate}</div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div className="button-group">
-                        {isEditing ? (
-                            <>
-                                <button className="save-btn" onClick={handleSave}>저장</button>
-                                <button className="cancel-btn" onClick={() => setIsEditing(false)}>취소</button>
-                            </>
-                        ) : (
-                            <button className="edit-btn" onClick={handleEdit}>수정하기</button>
-                        )}
-                    </div>
-                </section>
+                        <div className="button-group">
+                            {isEditing ? (
+                                <>
+                                    <button className="save-btn" onClick={handleSave}>저장</button>
+                                    <button className="cancel-btn" onClick={() => setIsEditing(false)}>취소</button>
+                                </>
+                            ) : (
+                                <button className="edit-btn" onClick={handleEdit}>수정하기</button>
+                            )}
+                        </div>
+                    </section>
 
-                {/* 학습 통계 */}
-                <section className="profile-card stats-card">
-                    <h2 className="card-title">학습 현황</h2>
-                    <div className="stats-content">
-                        <div className="main-stat">
-                            {/* user_expression_stats의 학습 시간 합계 또는 로그 기반 계산 */}
-                            <span className="stat-value highlight-blue">{formatTime(stats.totalLearningTime)}</span>
-                            <span className="stat-label">총 학습 일수</span>
-                        </div>
-                        <div className="sub-stats">
-                            <div className="sub-stat">
-                                {/* user_expression_stats.success_count (완료한 학습) */}
-                                <span className="sub-value">{stats.completedLearning}회</span>
-                                <span className="sub-label">총 발음 시도</span>
+                    {/* 학습 통계 - 튜터에게는 숨김 */}
+                    {localStorage.getItem('userRole') !== 'TUTOR' && (
+                        <section className="profile-card stats-card">
+                            <h2 className="card-title">학습 현황</h2>
+                            <div className="stats-content">
+                                <div className="main-stat">
+                                    {/* user_expression_stats의 학습 시간 합계 또는 로그 기반 계산 */}
+                                    <span className="stat-value highlight-blue">{formatTime(stats.totalLearningTime)}</span>
+                                    <span className="stat-label">총 학습 일수</span>
+                                </div>
+                                <div className="sub-stats">
+                                    <div className="sub-stat">
+                                        {/* user_expression_stats.success_count (완료한 학습) */}
+                                        <span className="sub-value">{stats.completedLearning}회</span>
+                                        <span className="sub-label">총 발음 시도</span>
+                                    </div>
+                                    <div className="sub-stat">
+                                        {/* pronunciation_logs.accuracy_score 평균 */}
+                                        <span className="sub-value">{stats.averageAccuracy}점</span>
+                                        <span className="sub-label">최고 점수</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="sub-stat">
-                                {/* pronunciation_logs.accuracy_score 평균 */}
-                                <span className="sub-value">{stats.averageAccuracy}점</span>
-                                <span className="sub-label">최고 점수</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </div>
+                        </section>
+                    )}
+                </div>
 
-            {/* 회원 탈퇴 */}
-            <div style={{ marginTop: '3rem', textAlign: 'right' }}>
-                <span style={{ fontSize: '0.9rem', color: '#999', marginRight: '1rem' }}>혹시 ..</span>
-                <button className="withdraw-btn" onClick={handleWithdraw} style={{ background: '#ddd', color: '#666' }}>회원 탈퇴</button>
+                {/* 회원 탈퇴 */}
+                <div className="withdraw-section">
+                    <span style={{ fontSize: '0.9rem', color: '#888', marginRight: '1rem', fontWeight: 500 }}>혹시 ..</span>
+                    <button className="withdraw-btn" onClick={handleWithdraw}>회원 탈퇴</button>
+                </div>
             </div>
         </div>
     );

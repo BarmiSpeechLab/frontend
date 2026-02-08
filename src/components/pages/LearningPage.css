@@ -2,17 +2,17 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    height: 100vh;
-    max-height: 100vh;
-    overflow: hidden !important;
-    padding-top: 1rem !important;   
+    /* height: 100vh; -> Removed to allow global scroll */
+    /* max-height: 100vh; -> Removed */
+    /* overflow: hidden !important; -> Removed */
+    padding-top: 1rem !important;
     padding-bottom: 2rem;
     box-sizing: border-box;
     animation: fadeIn 0.5s ease-out;
 }
 
 .selection-page .subpage-title {
-    margin-top: 2rem;      
+    margin-top: 2rem;
     margin-bottom: 0.5rem;
     font-size: 2rem;
     color: #a67c00;
@@ -23,13 +23,20 @@
     font-size: 1.1rem;
     color: #888;
     font-weight: 500;
-    margin-bottom: 4rem !important; 
+    margin-bottom: 4rem !important;
     margin-top: 0;
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .learning-selection-grid {
@@ -41,9 +48,11 @@
 }
 
 .selection-card {
-    background: #ffffff;
-    border-radius: 20px;
-    padding: 2.5rem 1.5rem !important; 
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    /* Reduced from 20px */
+    padding: 2.5rem 1.5rem !important;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -51,13 +60,13 @@
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    border: 2px solid transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
     position: relative;
     overflow: hidden;
 }
 
 .selection-card-img {
-    width: 120px; 
+    width: 120px;
     height: 120px;
     object-fit: contain;
     margin-bottom: 0.5rem;
@@ -68,12 +77,12 @@
     justify-content: center;
     align-items: center;
     margin-bottom: 1rem;
-    min-height: 70px; 
+    min-height: 70px;
 }
 
 .selection-card h2 {
     font-size: 1.5rem;
-    color: #333;
+    color: #4a3b32;
     margin-bottom: 0.8rem;
     font-weight: 800;
 }
@@ -100,6 +109,9 @@
 }
 
 .selection-card:hover {
+    background: rgba(255, 255, 255, 0.6);
+    /* More transparent (0.8 -> 0.6) */
+    /* Semi-transparent white on hover */
     transform: translateY(-10px);
     box-shadow: 0 20px 40px rgba(166, 124, 0, 0.12);
     border-color: #f5e6cc;
@@ -116,9 +128,11 @@
 }
 
 .learning-card {
-    background: #fdfaf3;
-    border: 1px solid #f5e6cc;
-    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    /* Reduced from 16px */
     padding: 2rem;
     display: flex;
     flex-direction: column;
@@ -133,7 +147,9 @@
 }
 
 .learning-card:hover {
-    background: #fff;
+    background: rgba(255, 255, 255, 0.5);
+    /* More transparent (0.8 -> 0.6) */
+    /* Semi-transparent white on hover */
     transform: translateY(-2px);
     box-shadow: 0 8px 16px rgba(166, 124, 0, 0.1);
     border-color: #a67c00;
@@ -149,13 +165,16 @@
 
 .learning-sub {
     font-size: 1rem;
-    color: #888;
+    color: #6b5b4e;
+    font-weight: 600;
     margin: 0;
 }
 
 .kor-pron {
-    color: #aaa;
+    color: #8a6d3b;
+    font-weight: 600;
     margin-left: 0.5rem;
+    display: none;
 }
 
 .learning-progress-bg {
@@ -183,6 +202,7 @@
     opacity: 0.4;
     pointer-events: none;
     z-index: 10;
+    transform: rotate(45deg);
 }
 
 .completed-stamp img {
@@ -216,7 +236,7 @@
     border-radius: 12px;
     font-size: 0.85rem;
     font-weight: 800;
-    color: #d4af37; 
+    color: #d4af37;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     border: 1px solid #f2dfb6;
 }
