@@ -27,17 +27,8 @@ const MainPage = () => {
             const storageKey = `onboardingCompleted_${userRole}_${loggedInEmail}`;
             const localStatus = localStorage.getItem(storageKey);
 
-            console.log('[Tutorial Debug] Checking onboarding status:', {
-                role: userRole,
-                email: loggedInEmail,
-                storageKey: storageKey,
-                localStatus: localStatus,
-                userData: userData
-            });
-
             // 1. If locally marked as done, trust it
             if (localStatus === 'true') {
-                console.log('[Tutorial Debug] Local storage says done. Skipping.');
                 return;
             }
 
@@ -45,22 +36,15 @@ const MainPage = () => {
             if (userData) {
                 // Check common field names for tutorial status
                 const isDone = userData.tutorialYn === 'Y' || userData.tutorialCompleted === true;
-                console.log('[Tutorial Debug] Backend check result:', {
-                    tutorialYn: userData.tutorialYn,
-                    tutorialCompleted: userData.tutorialCompleted,
-                    isDone: isDone
-                });
 
                 if (isDone) {
                     // Sync local
                     localStorage.setItem(storageKey, 'true');
-                    console.log('[Tutorial Debug] Backend says done. Syncing local and skipping.');
                     return;
                 }
             }
 
             // 3. If we get here, show onboarding (New User or not synced)
-            console.log('[Tutorial Debug] Showing onboarding!');
             setShowOnboarding(true);
         };
 
@@ -168,12 +152,7 @@ const MainPage = () => {
             <button className="main-home__logout" onClick={handleLogout} title="로그아웃">
                 로그아웃
             </button>
-            <button style={{ position: 'fixed', bottom: '20px', left: '20px', zIndex: 1000 }} onClick={() => {
-                localStorage.removeItem(`onboardingCompleted_${userRole}_${localStorage.getItem('userEmail') || 'guest'}`);
-                setShowOnboarding(true);
-            }}>
-                [DEBUG] 튜토리얼 리셋
-            </button>
+
         </div>
     );
 };

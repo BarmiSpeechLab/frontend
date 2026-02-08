@@ -188,6 +188,8 @@ const PronunciationPracticePage = () => {
                             ok: typeof p?.is_correct === "boolean" ? p.is_correct : p?.cipa === p?.uipa,
                         }));
 
+
+
                         const firstWrong = finalResult.phonemes.find(p => p && p.ok === false);
                         if (firstWrong) setSelectedCipa(firstWrong.cipa);
                     }
