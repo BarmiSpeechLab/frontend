@@ -22,7 +22,7 @@ const MainLayout = () => {
                 <main style={{
                     flex: 1,
                     marginLeft: isMainPage ? 0 : '260px',
-                    padding: isMainPage ? 0 : '50px 3rem 2rem' /* Precise alignment: 80px(Pad) + 48px(Logo) + 40px(Margin) = 168px */
+                    padding: isMainPage ? 0 : '50px 3rem 2rem'
                 }}>
                     {!isMainPage && <LayoutHeader
                         onShowTutorial={() => setShowOnboarding(true)}

@@ -176,11 +176,11 @@ const ConversationPage = () => {
 
 
     return (
-        <div className="conversation-container">
+        <div className="subpage-container conversation-container">
             {/* 헤더 + 주제 선택 */}
             <div className="conversation-header">
                 <div className="header-top">
-                    <h1 className="header-title">회화 연습</h1>
+                    <h1 className="subpage-title">회화 연습</h1>
                 </div>
 
                 {/* 주제 버튼 (작은 칩 형태) */}
