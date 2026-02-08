@@ -46,29 +46,66 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Center horizontally */
+  position: relative;
+  /* Add for absolute label positioning */
   gap: 12px;
+  min-height: 50px;
 }
 
 .pa-phonemes-label {
-  font-size: 13px;
+  position: absolute;
+  left: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  font-size: 11px;
   font-weight: 600;
   color: #6b7280;
-  min-width: 55px;
-  /* Slightly wider for better balance */
+  min-width: 45px;
   text-align: center;
-  background: #ffffff;
-  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 2px 4px;
   border-radius: 4px;
   border: 1px solid #e5e7eb;
 }
 
 .pa-phonemes-values {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
-  justify-content: center;
-  /* Center tokens if they wrap */
+  justify-content: flex-start;
+  overflow-x: auto;
+  padding: 10px 50px;
+  /* Space for absolute labels on the left */
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Flex centering trick: use pseudo-elements with auto margins to center content 
+   only when it doesn't overflow */
+.pa-phonemes-values::before,
+.pa-phonemes-values::after {
+  content: '';
+  margin: auto;
+}
+
+/* Slim scrollbar for phonemes */
+.pa-phonemes-values::-webkit-scrollbar {
+  height: 4px;
+}
+
+.pa-phonemes-values::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pa-phonemes-values::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.pa-phonemes-values::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 /* 음소 토큰 */

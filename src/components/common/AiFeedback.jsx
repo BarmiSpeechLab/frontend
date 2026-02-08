@@ -14,10 +14,20 @@ const AiFeedback = ({ feedback }) => {
     const parsedFeedback = useMemo(() => {
         if (!feedback) return [];
 
-        if (!feedback) return [];
+        // 만약 피드백이 이미 객체(IpaAnalysisResponse)라면 파싱 생략
+        if (typeof feedback === 'object' && feedback !== null) {
+            return [{
+                isStructured: true,
+                summary: feedback.summary,
+                strengths: feedback.strengths,
+                weaknesses: feedback.weaknesses,
+                teachingStrategies: feedback.teachingStrategies,
+                overallLevel: feedback.overallLevel
+            }];
+        }
 
-        // 일부 LLM은 줄바꿈 대신 " - "를 구분자로 쓰기도 하므로 전처리
-        const normalizedFeedback = feedback
+        // 스트링인 경우에만 replace 호출
+        const normalizedFeedback = String(feedback)
             .replace(/\s*-\s*틀린 점[:.]/g, '\n틀린 점:')
             .replace(/\s*-\s*교정 방법[:.]/g, '\n교정 방법:');
 
@@ -73,8 +83,8 @@ const AiFeedback = ({ feedback }) => {
         if (currentSection) sections.push(currentSection);
 
         // 파싱 실패 시 원본 텍스트 반환을 위한 처리
-        if (sections.length === 0 && feedback.length > 0) {
-            return [{ raw: feedback }];
+        if (sections.length === 0 && feedback) {
+            return [{ raw: String(feedback) }];
         }
 
         return sections;
@@ -148,7 +158,59 @@ const AiFeedback = ({ feedback }) => {
             <div className="feedback-list">
                 {parsedFeedback.length > 0 && (
                     <div className="feedback-item">
-                        {parsedFeedback[currentIndex].raw ? (
+                        {parsedFeedback[currentIndex].isStructured ? (
+                            <div className="feedback-structured-content">
+                                {parsedFeedback[currentIndex].overallLevel && (
+                                    <div className="feedback-level-badge">
+                                        종합 레벨: <span>{parsedFeedback[currentIndex].overallLevel}</span>
+                                    </div>
+                                )}
+
+                                <div className="feedback-detail-block">
+                                    <div className="feedback-label-row">
+                                        <div className="feedback-icon-wrapper summary"><Sparkles size={18} /></div>
+                                        <span className="feedback-label">학습 요약</span>
+                                    </div>
+                                    <p className="feedback-content-text">{parsedFeedback[currentIndex].summary}</p>
+                                </div>
+
+                                {parsedFeedback[currentIndex].strengths?.length > 0 && (
+                                    <div className="feedback-detail-block">
+                                        <div className="feedback-label-row">
+                                            <div className="feedback-icon-wrapper strength"><CheckCircle size={18} /></div>
+                                            <span className="feedback-label" style={{ color: '#2e7d32' }}>주요 강점</span>
+                                        </div>
+                                        <ul className="feedback-list-text">
+                                            {parsedFeedback[currentIndex].strengths.map((s, i) => <li key={i}>{s}</li>)}
+                                        </ul>
+                                    </div>
+                                )}
+
+                                {parsedFeedback[currentIndex].weaknesses?.length > 0 && (
+                                    <div className="feedback-detail-block">
+                                        <div className="feedback-label-row">
+                                            <div className="feedback-icon-wrapper weakness"><AlertTriangle size={18} /></div>
+                                            <span className="feedback-label" style={{ color: '#d32f2f' }}>개선 필요점</span>
+                                        </div>
+                                        <ul className="feedback-list-text">
+                                            {parsedFeedback[currentIndex].weaknesses.map((w, i) => <li key={i}>{w}</li>)}
+                                        </ul>
+                                    </div>
+                                )}
+
+                                {parsedFeedback[currentIndex].teachingStrategies?.length > 0 && (
+                                    <div className="feedback-detail-block teaching-guide">
+                                        <div className="feedback-label-row">
+                                            <div className="feedback-icon-wrapper guide"><HelpCircle size={18} /></div>
+                                            <span className="feedback-label" style={{ color: '#a67c00' }}>튜터 티칭 가이드</span>
+                                        </div>
+                                        <ul className="feedback-list-text">
+                                            {parsedFeedback[currentIndex].teachingStrategies.map((g, i) => <li key={i}>{g}</li>)}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        ) : parsedFeedback[currentIndex].raw ? (
                             <div className="feedback-raw-content">
                                 <div className="feedback-target">
                                     🎯 AI 분석 결과

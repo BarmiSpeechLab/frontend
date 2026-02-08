@@ -85,13 +85,32 @@ export const getCalendarLogs = async (year, month) => {
 
 /**
  * 발음 취약점 레이더 차트 데이터 조회
+ * @param {string|number} userId - 특정 유저 ID (생략 시 로그인 유저 본인)
  */
-export const getIpaRadarStats = async () => {
-    console.log('[API 요청] 레이더 차트 데이터 조회');
+export const getIpaRadarStats = async (userId = null) => {
+    console.log(`[API 요청] 레이더 차트 데이터 조회 (target: ${userId || 'me'})`);
     try {
-        const response = await api.get('/reports/radar-chart');
+        const url = userId ? `/reports/radar-chart/${userId}` : '/reports/radar-chart';
+        const response = await api.get(url);
         console.log('[API 응답 성공]', response.data.data);
         return response.data.data || {};
+    } catch (error) {
+        console.error('[API 응답 실패]', error);
+        throw error;
+    }
+};
+
+/**
+ * AI 학습 분석 리포트 조회
+ * @param {string|number} userId - 특정 유저 ID (생략 시 로그인 유저 본인)
+ */
+export const getIpaAiReport = async (userId = null) => {
+    console.log(`[API 요청] AI 리포트 데이터 조회 (target: ${userId || 'me'})`);
+    try {
+        const url = userId ? `/reports/radar-chart/ai-report/${userId}` : '/reports/radar-chart/ai-report';
+        const response = await api.get(url);
+        console.log('[API 응답 성공]', response.data.data);
+        return response.data.data || '';
     } catch (error) {
         console.error('[API 응답 실패]', error);
         throw error;

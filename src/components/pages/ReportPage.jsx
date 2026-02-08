@@ -131,12 +131,15 @@ const ReportPage = () => {
             try {
                 const userData = await getUserProfile();
                 setUser({
+                    id: userData.id,
                     nickname: userData.nickname,
                     email: userData.email,
                     role: userData.role
                 });
 
+                if (userData.id) localStorage.setItem('userId', userData.id);
                 localStorage.setItem('userRole', userData.role);
+                if (userData.nickname) localStorage.setItem('userNickname', userData.nickname);
 
                 const saved = localStorage.getItem('lastStudy');
                 if (saved) setLastStudy(JSON.parse(saved));
