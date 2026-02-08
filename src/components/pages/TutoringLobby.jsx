@@ -204,15 +204,16 @@ const TutoringLobby = () => {
 
             {userRole !== 'TUTOR' && (
                 <section className="tutor-section">
-                    <div className="tutor-header-right">
-                        <button className="more-btn" onClick={() => navigate('/tutoring/reserve')} style={{ paddingRight: 0 /* Force Align */ }}>
-                            튜터링 예약하기
+                    <div className="tutor-header-right" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '20px' }}>
+                        <h2 className="section-title" style={{ margin: 0, padding: 0, fontSize: '1.2rem', color: '#5d4037', fontWeight: 800 }}>나를 위한 추천 선생님</h2>
+                        <button className="more-btn" onClick={() => navigate('/tutoring/reserve')} style={{ padding: 0, margin: 0, border: 'none', background: 'none', cursor: 'pointer', fontSize: '18px', fontWeight: 'bold', color: '#6b5b4e' }}>
+                            수업 예약하러 가기
                         </button>
                     </div>
-                    <div className="tutor-grid">
+                    <div className="tutor-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px', width: '100%' }}>
                         {recommendedTutors.length > 0 ? (
                             recommendedTutors.map((tutor) => (
-                                <div key={tutor.id} className="tutor-card-mini glass-panel" onClick={() => navigate(`/tutoring/reserve/${tutor.id}`)}>
+                                <div key={tutor.id} className="tutor-card-mini glass-panel" onClick={() => navigate(`/tutoring/reserve/${tutor.id}`)} style={{ width: '100%' }}>
                                     <div className="tutor-img-wrapper">
                                         {/* profileImgUrl 출력 */}
                                         {tutor.profileImgUrl ? (
@@ -236,7 +237,7 @@ const TutoringLobby = () => {
                 </section>
             )}
 
-            {userRole !== 'TUTOR' && <div className="divider"></div>}
+
 
             <section className="appointment-section">
                 <h2 className="section-title">나의 수업 일정</h2>

@@ -36,6 +36,7 @@ const MainPage = () => {
             if (userData) {
                 // Check common field names for tutorial status
                 const isDone = userData.tutorialYn === 'Y' || userData.tutorialCompleted === true;
+
                 if (isDone) {
                     // Sync local
                     localStorage.setItem(storageKey, 'true');
@@ -151,6 +152,7 @@ const MainPage = () => {
             <button className="main-home__logout" onClick={handleLogout} title="로그아웃">
                 로그아웃
             </button>
+
         </div>
     );
 };

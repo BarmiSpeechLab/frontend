@@ -18,6 +18,21 @@ export const ARTICULATION_GIF_BY_CIPA = Object.fromEntries(
     .filter(Boolean),
 );
 
+// IPA 기호 매핑 (파일 이름과 실제 분석 결과의 기호가 다를 경우 대비)
+const IPA_ALIASES = {
+  "ɹ": "r",  // ɹ -> r 파일 매핑
+  "ɜ": "ɝ",  // ɜ -> ɝ 파일 매핑 (유사 발음)
+  "ɚ": "ə",  // ɚ -> ə (유사 발음)
+  "g": "ɡ",  // g -> ɡ (유니코드 차이 대응)
+};
+
 export function getArticulationGifByCipa(cipa) {
-  return ARTICULATION_GIF_BY_CIPA[cipa] || "";
+  // 1. 직접 매칭
+  if (ARTICULATION_GIF_BY_CIPA[cipa]) return ARTICULATION_GIF_BY_CIPA[cipa];
+
+  // 2. Alias 매칭
+  const alias = IPA_ALIASES[cipa];
+  if (alias && ARTICULATION_GIF_BY_CIPA[alias]) return ARTICULATION_GIF_BY_CIPA[alias];
+
+  return "";
 }

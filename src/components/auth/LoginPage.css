@@ -133,8 +133,8 @@
 
 .hero-subtitle {
     font-size: 1.6rem;
-    font-weight: 500;
-    color: #6d5d53;
+    font-weight: 700;
+    color: #5d4037;
 }
 
 /* 내용(글자)과 이미지 사이 간격 조절 */
@@ -183,8 +183,8 @@
 .feature-desc {
     font-size: 1.3rem;
     line-height: 1.7;
-    color: #555;
-    font-weight: 400;
+    color: #fff;
+    font-weight: 700;
     word-break: keep-all;
 }
 

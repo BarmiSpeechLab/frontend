@@ -62,6 +62,9 @@
     align-items: flex-start;
     gap: 0.5rem;
     width: 100%;
+    height: 100%;
+    /* Force fill height */
+    justify-content: space-between;
 }
 
 .visual-label-outside {
@@ -490,6 +493,7 @@
     grid-template-columns: 1fr 320px;
     gap: 1.5rem;
     align-items: stretch;
+    /* Ensure children stretch to match tallest */
     min-height: 260px;
 }
 
@@ -497,8 +501,10 @@
 .record-section {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 0;
+    align-items: flex-start;
+    /* Align left to match visual-col */
+    gap: 0.5rem;
+    /* Space between label and box */
     margin-bottom: 0;
     width: 100%;
     height: 100%;
@@ -517,6 +523,7 @@
     gap: 0.4rem;
     width: 100%;
     height: 100%;
+    /* Ensure full height */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     justify-content: center;
 }
@@ -535,7 +542,15 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     align-items: center;
+    position: relative;
+    /* Ensure specific positioning context */
 }
 
 .record-title {
@@ -585,6 +600,16 @@
     /* Add shadow to image */
 }
 
+/* 정답 영상 재생 버튼 Hover 효과 */
+.video-overlay-white img {
+    transition: transform 0.2s ease;
+}
+
+.video-overlay-white:hover img {
+    transform: scale(1.1);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
 .record-btn-merged:disabled {
     opacity: 0.6;
     cursor: not-allowed;
@@ -619,12 +644,12 @@
 .status-text {
     font-size: 1.3rem;
     font-weight: 600;
-    color: #4c3b24;
+    color: #9f9f9f;
     margin: 0;
 }
 
 .play-btn {
-    background: #4caf50;
+    background: #a67c00;
     color: white;
     border: none;
     padding: 0.6rem 1.2rem;
@@ -638,7 +663,7 @@
 }
 
 .play-btn:hover:not(:disabled) {
-    background: #45a049;
+    background: #8c6800;
     transform: scale(1.05);
 }
 
@@ -858,8 +883,8 @@
 
 .redo-btn-absolute {
     position: absolute;
-    right: 1.5rem;
-    bottom: 1.5rem;
+    right: 24.5rem;
+    bottom: 2.5rem;
     padding: 0.6rem 1.4rem;
     background: #ff5252;
     color: white;
