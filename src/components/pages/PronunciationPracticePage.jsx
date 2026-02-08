@@ -14,6 +14,7 @@ import ResultCarousel from '../common/ResultCarousel';
 import { getArticulationImage } from '../../utils/articulationLoader';
 import { getAnswerVideo } from '../../utils/answerVideoLoader';
 import runningGif from '../../assets/img/running.gif';
+import ansIcon from '../../assets/img/ans.png';
 import listeningIcon from '../../assets/img/listening.png';
 import recordIcon from '../../assets/img/record.png';
 import loadingImage from '../../assets/img/loading.png';
@@ -276,7 +277,7 @@ const PronunciationPracticePage = () => {
             {/* 헤더 */}
             <div className="practice-header">
                 <div className="header-top">
-                    <button className="back-button" onClick={handleBack}>뒤로가기</button>
+                    <button className="back-button" onClick={handleBack}>뒤로 가기</button>
                 </div>
                 <div className="top-section-card">
                     <div className="header-text">
@@ -310,33 +311,53 @@ const PronunciationPracticePage = () => {
                         <div className="header-video" style={{ background: '#fff', position: 'relative' }}>
                             {answerVideoSrc ? (
                                 <>
-                                    <video
-                                        ref={answerVideoRef}
-                                        src={answerVideoSrc}
-                                        controls
-                                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: isAnswerPlaying ? 'block' : 'none' }}
-                                        onEnded={() => setIsAnswerPlaying(false)}
-                                        onPause={() => setIsAnswerPlaying(false)}
-                                        onPlay={() => setIsAnswerPlaying(true)}
-                                    />
-                                    {!isAnswerPlaying && (
-                                        <div
-                                            className="video-overlay-white"
-                                            onClick={() => {
-                                                if (answerVideoRef.current) {
-                                                    answerVideoRef.current.play();
-                                                    setIsAnswerPlaying(true);
-                                                }
-                                            }}
-                                            style={{
-                                                position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-                                                background: 'rgba(255, 255, 255, 0.7)',
-                                                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10
-                                            }}
-                                        >
-                                            <Play size={64} color="#a67c00" fill="#a67c00" />
-                                        </div>
-                                    )}
+                                    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                                        {!isAnswerPlaying && (
+                                            <p className="status-text" style={{
+                                                position: 'absolute',
+                                                top: '30px',
+                                                left: 0,
+                                                width: '100%',
+                                                textAlign: 'center',
+                                                fontSize: '1rem',
+                                                color: '#9f9f9f',
+                                                zIndex: 20
+                                            }}>
+                                                바르미를 눌러 영상을 확인하세요!
+                                            </p>
+                                        )}
+                                        <video
+                                            ref={answerVideoRef}
+                                            src={answerVideoSrc}
+                                            controls
+                                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: isAnswerPlaying ? 'block' : 'none' }}
+                                            onEnded={() => setIsAnswerPlaying(false)}
+                                            onPause={() => setIsAnswerPlaying(false)}
+                                            onPlay={() => setIsAnswerPlaying(true)}
+                                        />
+                                        {!isAnswerPlaying && (
+                                            <div
+                                                className="video-overlay-white"
+                                                onClick={() => {
+                                                    if (answerVideoRef.current) {
+                                                        answerVideoRef.current.play();
+                                                        setIsAnswerPlaying(true);
+                                                    }
+                                                }}
+                                                style={{
+                                                    position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                                                    background: 'rgba(255, 255, 255, 0.3)', // 투명도 조절 (0.7 -> 0.3)
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10
+                                                }}
+                                            >
+                                                <img
+                                                    src={ansIcon}
+                                                    alt="재생"
+                                                    style={{ width: '120px', height: '120px', objectFit: 'contain' }}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
                                 </>
                             ) : (
                                 <img src={loadingImage} alt="준비 중" style={{ width: '90%', height: '90%', objectFit: 'contain', opacity: 0.8 }} />
@@ -412,7 +433,7 @@ const PronunciationPracticePage = () => {
 
                     {!isAnalyzing && analysisResult && (
                         <button className="redo-btn-absolute" onClick={() => { setAnalysisResult(null); setSelectedCipa(null); }}>
-                            다시시도
+                            다시 시도
                         </button>
                     )}
                 </div>

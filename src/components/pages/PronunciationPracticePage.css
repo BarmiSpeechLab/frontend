@@ -600,6 +600,16 @@
     /* Add shadow to image */
 }
 
+/* 정답 영상 재생 버튼 Hover 효과 */
+.video-overlay-white img {
+    transition: transform 0.2s ease;
+}
+
+.video-overlay-white:hover img {
+    transform: scale(1.1);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
 .record-btn-merged:disabled {
     opacity: 0.6;
     cursor: not-allowed;
@@ -634,7 +644,7 @@
 .status-text {
     font-size: 1.3rem;
     font-weight: 600;
-    color: #4c3b24;
+    color: #9f9f9f;
     margin: 0;
 }
 
