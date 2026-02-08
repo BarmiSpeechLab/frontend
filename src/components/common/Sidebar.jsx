@@ -43,16 +43,16 @@ const Sidebar = () => {
     const isActuallyLearningDetail = location.pathname === '/learning' && location.search !== "";
     const isPronunciationPage = location.pathname.startsWith('/pronunciation') || location.pathname === '/pronunciationPractice';
 
-    // 학습하기 서브 메뉴 활성화 범위 (색칠용)
-    const isLearningSubActive = isActuallyLearningDetail || isPronunciationPage || location.pathname === '/learning';
+    // 학습하기 서브 메뉴 활성화 범위 (색칠용 & 자동 열림용)
+    // - /learning (메인)에서는 닫혀있어야 함
+    // - /pronunciation... 또는 /learning?mode=... (상세)에서는 열려있어야 함
+    const isLearningSubActive = isActuallyLearningDetail || isPronunciationPage;
 
-    const isReportPage = location.pathname === '/report';
+    const isReportPage = false; // location.pathname === '/report'; (Disabled to show mascot on Report page)
 
     useEffect(() => {
-        // Automatically open if on a learning sub-page
-        if (isLearningSubActive) {
-            setIsLearningOpen(true);
-        }
+        // Automatically open/close based on path
+        setIsLearningOpen(isLearningSubActive);
     }, [isLearningSubActive]);
 
     const updateToActivePosition = () => {
@@ -144,7 +144,7 @@ const Sidebar = () => {
                 sidebarNode.removeEventListener('mouseleave', handleMouseLeaveSidebar);
             }
         };
-    }, [location.pathname, location.search, isReportPage, isLearningOpen]); // Re-calc when menu opens/closes
+    }, [location.pathname, location.search, isLearningOpen, isReportPage]); // Re-calc when menu opens/closes
 
     useEffect(() => {
         if (!mascotPos.moving) {

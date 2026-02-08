@@ -330,7 +330,7 @@ const PronunciationPracticePage = () => {
                                             }}
                                             style={{
                                                 position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-                                                background: 'rgba(255, 255, 255, 0.95)',
+                                                background: 'rgba(255, 255, 255, 0.7)',
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10
                                             }}
                                         >
@@ -350,10 +350,12 @@ const PronunciationPracticePage = () => {
                 {/* Row 1: 결과 및 녹음 제어 */}
                 <div className="row-2-myrecording">
                     <div className="record-section">
+                        <div className="visual-label-outside">녹음하기</div>
                         {!analysisResult && (
                             <div className="record-panel-glass">
-                                <div className="record-title">내 발음 녹음하기</div>
+                                {/* .record-title removed */}
                                 <div className="record-controls">
+                                    <p className="status-text" style={{ marginBottom: '0.5rem' }}>바르미를 눌러 녹음해보세요!</p>
                                     <button
                                         className={`record-btn-merged ${isRecording ? "recording" : ""}`}
                                         onClick={handleRecordToggle}

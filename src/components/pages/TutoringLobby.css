@@ -2,10 +2,10 @@
     max-width: 1100px;
     width: 90%;
     margin: 0 auto 3rem auto;
-    /* Fallback */
-    margin-left: 4rem;
+    /* margin-left: 4rem; removed for centering */
     /* Match ProfilePage alignment */
-    padding: 2rem;
+    padding: 1rem;
+    /* Reduced padding for wider cards */
     padding-top: 1rem;
     font-family: 'Noto Sans KR', sans-serif;
 }
@@ -37,10 +37,23 @@
     padding-left: 5px;
 }
 
+/* Specific override for the recommended tutor title */
+.tutor-header-right .section-title {
+    color: #5d4037;
+    /* Darker Brown */
+    font-size: 1.2rem;
+    /* Reduced size */
+    margin-bottom: 0 !important;
+    /* Force remove margin */
+    font-weight: 700;
+}
+
 .tutor-header-right {
-    display: flex;
-    justify-content: flex-start;
-    margin-bottom: 15px;
+    position: relative;
+    width: 100%;
+    margin-bottom: 25px;
+    min-height: 40px;
+    /* Cleaned up for inline style override */
 }
 
 /* Glassmorphism Shared Style */
@@ -55,16 +68,24 @@
     /* Increased from 24px */
 }
 
+/* Override for tutor cards to be more compact */
+.tutor-card-mini.glass-panel {
+    padding: 24px !important;
+}
+
 .more-btn {
     background: none;
     border: none;
-    font-size: 15px;
+    font-size: 18px;
     font-weight: bold;
     color: #6b5b4e;
     cursor: pointer;
     transition: color 0.2s;
-    padding: 5px 0 5px 10px;
-    /* Right padding 0 for strict edge alignment */
+    margin: 0;
+    text-align: right;
+    width: auto;
+    position: static;
+    padding: 0;
 }
 
 .tutor-name {
@@ -92,13 +113,16 @@
 .tutor-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+    gap: 12px;
     width: 100%;
+    justify-items: stretch;
+    /* Ensure grid takes full width to align with header button */
 }
 
 /* 튜터 카드 */
 .tutor-card-mini {
-    flex: 1;
+    width: 100%;
+    /* Ensure card fills the grid cell */
     /* Glass styles moved to .glass-panel class */
     cursor: pointer;
     transition: transform 0.2s;
@@ -110,9 +134,9 @@
     text-align: center;
 
     /* 높이 고정 */
-    min-height: 350px;
+    min-height: 260px;
     height: auto;
-    /* Increased from 270px, now auto for button */
+    /* Reduced from 350px */
 }
 
 .tutor-card-mini:hover {
@@ -131,7 +155,7 @@
 .tutor-img-wrapper {
     width: 80px;
     height: 80px;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -177,8 +201,8 @@
 }
 
 .tutor-action-btn {
-    margin-top: 20px;
-    padding: 0.8rem 2rem;
+    margin-top: 15px;
+    padding: 0.6rem 2rem;
     background: rgba(255, 255, 255, 0.4);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
@@ -226,7 +250,7 @@
 
 /* 2. 예약 목록 */
 .appointment-section {
-    margin-top: 20px;
+    margin-top: 5rem;
 }
 
 .appointment-list {
