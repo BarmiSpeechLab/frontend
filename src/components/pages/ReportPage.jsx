@@ -103,7 +103,9 @@ const ReportPage = () => {
     const containerRef = useScrollAnimation();
     const [lastStudy, setLastStudy] = useState(null);
     const [showOnboarding, setShowOnboarding] = useState(false);
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState(() => ({
+        role: localStorage.getItem('userRole') || 'USER'
+    }));
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [studyCalendarData, setStudyCalendarData] = useState({});
     const [studyCountsData, setStudyCountsData] = useState({});
@@ -312,7 +314,7 @@ const ReportPage = () => {
                     <div className="report-group anim-target delay-1">
                         <h2 className="section-title">담당 학생 관리</h2>
                         <section className="status-section-card">
-                            <div className="status-cards" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '20px' }}>
+                            <div className="status-cards">
                                 {myStudents.length > 0 ? (
                                     myStudents.map(appt => {
                                         const dateObj = new Date(appt.datetime);
@@ -324,17 +326,7 @@ const ReportPage = () => {
                                             <div
                                                 key={appt.id}
                                                 className={`status-item-large ${activeReportStudent?.id === appt.id ? 'active' : ''}`}
-                                                style={{
-                                                    cursor: 'pointer',
-                                                    transition: 'all 0.2s',
-                                                    padding: '20px',
-                                                    border: activeReportStudent?.id === appt.id ? '2px solid #a67c00' : '1px solid transparent',
-                                                    transform: activeReportStudent?.id === appt.id ? 'translateY(-5px)' : 'none',
-                                                    boxShadow: activeReportStudent?.id === appt.id ? '0 8px 20px rgba(166,124,0,0.15)' : 'none'
-                                                }}
                                                 onClick={() => handleSelectStudent(appt)}
-                                                onMouseOver={(e) => { if (activeReportStudent?.id !== appt.id) e.currentTarget.style.transform = 'translateY(-5px)'; }}
-                                                onMouseOut={(e) => { if (activeReportStudent?.id !== appt.id) e.currentTarget.style.transform = 'translateY(0)'; }}
                                             >
                                                 <span className="card-label" style={{ fontSize: '0.8rem', color: '#8d6e63' }}>{dateStr} 수업</span>
                                                 <span className="card-value highlight-gold" style={{ fontSize: '1.2rem', marginTop: '5px', display: 'block' }}>{appt.nickname} 학생</span>
@@ -357,30 +349,18 @@ const ReportPage = () => {
                         <h2 className="section-title">
                             {activeReportStudent ? `${activeReportStudent.nickname} 학생 발음 리포트` : '학생 발음 리포트'}
                         </h2>
-                        <section className="report-section-card" style={{ padding: '24px', background: 'transparent', boxShadow: 'none' }}>
+                        <section className="report-section-card">
                             {activeReportLoading ? (
-                                <div className="loading-container" style={{
-                                    background: 'white',
-                                    borderRadius: '24px',
-                                    padding: '50px',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    boxShadow: '0 8px 32px rgba(0,0,0,0.05)'
-                                }}>
+                                <div className="loading-container">
                                     <div className="spinner" />
                                     <p style={{ marginTop: '20px', color: '#8d6e63' }}>데이터를 분석 중입니다...</p>
                                 </div>
                             ) : activeReportStudent ? (
-                                <div className="report-cards-container" style={{
-                                    display: 'grid',
-                                    gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-                                    gap: '24px'
-                                }}>
-                                    <div style={{ background: 'white', borderRadius: '24px', padding: '24px', boxShadow: '0 8px 32px rgba(0,0,0,0.05)' }}>
+                                <div className="report-cards-container tutor-grid">
+                                    <div className="report-card-wrap">
                                         <PronunciationWeaknessRadar weaknessStats={activeReportStats} />
                                     </div>
-                                    <div style={{ background: 'white', borderRadius: '24px', padding: '24px', boxShadow: '0 8px 32px rgba(0,0,0,0.05)' }}>
+                                    <div className="report-card-wrap">
                                         <AiFeedback feedback={activeReportAi} />
                                     </div>
                                 </div>
