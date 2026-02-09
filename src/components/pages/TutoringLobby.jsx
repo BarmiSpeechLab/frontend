@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/index';
+import ReportModal from '../common/ReportModal';
 import './TutoringLobby.css';
 import rmitu1 from '../../assets/img/rmitu1.png';
 import rmitu2 from '../../assets/img/rmitu2.png';
@@ -25,6 +26,11 @@ const TutoringLobby = () => {
     const [currentTime, setCurrentTime] = useState(new Date());
     const [recommendedTutors, setRecommendedTutors] = useState([]);
     const [appointments, setAppointments] = useState([]);
+
+    // 리포트 모달 상태
+    const [reportStudentId, setReportStudentId] = useState(null);
+    const [reportStudentNickname, setReportStudentNickname] = useState('');
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
     const userRole = localStorage.getItem('userRole');
     const myId = localStorage.getItem('userId');
@@ -198,6 +204,12 @@ const TutoringLobby = () => {
         }
     };
 
+    const openReportModal = (studentId, studentNickname) => {
+        setReportStudentId(studentId);
+        setReportStudentNickname(studentNickname);
+        setIsReportModalOpen(true);
+    };
+
     return (
         <div className="lobby-container">
             {userRole !== 'TUTOR' && <h1 className="subpage-title">1:1 튜터링</h1>}
@@ -282,6 +294,25 @@ const TutoringLobby = () => {
                                             >
                                                 {status.label}
                                             </button>
+                                            {userRole === 'TUTOR' && appt.tuteeId && (
+                                                <button
+                                                    onClick={() => openReportModal(appt.tuteeId, appt.tuteeNickname)}
+                                                    className="report-view-btn"
+                                                    style={{
+                                                        marginTop: '10px',
+                                                        width: '100%',
+                                                        padding: '10px',
+                                                        borderRadius: '12px',
+                                                        border: '1px solid #a67c00',
+                                                        background: 'white',
+                                                        color: '#a67c00',
+                                                        fontWeight: 'bold',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                >
+                                                    리포트 보기
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 );
@@ -292,6 +323,14 @@ const TutoringLobby = () => {
                     </div>
                 </div>
             </section>
+
+            {isReportModalOpen && reportStudentId && (
+                <ReportModal
+                    studentId={reportStudentId}
+                    studentNickname={reportStudentNickname}
+                    onClose={() => setIsReportModalOpen(false)}
+                />
+            )}
         </div>
     );
 };
