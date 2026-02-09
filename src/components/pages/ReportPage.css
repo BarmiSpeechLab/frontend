@@ -432,15 +432,35 @@
 
 /* Status Cards specific layout fix */
 .status-cards {
-    display: flex;
-    gap: 1.5rem;
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important;
+    gap: 1.5rem !important;
+    width: 100% !important;
 }
 
 .status-item-large {
-    padding: 2.5rem !important;
+    background: rgba(255, 255, 255, 0.6) !important;
+    backdrop-filter: blur(20px);
+    border-radius: 24px !important;
+    padding: 24px !important;
     display: flex;
     flex-direction: column;
-    gap: 0.8rem;
+    gap: 0.5rem;
+    border: 2px solid transparent !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05) !important;
+}
+
+.status-item-large.active {
+    border-color: #a67c00 !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(166, 124, 0, 0.15) !important;
+}
+
+.status-item-large.active .click-hint {
+    background: #a67c00;
+    color: white;
 }
 
 .status-item-large.clickable:hover {
@@ -492,4 +512,189 @@
     .report-section {
         padding: 1.5rem;
     }
+}
+/* --- Recovered Tutor Styles --- */
+
+/* Loading State & Spinner */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px;
+    gap: 1.5rem;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px);
+    border-radius: 32px;
+    width: 100%;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(166, 124, 0, 0.1);
+    border-top: 5px solid #a67c00;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Tutor Grid Layout */
+.tutor-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)) !important;
+    gap: 24px !important;
+    width: 100%;
+}
+
+.report-card-wrap {
+    background: white;
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.05);
+}
+
+/* Supplemental Tutor Styles */
+.status-cards {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important;
+    gap: 1.5rem !important;
+    width: 100% !important;
+}
+
+.status-item-large.active {
+    border-color: #a67c00 !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(166, 124, 0, 0.15) !important;
+}
+
+.status-item-large.active .click-hint {
+    background: #a67c00;
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .status-item-large {
+        padding: 20px !important;
+    }
+    .tutor-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* --- Tutor Layout Refinements --- */
+
+.report-vertical-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    width: 100%;
+}
+
+.status-cards-collapsible {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.active-student-showcase {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.selected-main {
+    max-width: 400px;
+    flex: 1;
+    min-width: 300px;
+}
+
+.expand-list-btn {
+    background: #fdfaf3;
+    border: 1px solid #f2dfb6;
+    color: #a67c00;
+    padding: 12px 24px;
+    border-radius: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    height: fit-content;
+}
+
+.expand-list-btn:hover {
+    background: #fcf4e0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(166, 124, 0, 0.1);
+}
+
+.expand-list-btn.expanded {
+    background: #8d6e63;
+    color: white;
+    border-color: #7d6158;
+}
+
+.expanded-student-list {
+    padding-top: 1.5rem;
+    border-top: 1px dashed #f2dfb6;
+    margin-top: 0.5rem;
+    animation: fadeInDown 0.4s ease-out;
+}
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+    .active-student-showcase {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .selected-main {
+        max-width: 100%;
+    }
+}
+
+/* --- Aesthetic Improvements --- */
+
+.report-vertical-stack {
+    gap: 4rem !important; /* Increased gap for better breathing space */
+}
+
+.expand-list-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: white;
+    border: 2px solid #f2dfb6;
+    color: #a67c00;
+    padding: 14px 28px;
+    border-radius: 20px;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 15px rgba(166, 124, 0, 0.08);
+}
+
+.expand-list-btn:hover {
+    background: #a67c00;
+    color: white;
+    border-color: #a67c00;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(166, 124, 0, 0.2);
+}
+
+.expand-list-btn.expanded {
+    background: #8d6e63;
+    border-color: #8d6e63;
+    color: white;
+}
+
+.selected-main {
+    border-left: 6px solid #a67c00 !important;
 }

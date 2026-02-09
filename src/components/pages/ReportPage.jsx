@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Users, ChevronDown, ChevronUp } from 'lucide-react';
 import rmi from '../../assets/img/rmi.png';
 import './ReportPage.css';
 import OnboardingModal from '../common/OnboardingModal';
 import StudyCalendar from '../common/StudyCalendar';
 import WeeklyChart from '../common/WeeklyChart';
+import AiFeedback from '../common/AiFeedback';
 import PronunciationWeaknessRadar from '../common/PronunciationWeaknessRadar';
 import OverallLearningStats from '../common/OverallLearningStats';
-import { completeOnboarding, getCalendarLogs, getIpaRadarStats, getUserProfile, getUserStats } from '../../api/user';
+import { completeOnboarding, getCalendarLogs, getIpaAiReport, getIpaRadarStats, getUserProfile, getUserStats } from '../../api/user';
 import { logout } from '../../api/auth';
 import useScrollAnimation from '../../hooks/useScrollAnimation';
+import api from '../../api/index';
 
 const TYPE_TO_CATEGORY = {
     vowel: 'vowel',
@@ -100,7 +103,9 @@ const ReportPage = () => {
     const containerRef = useScrollAnimation();
     const [lastStudy, setLastStudy] = useState(null);
     const [showOnboarding, setShowOnboarding] = useState(false);
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState(() => ({
+        role: localStorage.getItem('userRole') || 'USER'
+    }));
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [studyCalendarData, setStudyCalendarData] = useState({});
     const [studyCountsData, setStudyCountsData] = useState({});
@@ -111,6 +116,14 @@ const ReportPage = () => {
         totalTryCount: 0,
         averageScore: 0
     });
+
+    // 튜터 전용 상태
+    const [myStudents, setMyStudents] = useState([]);
+    const [activeReportStudent, setActiveReportStudent] = useState(null);
+    const [activeReportStats, setActiveReportStats] = useState({});
+    const [activeReportAi, setActiveReportAi] = useState('');
+    const [activeReportLoading, setActiveReportLoading] = useState(false);
+    const [isListExpanded, setIsListExpanded] = useState(false);
 
     useEffect(() => {
         const checkOnboarding = () => {
@@ -176,6 +189,34 @@ const ReportPage = () => {
                 setStudyCalendarData(mapDailyCountToStudyFlag(dailyCountMap));
                 setWeaknessStats(mapIpaRadarData(ipaStatsRaw));
                 if (userStats) setOverallStats(userStats);
+
+                // 튜터일 경우 담당 학생 목록(예약 목록) 가져오기
+                if (userData.role === 'TUTOR') {
+                    try {
+                        const res = await api.get('/meetings/tutor-meetings');
+                        const serverData = res.data.data || [];
+
+                        // 예약 정보가 포함된 목록으로 가공
+                        const processedData = serverData
+                            .filter(appt => appt.tuteeId) // 예약된 건만
+                            .map(appt => ({
+                                id: appt.id,
+                                tuteeId: appt.tuteeId,
+                                nickname: appt.tuteeNickname || '익명 학생',
+                                datetime: appt.datetime || appt.date || appt.scheduledAt
+                            }))
+                            .sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
+
+                        setMyStudents(processedData);
+
+                        // ✅ 첫 번째 학생 자동 선택
+                        if (processedData.length > 0 && !activeReportStudent) {
+                            handleSelectStudent(processedData[0]);
+                        }
+                    } catch (error) {
+                        console.error('담당 학생 목록 로드 실패', error);
+                    }
+                }
             } catch (err) {
                 console.error('리포트 데이터 로딩 실패', err);
             }
@@ -183,7 +224,30 @@ const ReportPage = () => {
 
         checkOnboarding();
         fetchData();
-    }, [navigate]);
+    }, [navigate]); // fetchData will handle the initial selection
+
+    const handleSelectStudent = async (student) => {
+        if (!student || (activeReportStudent && activeReportStudent.id === student.id)) return;
+
+        setActiveReportStudent(student);
+        setActiveReportLoading(true);
+
+        try {
+            // 레이더 차트 + AI 리포트 동시 호출
+            const [statsRaw, aiReportRaw] = await Promise.all([
+                getIpaRadarStats(student.tuteeId),
+                getIpaAiReport(student.tuteeId)
+            ]);
+
+            setActiveReportStats(mapIpaRadarData(statsRaw));
+            setActiveReportAi(aiReportRaw);
+        } catch (error) {
+            console.error('학생 리포트 상세 로드 실패', error);
+            setActiveReportAi('리포트를 불러오는 중 오류가 발생했습니다.');
+        } finally {
+            setActiveReportLoading(false);
+        }
+    };
 
     const handleMonthChange = async (year, month) => {
         try {
@@ -241,20 +305,115 @@ const ReportPage = () => {
                     <div className="report-group anim-target delay-1">
                         <h2 className="section-title">담당 학생 관리</h2>
                         <section className="status-section-card">
-                            <div className="status-cards">
-                                <div className="status-item-large" style={{ cursor: 'default' }}>
-                                    <span className="card-label">담당 학생</span>
-                                    <span className="card-value highlight-gold">-</span>
-                                    <span className="click-hint">학생 정보 확인</span>
-                                </div>
+                            <div className="status-cards-collapsible">
+                                {myStudents.length > 0 ? (
+                                    <>
+                                        {/* 선택된 학생 카드 (항상 노출) */}
+                                        <div className="active-student-showcase">
+                                            {(() => {
+                                                const appt = activeReportStudent || myStudents[0];
+                                                const dateObj = new Date(appt.datetime);
+                                                const dateStr = !isNaN(dateObj.getTime())
+                                                    ? `${dateObj.getMonth() + 1}월 ${dateObj.getDate()}일 ${dateObj.getHours()}:${String(dateObj.getMinutes()).padStart(2, '0')}`
+                                                    : '일정 확인 필요';
+
+                                                return (
+                                                    <div className="status-item-large active selected-main">
+                                                        <span className="card-label" style={{ fontSize: '0.8rem', color: '#8d6e63' }}>{dateStr} 수업</span>
+                                                        <span className="card-value highlight-gold" style={{ fontSize: '1.2rem', marginTop: '5px', display: 'block' }}>{appt.nickname} 학생</span>
+                                                        <span className="click-hint">현재 선택됨</span>
+                                                    </div>
+                                                );
+                                            })()}
+
+                                            {myStudents.length > 1 && (
+                                                <button
+                                                    className={`expand-list-btn ${isListExpanded ? 'expanded' : ''}`}
+                                                    onClick={() => setIsListExpanded(!isListExpanded)}
+                                                >
+                                                    <Users size={18} />
+                                                    {isListExpanded ? '리스트 접기' : `외 ${myStudents.length - 1}명의 학생 더보기`}
+                                                    {isListExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        {/* 나머지 학생 리스트 (접이식) */}
+                                        {isListExpanded && (
+                                            <div className="expanded-student-list anim-target">
+                                                <div className="status-cards">
+                                                    {myStudents
+                                                        .filter(s => s.id !== activeReportStudent?.id)
+                                                        .map(appt => {
+                                                            const dateObj = new Date(appt.datetime);
+                                                            const dateStr = !isNaN(dateObj.getTime())
+                                                                ? `${dateObj.getMonth() + 1}월 ${dateObj.getDate()}일 ${dateObj.getHours()}:${String(dateObj.getMinutes()).padStart(2, '0')}`
+                                                                : '일정 확인 필요';
+
+                                                            return (
+                                                                <div
+                                                                    key={appt.id}
+                                                                    className="status-item-large"
+                                                                    onClick={() => {
+                                                                        handleSelectStudent(appt);
+                                                                        setIsListExpanded(false);
+                                                                    }}
+                                                                >
+                                                                    <span className="card-label" style={{ fontSize: '0.8rem', color: '#8d6e63' }}>{dateStr} 수업</span>
+                                                                    <span className="card-value highlight-gold" style={{ fontSize: '1.1rem', marginTop: '5px' }}>{appt.nickname} 학생</span>
+                                                                    <span className="click-hint">리포트 보기</span>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                ) : (
+                                    <div className="status-item-large" style={{ cursor: 'default', opacity: 0.6 }}>
+                                        <span className="card-label">담당 학생</span>
+                                        <span className="card-value highlight-gold">-</span>
+                                        <span className="click-hint">예약된 학생이 없습니다.</span>
+                                    </div>
+                                )}
                             </div>
                         </section>
                     </div>
 
                     <div className="report-group anim-target delay-2">
-                        <h2 className="section-title">학생 리포트</h2>
+                        <h2 className="section-title">
+                            {activeReportStudent ? `${activeReportStudent.nickname} 학생 발음 리포트` : '학생 발음 리포트'}
+                        </h2>
                         <section className="report-section-card">
-                            <div className="placeholder-box" />
+                            {activeReportLoading ? (
+                                <div className="loading-container">
+                                    <div className="spinner" />
+                                    <p style={{ marginTop: '20px', color: '#8d6e63' }}>데이터를 분석 중입니다...</p>
+                                </div>
+                            ) : activeReportStudent ? (
+                                <div className="report-vertical-stack">
+                                    <div className="report-card-wrap">
+                                        <PronunciationWeaknessRadar weaknessStats={activeReportStats} />
+                                    </div>
+                                    <div className="report-card-wrap">
+                                        <AiFeedback feedback={activeReportAi} />
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="placeholder-box" style={{
+                                    height: '300px',
+                                    background: 'white',
+                                    borderRadius: '24px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: '#8d6e63',
+                                    fontSize: '1rem',
+                                    boxShadow: '0 8px 32px rgba(0,0,0,0.05)'
+                                }}>
+                                    학생을 선택하여 발음 리포트를 확인하세요.
+                                </div>
+                            )}
                         </section>
                     </div>
                 </>
