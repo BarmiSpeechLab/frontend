@@ -6,10 +6,13 @@ import OnboardingModal from '../common/OnboardingModal';
 import StudyCalendar from '../common/StudyCalendar';
 import WeeklyChart from '../common/WeeklyChart';
 import PronunciationWeaknessRadar from '../common/PronunciationWeaknessRadar';
+import AiFeedback from '../common/AiFeedback';
 import OverallLearningStats from '../common/OverallLearningStats';
-import { completeOnboarding, getCalendarLogs, getIpaRadarStats, getUserProfile, getUserStats } from '../../api/user';
+import { completeOnboarding, getCalendarLogs, getIpaAiReport, getIpaRadarStats, getUserProfile, getUserStats } from '../../api/user';
 import { logout } from '../../api/auth';
 import useScrollAnimation from '../../hooks/useScrollAnimation';
+import api from '../../api/index';
+import ReportModal from '../common/ReportModal';
 
 const TYPE_TO_CATEGORY = {
     vowel: 'vowel',
@@ -112,6 +115,17 @@ const ReportPage = () => {
         averageScore: 0
     });
 
+    // 튜터 전용 상태
+    const [myStudents, setMyStudents] = useState([]);
+    const [activeReportStudent, setActiveReportStudent] = useState(null);
+    const [activeReportStats, setActiveReportStats] = useState({});
+    const [activeReportAi, setActiveReportAi] = useState('');
+    const [activeReportLoading, setActiveReportLoading] = useState(false);
+
+    const [reportStudentId, setReportStudentId] = useState(null);
+    const [reportStudentNickname, setReportStudentNickname] = useState('');
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+
     useEffect(() => {
         const checkOnboarding = () => {
             const loggedInEmail = localStorage.getItem('userEmail') || 'guest';
@@ -167,6 +181,34 @@ const ReportPage = () => {
                     getUserStats().catch(() => null)
                 ]);
 
+                // 튜터일 경우 담당 학생 목록(예약 목록) 가져오기
+                if (userData.role === 'TUTOR') {
+                    try {
+                        const res = await api.get('/meetings/tutor-meetings');
+                        const serverData = res.data.data || [];
+
+                        // 예약 정보가 포함된 목록으로 가공
+                        const processedData = serverData
+                            .filter(appt => appt.tuteeId) // 예약된 건만
+                            .map(appt => ({
+                                id: appt.id,
+                                tuteeId: appt.tuteeId,
+                                nickname: appt.tuteeNickname || '익명 학생',
+                                datetime: appt.datetime || appt.date || appt.scheduledAt
+                            }))
+                            .sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
+
+                        setMyStudents(processedData);
+
+                        // ✅ 첫 번째 학생 자동 선택
+                        if (processedData.length > 0) {
+                            handleSelectStudent(processedData[0]);
+                        }
+                    } catch (error) {
+                        console.error('담당 학생 목록 로드 실패', error);
+                    }
+                }
+
                 // 현재 달과 이전 달 데이터 합치기
                 const allLogs = [...prevMonthLogs, ...calendarLogs];
                 const dailyCountMap = mapCalendarLogsToDailyCount(allLogs);
@@ -193,6 +235,29 @@ const ReportPage = () => {
             setStudyCalendarData(mapDailyCountToStudyFlag(dailyCountMap));
         } catch (err) {
             console.error('달력 데이터 로딩 실패', err);
+        }
+    };
+
+    const handleSelectStudent = async (student) => {
+        if (!student || activeReportStudent?.id === student.id) return;
+
+        setActiveReportStudent(student);
+        setActiveReportLoading(true);
+
+        try {
+            // 레이더 차트 + AI 리포트 동시 호출
+            const [statsRaw, aiReportRaw] = await Promise.all([
+                getIpaRadarStats(student.tuteeId),
+                getIpaAiReport(student.tuteeId)
+            ]);
+
+            setActiveReportStats(mapIpaRadarData(statsRaw));
+            setActiveReportAi(aiReportRaw);
+        } catch (error) {
+            console.error('학생 리포트 상세 로드 실패', error);
+            setActiveReportAi('리포트를 불러오는 중 오류가 발생했습니다.');
+        } finally {
+            setActiveReportLoading(false);
         }
     };
 
@@ -232,6 +297,12 @@ const ReportPage = () => {
         }
     };
 
+    const openReportModal = (studentId, studentNickname) => {
+        setReportStudentId(studentId);
+        setReportStudentNickname(studentNickname);
+        setIsReportModalOpen(true);
+    };
+
     return (
         <div className="dashboard-container" ref={containerRef}>
             {/* Header removed as per request */}
@@ -241,20 +312,93 @@ const ReportPage = () => {
                     <div className="report-group anim-target delay-1">
                         <h2 className="section-title">담당 학생 관리</h2>
                         <section className="status-section-card">
-                            <div className="status-cards">
-                                <div className="status-item-large" style={{ cursor: 'default' }}>
-                                    <span className="card-label">담당 학생</span>
-                                    <span className="card-value highlight-gold">-</span>
-                                    <span className="click-hint">학생 정보 확인</span>
-                                </div>
+                            <div className="status-cards" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '20px' }}>
+                                {myStudents.length > 0 ? (
+                                    myStudents.map(appt => {
+                                        const dateObj = new Date(appt.datetime);
+                                        const dateStr = !isNaN(dateObj.getTime())
+                                            ? `${dateObj.getMonth() + 1}월 ${dateObj.getDate()}일 ${dateObj.getHours()}:${String(dateObj.getMinutes()).padStart(2, '0')}`
+                                            : '일정 확인 필요';
+
+                                        return (
+                                            <div
+                                                key={appt.id}
+                                                className={`status-item-large ${activeReportStudent?.id === appt.id ? 'active' : ''}`}
+                                                style={{
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s',
+                                                    padding: '20px',
+                                                    border: activeReportStudent?.id === appt.id ? '2px solid #a67c00' : '1px solid transparent',
+                                                    transform: activeReportStudent?.id === appt.id ? 'translateY(-5px)' : 'none',
+                                                    boxShadow: activeReportStudent?.id === appt.id ? '0 8px 20px rgba(166,124,0,0.15)' : 'none'
+                                                }}
+                                                onClick={() => handleSelectStudent(appt)}
+                                                onMouseOver={(e) => { if (activeReportStudent?.id !== appt.id) e.currentTarget.style.transform = 'translateY(-5px)'; }}
+                                                onMouseOut={(e) => { if (activeReportStudent?.id !== appt.id) e.currentTarget.style.transform = 'translateY(0)'; }}
+                                            >
+                                                <span className="card-label" style={{ fontSize: '0.8rem', color: '#8d6e63' }}>{dateStr} 수업</span>
+                                                <span className="card-value highlight-gold" style={{ fontSize: '1.2rem', marginTop: '5px', display: 'block' }}>{appt.nickname} 학생</span>
+                                                <span className="click-hint">{activeReportStudent?.id === appt.id ? '선택됨' : '리포트 보기'}</span>
+                                            </div>
+                                        );
+                                    })
+                                ) : (
+                                    <div className="status-item-large" style={{ cursor: 'default', opacity: 0.6 }}>
+                                        <span className="card-label">담당 학생</span>
+                                        <span className="card-value highlight-gold">-</span>
+                                        <span className="click-hint">예약된 학생이 없습니다.</span>
+                                    </div>
+                                )}
                             </div>
                         </section>
                     </div>
 
                     <div className="report-group anim-target delay-2">
-                        <h2 className="section-title">학생 리포트</h2>
-                        <section className="report-section-card">
-                            <div className="placeholder-box" />
+                        <h2 className="section-title">
+                            {activeReportStudent ? `${activeReportStudent.nickname} 학생 발음 리포트` : '학생 발음 리포트'}
+                        </h2>
+                        <section className="report-section-card" style={{ padding: '24px', background: 'transparent', boxShadow: 'none' }}>
+                            {activeReportLoading ? (
+                                <div className="loading-container" style={{
+                                    background: 'white',
+                                    borderRadius: '24px',
+                                    padding: '50px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    boxShadow: '0 8px 32px rgba(0,0,0,0.05)'
+                                }}>
+                                    <div className="spinner" />
+                                    <p style={{ marginTop: '20px', color: '#8d6e63' }}>데이터를 분석 중입니다...</p>
+                                </div>
+                            ) : activeReportStudent ? (
+                                <div className="report-cards-container" style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+                                    gap: '24px'
+                                }}>
+                                    <div style={{ background: 'white', borderRadius: '24px', padding: '24px', boxShadow: '0 8px 32px rgba(0,0,0,0.05)' }}>
+                                        <PronunciationWeaknessRadar weaknessStats={activeReportStats} />
+                                    </div>
+                                    <div style={{ background: 'white', borderRadius: '24px', padding: '24px', boxShadow: '0 8px 32px rgba(0,0,0,0.05)' }}>
+                                        <AiFeedback feedback={activeReportAi} />
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="placeholder-box" style={{
+                                    height: '300px',
+                                    background: 'white',
+                                    borderRadius: '24px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: '#8d6e63',
+                                    fontSize: '1rem',
+                                    boxShadow: '0 8px 32px rgba(0,0,0,0.05)'
+                                }}>
+                                    학생을 선택하여 발음 리포트를 확인하세요.
+                                </div>
+                            )}
                         </section>
                     </div>
                 </>
@@ -292,6 +436,14 @@ const ReportPage = () => {
                 <OnboardingModal
                     onComplete={handleOnboardingComplete}
                     role={localStorage.getItem('userRole') || 'USER'}
+                />
+            )}
+
+            {isReportModalOpen && reportStudentId && (
+                <ReportModal
+                    studentId={reportStudentId}
+                    studentNickname={reportStudentNickname}
+                    onClose={() => setIsReportModalOpen(false)}
                 />
             )}
         </div>
