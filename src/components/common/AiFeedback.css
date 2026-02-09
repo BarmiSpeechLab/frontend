@@ -234,3 +234,31 @@
     font-style: italic;
     font-size: 0.95rem;
 }
+
+/* 성공 상태 스타일 */
+.feedback-success-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: #ffffff;
+    border: 1px solid #eaddcf;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(166, 124, 0, 0.05);
+    text-align: center;
+}
+
+.feedback-success-img {
+    width: 250px;
+    height: auto;
+    margin-bottom: 0.8rem;
+    object-fit: contain;
+}
+
+.feedback-success-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2e7d32;
+    margin: 0;
+}

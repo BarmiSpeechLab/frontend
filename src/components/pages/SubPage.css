@@ -1,17 +1,16 @@
 /* 공통 디자인 한번에 관리하기 위한 페이지 */
 
 .subpage-container {
-    max-width: 1200px;
+    max-width: 1100px;
     margin: 0 auto;
 }
 
 .subpage-title {
     font-size: 2.2rem;
-    /* Increased from 1.5rem */
     font-weight: 800;
     margin-bottom: 2rem;
     margin-top: -8px;
-    /* Pull up to align with Sidebar Logo (approx 42px) */
+    /* Aligned with Sidebar Logo center/top via 50px global padding */
     color: #a67c00;
 }
 

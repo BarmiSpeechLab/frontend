@@ -1,9 +1,19 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { Sparkles, AlertTriangle, CheckCircle, HelpCircle, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import './AiFeedback.css';
+import successImg from '../../assets/img/conversation_success.png';
 
 const AiFeedback = ({ feedback }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
+
+    const isSuccessCase = useMemo(() => {
+        if (!feedback) return false;
+        const textToCheck = typeof feedback === 'object'
+            ? (feedback.summary || feedback.analysisResult || feedback.analysis_result || '')
+            : String(feedback);
+        // "물론입니다"가 포함되어 있으면 성공 케이스로 간주
+        return /물론입니다/.test(textToCheck);
+    }, [feedback]);
 
     // 피드백이 변경될 때마다 인덱스 초기화
     useEffect(() => {
@@ -156,120 +166,127 @@ const AiFeedback = ({ feedback }) => {
             </div>
 
             <div className="feedback-list">
-                {parsedFeedback.length > 0 && (
-                    <div className="feedback-item">
-                        {parsedFeedback[currentIndex].isStructured ? (
-                            <div className="feedback-structured-content">
-                                {parsedFeedback[currentIndex].overallLevel && (
-                                    <div className="feedback-level-badge">
-                                        종합 레벨: <span>{parsedFeedback[currentIndex].overallLevel}</span>
-                                    </div>
-                                )}
-
-                                <div className="feedback-detail-block">
-                                    <div className="feedback-label-row">
-                                        <div className="feedback-icon-wrapper summary"><Sparkles size={18} /></div>
-                                        <span className="feedback-label">학습 요약</span>
-                                    </div>
-                                    <p className="feedback-content-text">{parsedFeedback[currentIndex].summary}</p>
-                                </div>
-
-                                {parsedFeedback[currentIndex].strengths?.length > 0 && (
-                                    <div className="feedback-detail-block">
-                                        <div className="feedback-label-row">
-                                            <div className="feedback-icon-wrapper strength"><CheckCircle size={18} /></div>
-                                            <span className="feedback-label" style={{ color: '#2e7d32' }}>주요 강점</span>
-                                        </div>
-                                        <ul className="feedback-list-text">
-                                            {parsedFeedback[currentIndex].strengths.map((s, i) => <li key={i}>{s}</li>)}
-                                        </ul>
-                                    </div>
-                                )}
-
-                                {parsedFeedback[currentIndex].weaknesses?.length > 0 && (
-                                    <div className="feedback-detail-block">
-                                        <div className="feedback-label-row">
-                                            <div className="feedback-icon-wrapper weakness"><AlertTriangle size={18} /></div>
-                                            <span className="feedback-label" style={{ color: '#d32f2f' }}>개선 필요점</span>
-                                        </div>
-                                        <ul className="feedback-list-text">
-                                            {parsedFeedback[currentIndex].weaknesses.map((w, i) => <li key={i}>{w}</li>)}
-                                        </ul>
-                                    </div>
-                                )}
-
-                                {parsedFeedback[currentIndex].teachingStrategies?.length > 0 && (
-                                    <div className="feedback-detail-block teaching-guide">
-                                        <div className="feedback-label-row">
-                                            <div className="feedback-icon-wrapper guide"><HelpCircle size={18} /></div>
-                                            <span className="feedback-label" style={{ color: '#a67c00' }}>튜터 티칭 가이드</span>
-                                        </div>
-                                        <ul className="feedback-list-text">
-                                            {parsedFeedback[currentIndex].teachingStrategies.map((g, i) => <li key={i}>{g}</li>)}
-                                        </ul>
-                                    </div>
-                                )}
-                            </div>
-                        ) : parsedFeedback[currentIndex].raw ? (
-                            <div className="feedback-raw-content">
-                                <div className="feedback-target">
-                                    🎯 AI 분석 결과
-                                </div>
-                                <p className="feedback-content-text" style={{ whiteSpace: 'pre-wrap', marginTop: '1rem' }}>
-                                    {parsedFeedback[currentIndex].raw}
-                                </p>
-                            </div>
-                        ) : (
-                            <>
-                                <div className="feedback-target">
-                                    {renderTargetText(parsedFeedback[currentIndex].target)}
-                                </div>
-
-                                {parsedFeedback[currentIndex].isNoAction ? (
-                                    <div className="feedback-detail-block">
-                                        <div className="feedback-label-row">
-                                            <div className="feedback-icon-wrapper correction">
-                                                <CheckCircle size={18} />
-                                            </div>
-                                            <span className="feedback-label" style={{ color: '#2e7d32' }}>상태</span>
-                                        </div>
-                                        <p className="feedback-content-text">
-                                            정상 발음입니다. 별도의 교정이 필요하지 않습니다.
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <>
-                                        {parsedFeedback[currentIndex].error && (
-                                            <div className="feedback-detail-block">
-                                                <div className="feedback-label-row">
-                                                    <div className="feedback-icon-wrapper error">
-                                                        <AlertTriangle size={18} />
-                                                    </div>
-                                                    <span className="feedback-label" style={{ color: '#d32f2f' }}>문제점</span>
-                                                </div>
-                                                <p className="feedback-content-text">
-                                                    {parsedFeedback[currentIndex].error}
-                                                </p>
-                                            </div>
-                                        )}
-                                        {parsedFeedback[currentIndex].correction && (
-                                            <div className="feedback-detail-block">
-                                                <div className="feedback-label-row">
-                                                    <div className="feedback-icon-wrapper correction">
-                                                        <CheckCircle size={18} />
-                                                    </div>
-                                                    <span className="feedback-label" style={{ color: '#2e7d32' }}>솔루션</span>
-                                                </div>
-                                                <p className="feedback-content-text">
-                                                    {parsedFeedback[currentIndex].correction}
-                                                </p>
-                                            </div>
-                                        )}
-                                    </>
-                                )}
-                            </>
-                        )}
+                {isSuccessCase ? (
+                    <div className="feedback-success-state">
+                        <img src={successImg} alt="완벽합니다!" className="feedback-success-img" />
+                        <h4 className="feedback-success-title" style={{ margin: 0 }}>완벽합니다!</h4>
                     </div>
+                ) : (
+                    parsedFeedback.length > 0 && (
+                        <div className="feedback-item">
+                            {parsedFeedback[currentIndex].isStructured ? (
+                                <div className="feedback-structured-content">
+                                    {parsedFeedback[currentIndex].overallLevel && (
+                                        <div className="feedback-level-badge">
+                                            종합 레벨: <span>{parsedFeedback[currentIndex].overallLevel}</span>
+                                        </div>
+                                    )}
+
+                                    <div className="feedback-detail-block">
+                                        <div className="feedback-label-row">
+                                            <div className="feedback-icon-wrapper summary"><Sparkles size={18} /></div>
+                                            <span className="feedback-label">학습 요약</span>
+                                        </div>
+                                        <p className="feedback-content-text">{parsedFeedback[currentIndex].summary}</p>
+                                    </div>
+
+                                    {parsedFeedback[currentIndex].strengths?.length > 0 && (
+                                        <div className="feedback-detail-block">
+                                            <div className="feedback-label-row">
+                                                <div className="feedback-icon-wrapper strength"><CheckCircle size={18} /></div>
+                                                <span className="feedback-label" style={{ color: '#2e7d32' }}>주요 강점</span>
+                                            </div>
+                                            <ul className="feedback-list-text">
+                                                {parsedFeedback[currentIndex].strengths.map((s, i) => <li key={i}>{s}</li>)}
+                                            </ul>
+                                        </div>
+                                    )}
+
+                                    {parsedFeedback[currentIndex].weaknesses?.length > 0 && (
+                                        <div className="feedback-detail-block">
+                                            <div className="feedback-label-row">
+                                                <div className="feedback-icon-wrapper weakness"><AlertTriangle size={18} /></div>
+                                                <span className="feedback-label" style={{ color: '#d32f2f' }}>개선 필요점</span>
+                                            </div>
+                                            <ul className="feedback-list-text">
+                                                {parsedFeedback[currentIndex].weaknesses.map((w, i) => <li key={i}>{w}</li>)}
+                                            </ul>
+                                        </div>
+                                    )}
+
+                                    {parsedFeedback[currentIndex].teachingStrategies?.length > 0 && (
+                                        <div className="feedback-detail-block teaching-guide">
+                                            <div className="feedback-label-row">
+                                                <div className="feedback-icon-wrapper guide"><HelpCircle size={18} /></div>
+                                                <span className="feedback-label" style={{ color: '#a67c00' }}>튜터 티칭 가이드</span>
+                                            </div>
+                                            <ul className="feedback-list-text">
+                                                {parsedFeedback[currentIndex].teachingStrategies.map((g, i) => <li key={i}>{g}</li>)}
+                                            </ul>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : parsedFeedback[currentIndex].raw ? (
+                                <div className="feedback-raw-content">
+                                    <div className="feedback-target">
+                                        🎯 AI 분석 결과
+                                    </div>
+                                    <p className="feedback-content-text" style={{ whiteSpace: 'pre-wrap', marginTop: '1rem' }}>
+                                        {parsedFeedback[currentIndex].raw}
+                                    </p>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="feedback-target">
+                                        {renderTargetText(parsedFeedback[currentIndex].target)}
+                                    </div>
+
+                                    {parsedFeedback[currentIndex].isNoAction ? (
+                                        <div className="feedback-detail-block">
+                                            <div className="feedback-label-row">
+                                                <div className="feedback-icon-wrapper correction">
+                                                    <CheckCircle size={18} />
+                                                </div>
+                                                <span className="feedback-label" style={{ color: '#2e7d32' }}>상태</span>
+                                            </div>
+                                            <p className="feedback-content-text">
+                                                정상 발음입니다. 별도의 교정이 필요하지 않습니다.
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {parsedFeedback[currentIndex].error && (
+                                                <div className="feedback-detail-block">
+                                                    <div className="feedback-label-row">
+                                                        <div className="feedback-icon-wrapper error">
+                                                            <AlertTriangle size={18} />
+                                                        </div>
+                                                        <span className="feedback-label" style={{ color: '#d32f2f' }}>문제점</span>
+                                                    </div>
+                                                    <p className="feedback-content-text">
+                                                        {parsedFeedback[currentIndex].error}
+                                                    </p>
+                                                </div>
+                                            )}
+                                            {parsedFeedback[currentIndex].correction && (
+                                                <div className="feedback-detail-block">
+                                                    <div className="feedback-label-row">
+                                                        <div className="feedback-icon-wrapper correction">
+                                                            <CheckCircle size={18} />
+                                                        </div>
+                                                        <span className="feedback-label" style={{ color: '#2e7d32' }}>솔루션</span>
+                                                    </div>
+                                                    <p className="feedback-content-text">
+                                                        {parsedFeedback[currentIndex].correction}
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    )
                 )}
 
                 {/* 네비게이션 컨트롤 (여러 개일 때만 표시) */}

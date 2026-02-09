@@ -4,10 +4,10 @@
 .profile-dashboard-container {
     font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
     width: 100%;
-    height: calc(100vh - 100px);
+    height: calc(100vh - 50px);
     overflow-y: auto;
     scroll-snap-type: y mandatory;
-    padding-top: 1rem;
+    padding-top: 0;
     padding-bottom: 2rem;
     color: #4a3b32;
     background: transparent;
@@ -23,20 +23,20 @@
     max-width: 1100px;
     width: 90%;
     margin: 0 auto;
-    margin-left: 4rem;
     margin-bottom: 3rem;
     scroll-snap-align: start;
     scroll-margin-top: 2rem;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    padding-top: 1rem;
+    padding-top: 0;
 }
 
 /* 3. Section Title */
 .section-title {
     font-size: 2.2rem;
-    font-weight: 900;
+    font-weight: 800;
+    /* Fixed from 900 */
     color: #a67c00;
     margin: 0 0 1.5rem 0;
     line-height: 1.2;

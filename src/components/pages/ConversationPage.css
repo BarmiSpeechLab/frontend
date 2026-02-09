@@ -1,26 +1,23 @@
 /* ConversationPage.css - 아바타 왼쪽 + 채팅 오른쪽 길게 */
 
 /* 전체 컨테이너 */
+/* 전체 컨테이너 - SubPage.css의 .subpage-container를 기본으로 사용하되 필요한 것만 덮어씀 */
+/* 전체 컨테이너 - 회화 페이지 전용 */
 .conversation-container {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: calc(100vh - 50px);
+    /* Fill remaining viewport below 50px global padding */
     background: transparent;
     overflow: hidden;
-    margin-top: 40px;
+    margin-top: 0;
 }
 
 /* 헤더 (타이틀 + 주제 칩) */
 .conversation-header {
-    background: transparent;
-    /* Match LearningPage Width & Centering */
     max-width: 1100px;
-    width: 90%;
+    width: 100%;
     margin: 0 auto;
-    margin-left: 4rem;
-    /* Match conversation-main margin */
-
-    padding: 0;
     border: none;
     box-shadow: none;
     margin-bottom: 0rem;
@@ -36,29 +33,19 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
+    margin-bottom: 0rem;
 }
 
-.header-title {
-    font-size: 2.2rem;
-    font-weight: 900;
-    color: #a67c00;
-    margin: 0;
-    line-height: 1.2;
-    text-shadow: 0 2px 4px rgba(166, 124, 0, 0.1);
-}
-
-.header-subtitle {
-    font-size: 1rem;
-    color: #888;
-    margin: 0.5rem 0 0 0;
+/* subpage-title is handled by SubPage.css - Override for tighter spacing in Conversation */
+.conversation-container .subpage-title {
+    margin-bottom: 0.5rem;
 }
 
 /* 주제 칩 (작은 버튼들) - Tabs Style from SubPage.css */
 .theme-chips {
     display: flex;
     gap: 0.75rem;
-    margin-top: 2rem;
+    margin-top: 0.5rem;
     overflow-x: auto;
     white-space: nowrap;
     padding-bottom: 0.5rem;
@@ -120,16 +107,12 @@
     flex: 1;
     display: flex;
     gap: 1.5rem;
-    /* Match LearningPage Width & Centering */
     max-width: 1100px;
-    width: 90%;
+    width: 100%;
     margin: 0 auto;
-    margin-left: 4rem;
-    /* ADDED LEFT MARGIN TO SHIFT RIGHT */
-
     padding: 0;
     overflow: hidden;
-    margin-top: 2rem;
+    margin-top: 1rem;
 }
 
 /* 왼쪽: Avatar 사이드바 */
@@ -510,6 +493,10 @@
 
     .chip-emoji {
         font-size: 1rem;
+    }
+
+    .chip-label {
+        font-weight: 600;
     }
 
     .chat-messages {
