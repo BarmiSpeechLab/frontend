@@ -1,0 +1,586 @@
+/* ReportPage.css - Login Style Adaptation */
+
+/* 1. Font Import (Same as Login) */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+/* 2. Global Container (Background & Font) */
+/* 2. Global Container (Background & Font) */
+.dashboard-container {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    width: 100%;
+    /* Use calc to fill remaining height below header */
+    height: calc(100vh - 50px);
+    overflow-y: auto;
+    scroll-snap-type: y mandatory;
+    /* Enable scroll snap */
+    padding-top: 0;
+    padding-bottom: 2rem;
+    color: #4a3b32;
+
+    /* REMOVED Glass Treatment from Outer Container */
+    background: transparent;
+
+    scrollbar-width: none;
+}
+
+/* ... existing code ... */
+
+.study-calendar .calendar-month,
+.study-calendar .calendar-nav-btn {
+    color: #4a3b32 !important;
+    /* Login Title Color */
+}
+
+/* Chart & Stats Inner Text Colors */
+.card-label,
+.weakness-radar-title,
+.overall-stat-label {
+    color: #6b5b4e !important;
+    /* Lighter brown for labels (was #888) */
+}
+
+.card-value,
+.chart-title,
+.overall-stat-value {
+    color: #4a3b32 !important;
+    /* Darker brown for better contrast */
+}
+
+.card-label {
+    font-size: 1rem;
+    color: #6b5b4e;
+    /* Changed from #888 */
+    font-weight: 500;
+}
+
+.card-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #4a3b32;
+}
+
+.dashboard-container::-webkit-scrollbar {
+    display: none;
+}
+
+/* ... existing code ... */
+
+/* Group Container (Title + Card) */
+.report-group {
+    max-width: 1100px;
+    width: 90%;
+    margin: 0 auto;
+    margin-bottom: 2rem;
+
+    /* Scroll snap alignment moved here */
+    scroll-snap-align: start;
+    scroll-margin-top: 1rem;
+    min-height: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    /* Changed from center to start */
+    padding-top: 0;
+    /* Push content down */
+}
+
+/* Extracted Title Style - Match Conversation Header */
+.section-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    /* Fixed from 900 */
+    color: #a67c00;
+    margin: 0 0 1rem 0;
+    /* Spacing below title */
+    line-height: 1.2;
+    text-shadow: 0 2px 4px rgba(166, 124, 0, 0.1);
+}
+
+/* Inner Card Styles (Background & Glass Effect) */
+/* Inner Card Styles (Background & Glass Effect) */
+/* The Outer Box is now Transparent as requested */
+.status-section-card {
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+    border: none;
+    width: 100%;
+}
+
+.report-section-card {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none !important;
+    border: none !important;
+    width: 100%;
+}
+
+/* 5. Charts & Grids */
+.report-charts-container {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 1.5rem;
+    /* Space between glass cards */
+    align-items: start;
+    /* CHANGED: Align to top so calendar grows downwards */
+}
+
+.report-left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    /* Further reduced from 1rem */
+}
+
+.report-cards-container {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+/* 6. Overrides for Child Components -> PREMIUM GLASS CARDS */
+
+/* WRAPPERS: Make them transparent (No big white box) */
+.overall-stats-card,
+.weekly-chart,
+.study-calendar {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    /* Removed padding to align width with chart */
+    transition: none;
+    /* Remove hover lift from wrapper */
+}
+
+/* HOVER: Disable wrapper hover effects */
+.overall-stats-card:hover,
+.weekly-chart:hover,
+.study-calendar:hover {
+    transform: none;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+/* === OVERALL STATS ITEMS (Glass - Keep as is for now) === */
+/* === OVERALL STATS ITEMS (Glass - Borderless as requested) === */
+.overall-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 0px !important;
+}
+
+.overall-stat-item {
+    background: rgba(255, 255, 255, 0.6) !important;
+    /* Whiter glass matched to chart */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: none !important;
+    border-radius: 24px !important;
+    padding: 1.5rem !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    aspect-ratio: 1.1;
+    /* Taller cards (bigger) */
+    min-height: 180px;
+    transition: transform 0.2s ease;
+}
+
+/* === WEEKLY CHART (Glass Container - Prettier) === */
+/* === WEEKLY CHART (Glass - Matches Stats Cards EXACTLY) === */
+.weekly-chart .chart-container {
+    background: rgba(255, 255, 255, 0.6) !important;
+    /* Whiter glass */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: none !important;
+    /* REMOVED BORDER */
+    border-radius: 24px !important;
+    padding: 1.5rem !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+    /* Soft shadow */
+    height: 300px;
+    display: flex;
+    align-items: flex-end;
+}
+
+/* === CALENDAR (Minimal Lined Design - PERFECT ALIGNMENT & GLASS) === */
+.dashboard-container .study-calendar .calendar-grid {
+    background: rgba(255, 255, 255, 0.6) !important;
+    /* Whiter Glass to match Side Chart */
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-radius: 24px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    padding: 2rem !important;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 0 !important;
+}
+
+/* Header Alignment - RESTORED POSITION & CENTERED LINE */
+.dashboard-container .study-calendar .calendar-header-split {
+    display: flex !important;
+    align-items: flex-end !important;
+    justify-content: space-between !important;
+    padding: 0 0.5rem 1rem 0.5rem !important;
+    /* Restored original padding */
+    margin-bottom: 1rem !important;
+    /* Restored margin */
+    border-bottom: 2px solid rgba(166, 124, 0, 0.2) !important;
+    min-height: auto !important;
+    /* Restored height */
+    box-sizing: border-box !important;
+    position: relative;
+    /* For centering if needed, but flex-between works for split */
+}
+
+/* Ensure line feels centered in the gap if needed, or just clean split */
+.dashboard-container .study-calendar .calendar-header-split::after {
+    content: none;
+}
+
+.dashboard-container .study-calendar .header-month,
+.dashboard-container .study-calendar .header-year {
+    font-size: 2.5rem !important;
+    font-weight: 800 !important;
+    color: #a67c00 !important;
+    line-height: 1 !important;
+}
+
+/* Weekday Headers */
+.dashboard-container .study-calendar .calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    border-bottom: 2px solid rgba(74, 59, 50, 0.1) !important;
+    padding-bottom: 1rem !important;
+    margin-bottom: 0.5rem !important;
+    text-align: center;
+    background: transparent !important;
+}
+
+.dashboard-container .study-calendar .weekday-label {
+    color: #888 !important;
+    font-weight: 700 !important;
+    font-size: 1rem !important;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dashboard-container .study-calendar .weekday-label:first-child {
+    color: #e57373 !important;
+}
+
+/* Calendar Cells - CENTERED & TRANSPARENT */
+.dashboard-container .study-calendar .calendar-cell {
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1px solid rgba(74, 59, 50, 0.05) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    color: #4a3b32 !important;
+    font-weight: 600 !important;
+    font-size: 1.2rem !important;
+    height: auto !important;
+    aspect-ratio: 1 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: visible;
+}
+
+.dashboard-container .study-calendar .calendar-cell:hover {
+    background: rgba(255, 255, 255, 0.6) !important;
+    /* Match grid opacity */
+    border-radius: 50% !important;
+    border: none !important;
+}
+
+.dashboard-container .study-calendar .calendar-cell.current,
+.dashboard-container .study-calendar .calendar-cell.study {
+    background: transparent !important;
+}
+
+.dashboard-container .study-calendar .calendar-cell:nth-child(7n+1) {
+    color: #e57373 !important;
+}
+
+.dashboard-container .study-calendar .calendar-cell:nth-child(7n) {
+    color: #64b5f6 !important;
+}
+
+.dashboard-container .study-calendar .calendar-cell.other {
+    color: #d1d1d1 !important;
+    pointer-events: none;
+}
+
+.dashboard-container .study-calendar .calendar-cell.other:nth-child(7n+1),
+.dashboard-container .study-calendar .calendar-cell.other:nth-child(7n) {
+    color: #d1d1d1 !important;
+}
+
+/* Hide Chart Axis/Grid if present (Assuming custom implementation) */
+
+.chart-bars {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    width: 100%;
+    height: 100%;
+    gap: 1rem;
+}
+
+.p_bar,
+.bar {
+    border-radius: 12px 12px 0 0 !important;
+    /* Smooth rounded tops */
+    background: linear-gradient(180deg, #a67c00 0%, #cc9a00 100%) !important;
+    /* Deep Gold Gradient */
+    width: 36px !important;
+    /* Thicker bars */
+    box-shadow: 0 0 15px rgba(166, 124, 0, 0.3);
+    /* Glow effect */
+    position: relative;
+    transition: height 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /* Bouncy grow */
+}
+
+.p_bar:hover,
+.bar:hover {
+    filter: brightness(1.2);
+    box-shadow: 0 0 25px rgba(166, 124, 0, 0.5);
+    background: linear-gradient(180deg, #c49200 0%, #e6b800 100%) !important;
+}
+
+/* Day labels below bars */
+.day-name {
+    margin-top: 1rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #4a3b32 !important;
+    opacity: 0.8;
+}
+
+/* Calendar overrides - Keep it cleaner but consistent */
+.study-calendar .calendar-grid {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: none !important;
+    border-radius: 24px !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08) !important;
+}
+
+.study-calendar .calendar-month,
+.study-calendar .calendar-nav-btn {
+    color: #4a3b32 !important;
+    /* Login Title Color */
+}
+
+/* Chart & Stats Inner Text Colors */
+.card-label,
+.overall-stat-label {
+    color: #888 !important;
+}
+
+.weakness-radar-title {
+    color: #4a3b32 !important;
+    /* Dark Brown */
+}
+
+.card-value,
+.chart-title,
+.overall-stat-value {
+    color: #4a3b32 !important;
+    /* Darker brown for better contrast */
+}
+
+/* Inner Stats Items - Cleaner & More "Login-like" */
+
+
+.weakness-radar-item {
+    background: rgba(255, 255, 255, 0.6) !important;
+    /* Matched 0.6 opacity */
+    border: 1px solid #f2dfb6 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03) !important;
+    transition: all 0.2s ease !important;
+}
+
+.weakness-radar-item:hover {
+    transform: translateY(-2px) !important;
+    border-color: var(--color-gold) !important;
+    background: #fffdf5 !important;
+}
+
+/* Status Cards specific layout fix */
+.status-cards {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.status-item-large {
+    background: rgba(255, 255, 255, 0.6) !important;
+    backdrop-filter: blur(20px);
+    border-radius: 24px !important;
+    padding: 24px !important;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    border: 2px solid transparent !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05) !important;
+}
+
+.status-item-large.active {
+    border-color: #a67c00 !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(166, 124, 0, 0.15) !important;
+}
+
+.status-item-large.active .click-hint {
+    background: #a67c00;
+    color: white;
+}
+
+.status-item-large.clickable:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 20px 45px rgba(166, 124, 0, 0.2) !important;
+}
+
+.card-label {
+    font-size: 1rem;
+    color: #888;
+    font-weight: 500;
+}
+
+.card-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #4a3b32;
+}
+
+.click-hint {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: var(--color-gold);
+    font-weight: 700;
+    display: inline-block;
+    padding: 6px 12px;
+    background: #fdfaf3;
+    border-radius: 12px;
+    align-self: flex-start;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .report-charts-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-header {
+        padding: 0 20px;
+    }
+
+    .welcome-text {
+        font-size: 1.4rem;
+    }
+
+    .status-section,
+    .report-section {
+        padding: 1.5rem;
+    }
+}
+/* Loading State & Spinner */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px;
+    gap: 1.5rem;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px);
+    border-radius: 32px;
+    width: 100%;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(166, 124, 0, 0.1);
+    border-top: 5px solid #a67c00;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Tutor Grid Layout */
+.tutor-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)) !important;
+    gap: 24px !important;
+    width: 100%;
+}
+
+.report-card-wrap {
+    background: white;
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.05);
+}
+
+/* Supplemental Tutor Styles */
+.status-cards {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important;
+    gap: 1.5rem !important;
+    width: 100% !important;
+}
+
+.status-item-large.active {
+    border-color: #a67c00 !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(166, 124, 0, 0.15) !important;
+}
+
+.status-item-large.active .click-hint {
+    background: #a67c00;
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .status-item-large {
+        padding: 20px !important;
+    }
+    .tutor-grid {
+        grid-template-columns: 1fr !important;
+    }
+}

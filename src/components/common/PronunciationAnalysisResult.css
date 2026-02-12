@@ -1,0 +1,251 @@
+.pa-result {
+  width: 100%;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.pa-words-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+/* 단어 그룹 카드 */
+.pa-word-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+  min-width: 200px;
+  flex: 1;
+  max-width: 500px;
+}
+
+/* 목표 단어 헤더 */
+.pa-word-header {
+  text-align: center;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #d1d5db;
+}
+
+.pa-target-word {
+  font-size: 22px;
+  font-weight: 700;
+  color: #059669;
+  font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+}
+
+/* 음소 행 */
+.pa-phonemes-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  /* Add for absolute label positioning */
+  gap: 12px;
+  min-height: 50px;
+}
+
+.pa-phonemes-label {
+  position: absolute;
+  left: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  min-width: 45px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 2px 4px;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+}
+
+.pa-phonemes-values {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  justify-content: flex-start;
+  overflow-x: auto;
+  padding: 10px 50px;
+  /* Space for absolute labels on the left */
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Flex centering trick: use pseudo-elements with auto margins to center content 
+   only when it doesn't overflow */
+.pa-phonemes-values::before,
+.pa-phonemes-values::after {
+  content: '';
+  margin: auto;
+}
+
+/* Slim scrollbar for phonemes */
+.pa-phonemes-values::-webkit-scrollbar {
+  height: 4px;
+}
+
+.pa-phonemes-values::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pa-phonemes-values::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.pa-phonemes-values::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* 음소 토큰 */
+.pa-phoneme-token {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-size: 20px;
+  font-weight: 700;
+  border: 2px solid transparent;
+  background: transparent;
+  transition: all 0.15s ease;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.pa-phoneme-token--ok {
+  color: #059669;
+  background: #d1fae5;
+}
+
+.pa-phoneme-token--bad {
+  color: #dc2626;
+  background: #fee2e2;
+  border-color: #fecaca;
+}
+
+.pa-phoneme-token--clickable {
+  cursor: pointer;
+}
+
+.pa-phoneme-token--clickable:hover {
+  background: #fecaca;
+  border-color: #fca5a5;
+  transform: translateY(-2px);
+}
+
+.pa-phoneme-token--selected {
+  background: #fef3c7;
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.3);
+}
+
+/* 화살표 */
+.pa-arrow {
+  text-align: center;
+  font-size: 24px;
+  color: #9ca3af;
+  font-weight: 600;
+  margin: 4px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 한글 발음 비교 */
+.pa-korean-row {
+  padding-top: 12px;
+  border-top: 2px solid #d1d5db;
+  text-align: center;
+}
+
+.pa-korean-comparison {
+  font-size: 18px;
+  font-weight: 600;
+  color: #6b7280;
+  font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+}
+
+.pa-korean-user--ok {
+  color: #059669;
+  background: #d1fae5;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.pa-korean-user--bad {
+  color: #dc2626;
+  background: #fee2e2;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .pa-words-container {
+    gap: 16px;
+  }
+
+  .pa-word-group {
+    min-width: 100%;
+    max-width: 100%;
+  }
+
+  .pa-target-word {
+    font-size: 20px;
+  }
+
+  .pa-phoneme-token {
+    min-width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+}
+
+/* 분석 결과 박스 안에서 버튼을 우하단에 고정하려고 */
+.pa-result {
+  position: relative;
+}
+
+.pa-hint {
+  font-size: 13px;
+  color: #9ca3af;
+  margin-top: 10px;
+  text-align: left;
+  font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+}
+
+/* 우하단 다시 녹음 버튼 */
+.pa-redo-btn {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #ff5252;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pa-redo-btn:hover {
+  filter: brightness(0.95);
+}

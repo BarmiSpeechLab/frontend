@@ -1,0 +1,296 @@
+/* 화면 전환 애니메이션 */
+.fade-in {
+    animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.schedule-container .step-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.schedule-container .back-btn {
+    align-self: flex-start;
+    background: #f5f0e6;
+    border: none;
+    color: #4a3b32;
+    /* Dark Brown */
+    cursor: pointer;
+    font-weight: bold;
+    margin-bottom: 20px;
+    padding: 10px 20px;
+    border-radius: 12px;
+    transition: 0.2s;
+}
+
+.schedule-container .back-btn:hover {
+    background: #a67c00;
+    color: #fff;
+}
+
+/* Section Title (Matches Profile/Reservation + Center + Margin) - SCOPED */
+.schedule-container .section-title {
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: #a67c00;
+    /* Gold */
+    margin: 0 0 4rem 0;
+    /* Increased margin as requested */
+    line-height: 1.2;
+    text-shadow: 0 2px 4px rgba(166, 124, 0, 0.1);
+    text-align: center;
+    width: 100%;
+}
+
+/* =========================================
+   Report Page "My Learning Status" Calendar Style
+   Matched from ReportPage.css (.study-calendar .calendar-grid)
+   SCOPED TO .schedule-container
+   ========================================= */
+
+.schedule-container .react-calendar {
+    width: 100% !important;
+    max-width: 500px !important;
+    /* Report Page Style: 0.5 Opacity White (Glass), Borderless, Box Shadow */
+    background: rgba(255, 255, 255, 0.5) !important;
+    border: none !important;
+    border-radius: 24px !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08) !important;
+
+    padding: 2rem !important;
+    font-family: 'Noto Sans KR', sans-serif;
+    line-height: 1.125em;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* Navigation (Month/Year) */
+.schedule-container .react-calendar__navigation {
+    display: flex;
+    margin-bottom: 1rem;
+}
+
+.schedule-container .react-calendar__navigation button {
+    color: #4a3b32 !important;
+    /* Dark Brown matching Report Page */
+    min-width: 44px;
+    background: none;
+    font-size: 1.5rem;
+    /* Larger like Report Page headers */
+    font-weight: 800;
+    margin-top: 8px;
+}
+
+.schedule-container .react-calendar__navigation button:enabled:hover,
+.schedule-container .react-calendar__navigation button:enabled:focus {
+    background-color: transparent;
+    color: #a67c00 !important;
+}
+
+/* Weekday Headers */
+.schedule-container .react-calendar__month-view__weekdays {
+    text-align: center;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 1rem;
+    border-bottom: 2px solid rgba(74, 59, 50, 0.1) !important;
+    padding-bottom: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.schedule-container .react-calendar__month-view__weekdays__weekday abbr {
+    text-decoration: none;
+    color: #888;
+}
+
+/* Weekday Colors */
+.schedule-container .react-calendar__month-view__weekdays__weekday:first-child abbr {
+    color: #e57373;
+    /* Sunday Red */
+}
+
+/* Day Tiles - Match Report Page Cells */
+.schedule-container .react-calendar__tile {
+    height: auto !important;
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: transparent !important;
+    border-radius: 0 !important;
+    border: none !important;
+    border-bottom: 1px solid rgba(74, 59, 50, 0.05) !important;
+    font-size: 1.2rem !important;
+    font-weight: 600 !important;
+    color: #4a3b32 !important;
+    /* Dark Brown */
+    transition: all 0.2s;
+    margin: 0 !important;
+}
+
+.schedule-container .react-calendar__tile:enabled:hover,
+.schedule-container .react-calendar__tile:enabled:focus {
+    background: rgba(255, 255, 255, 0.6) !important;
+    border-radius: 50% !important;
+    border-bottom: none !important;
+    color: #a67c00 !important;
+}
+
+/* Active/Selected Tile */
+.schedule-container .react-calendar__tile--active {
+    background: #a67c00 !important;
+    color: white !important;
+    font-weight: 800 !important;
+    border-radius: 50% !important;
+    box-shadow: 0 6px 15px rgba(166, 124, 0, 0.3);
+    border: none !important;
+}
+
+/* Today Tile */
+.schedule-container .react-calendar__tile--now {
+    background: transparent !important;
+    color: #a67c00 !important;
+    font-weight: 800;
+    border: 2px solid #f5e6cc !important;
+    border-radius: 50% !important;
+}
+
+/* Disabled Tiles */
+.schedule-container .react-calendar__tile:disabled {
+    background-color: transparent !important;
+    color: #d1d1d1 !important;
+    border: none !important;
+    cursor: default;
+}
+
+/* Weekend Colors */
+.schedule-container .react-calendar__month-view__days__day--weekend {
+    color: #d10000;
+}
+
+.schedule-container .react-calendar__tile:nth-child(7n+1) {
+    color: #e57373 !important;
+    /* Sunday */
+}
+
+.schedule-container .react-calendar__tile:nth-child(7n) {
+    color: #64b5f6 !important;
+    /* Saturday */
+}
+
+.schedule-container .react-calendar__tile--active:nth-child(7n+1),
+.schedule-container .react-calendar__tile--active:nth-child(7n) {
+    color: white !important;
+}
+
+/* =========================================
+   Time Grid Styles - Match Pronunciation Symbol Cards
+   .epa-card style from PronunciationPage.css
+   ========================================= */
+
+.schedule-container .time-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    /* Increased gap to match Pronunciation Page */
+    margin: 20px 0;
+    width: 100%;
+    max-width: 800px;
+    /* Increased max-width for cards */
+}
+
+/* Matched to .epa-card from PronunciationPage.css */
+.schedule-container .time-btn {
+    padding: 0.8rem 1rem;
+    /* Reduced padding (was 1.5rem) */
+    background: rgba(255, 255, 255, 0.5);
+    /* Glass */
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #4a3b32;
+    /* Dark Brown */
+
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Hover Effect - Matched to .epa-card:hover */
+.schedule-container .time-btn:hover {
+    background: rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(166, 124, 0, 0.1);
+    border-color: #a67c00;
+    color: #a67c00;
+    /* Text turns gold on hover */
+}
+
+/* Active State (Selected) - Solid Gold like .tab-btn.active or reinforced card style */
+.schedule-container .time-btn.active {
+    background: #a67c00 !important;
+    color: white !important;
+    border-color: #a67c00;
+    box-shadow: 0 8px 16px rgba(166, 124, 0, 0.2);
+    transform: translateY(-2px);
+}
+
+/* Save Button - Matched to Card Style but with Primary Color emphasis */
+.schedule-container .save-btn {
+    width: 100%;
+    max-width: 800px;
+    /* Match grid width */
+    padding: 1.5rem;
+
+    /* Using the active tab style / gold theme for the main action, but with card shape */
+    background: #a67c00;
+    border: 1px solid #a67c00;
+    border-radius: 10px;
+    /* Match card radius */
+
+    color: white;
+    font-size: 1.3rem;
+    font-weight: 800;
+    cursor: pointer;
+    margin-top: 30px;
+
+    box-shadow: 0 6px 20px rgba(166, 124, 0, 0.2);
+    transition: all 0.2s;
+}
+
+.schedule-container .save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(166, 124, 0, 0.3);
+    filter: brightness(1.1);
+}
+
+.schedule-container .save-btn:disabled {
+    background: #e0e0e0;
+    border-color: #e0e0e0;
+    color: #999;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}

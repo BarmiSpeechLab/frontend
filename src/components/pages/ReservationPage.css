@@ -1,0 +1,366 @@
+.reservation-page {
+    max-width: 1100px;
+    width: 90%;
+    margin: 0 auto 3rem auto;
+    margin-left: 4rem;
+    /* Match ProfilePage alignment */
+    padding: 1rem 0 2rem 0;
+    /* Aligned with ProfilePage */
+    font-family: 'Noto Sans KR', sans-serif;
+}
+
+/* 튜터 프로필 요약 카드 */
+.tutor-summary-card {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.6);
+    /* Match ProfilePage */
+    backdrop-filter: blur(20px);
+    /* Match ProfilePage */
+    -webkit-backdrop-filter: blur(20px);
+    padding: 24px 32px;
+    border-radius: 24px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    /* Match ProfilePage */
+    margin-bottom: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.tutor-summary-img-wrapper {
+    width: 80px;
+    height: 80px;
+    margin-right: 24px;
+}
+
+.tutor-summary-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #fdfaf3;
+}
+
+.tutor-summary-label {
+    font-size: 0.8rem;
+    color: #a67c00;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.tutor-summary-name {
+    font-size: 1.6rem !important;
+    color: #333 !important;
+    margin: 4px 0 !important;
+    font-weight: 800;
+}
+
+.tutor-summary-org {
+    color: #999;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.reservation-back-btn {
+    margin-left: auto;
+    background: #f5f0e6;
+    color: #a67c00;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.reservation-back-btn:hover {
+    background: #a67c00;
+    color: #fff;
+}
+
+/* 콘텐츠 영역 */
+.reservation-content {
+    display: flex;
+    gap: 40px;
+}
+
+.calendar-section {
+    flex: 1.2;
+}
+
+.time-grid-section {
+    flex: 1;
+}
+
+.reservation-page .section-title {
+    font-size: 1.5rem !important;
+    font-weight: 900;
+    color: #4a3b32 !important;
+    /* Dark Brown */
+    margin: 0 0 2rem 0;
+    line-height: 1.2;
+    text-shadow: 0 2px 4px rgba(74, 59, 50, 0.1);
+}
+
+.calendar-section h3,
+.time-grid-section h3 {
+    display: none;
+    /* Hide old h3 if any remain */
+}
+
+/* ============= Study Calendar Layout Match (SCOPED) ============= */
+
+.reservation-page .study-calendar-wrapper {
+    display: flex;
+    align-items: center;
+    /* Align to top */
+    justify-content: center;
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.reservation-page .study-calendar {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+    /* Center the calendar itself */
+}
+
+/* External Navigation Buttons */
+.reservation-page .calendar-nav-btn-outside {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: #a67c00;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    flex-shrink: 0;
+    /* Adjust vertical alignment */
+}
+
+.reservation-page .calendar-nav-btn-outside:hover {
+    background: #fff;
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    color: #e57373;
+}
+
+/* Split Header: Left Month, Right Year */
+.reservation-page .calendar-header-split {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 0 0.5rem 1rem 0.5rem;
+    width: 100%;
+    /* Max-width removed for Glass Theme */
+    border-bottom: 2px solid rgba(166, 124, 0, 0.1);
+    margin-bottom: 0.5rem;
+}
+
+.reservation-page .header-month,
+.reservation-page .header-year {
+    font-size: 2.5rem !important;
+    font-weight: 800 !important;
+    color: #a67c00 !important;
+    line-height: 1 !important;
+}
+
+/* 달력(react-calendar) 커스텀 디자인 - GLASS THEME (REVERTED & SCOPED) */
+.reservation-page .react-calendar {
+    width: 100% !important;
+    max-width: none !important;
+    /* Remove max-width limit */
+    background: rgba(255, 255, 255, 0.6) !important;
+    /* Glass Background */
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-radius: 24px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    padding: 2rem !important;
+    font-family: 'Noto Sans KR', sans-serif;
+    line-height: 1.125em;
+    display: flex;
+    flex-direction: column;
+}
+
+/* HIDE Default Navigation from React-Calendar */
+.reservation-page .react-calendar__navigation {
+    display: none !important;
+}
+
+/* 요일 글자 디자인 */
+.reservation-page .react-calendar__month-view__weekdays {
+    text-align: center;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 1rem;
+    border-bottom: 2px solid rgba(74, 59, 50, 0.1) !important;
+    padding-bottom: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.reservation-page .react-calendar__month-view__weekdays__weekday {
+    padding: 0.5em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.reservation-page .react-calendar__month-view__weekdays__weekday abbr {
+    text-decoration: none;
+    color: #888 !important;
+    font-weight: 700 !important;
+}
+
+/* Sunday Red */
+.reservation-page .react-calendar__month-view__weekdays__weekday:first-child abbr {
+    color: #e57373 !important;
+}
+
+/* 날짜 타일 디자인 - GLASS THEME (Square, no gap) */
+.reservation-page .react-calendar__tile {
+    height: auto !important;
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: transparent !important;
+    border-radius: 0 !important;
+    border-bottom: 1px solid rgba(74, 59, 50, 0.05);
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    font-size: 1.2rem !important;
+    font-weight: 600 !important;
+    color: #4a3b32 !important;
+    transition: all 0.2s;
+    margin: 0;
+    /* Remove gap */
+}
+
+/* Hover effect */
+.reservation-page .react-calendar__tile:enabled:hover,
+.reservation-page .react-calendar__tile:enabled:focus {
+    background: rgba(255, 255, 255, 0.6) !important;
+    border-radius: 50% !important;
+    border-bottom: none;
+    color: #a67c00 !important;
+}
+
+/* 선택된 날짜 강조 */
+.reservation-page .react-calendar__tile--active {
+    background: #a67c00 !important;
+    color: white !important;
+    font-weight: 800 !important;
+    border-radius: 50% !important;
+    box-shadow: 0 6px 15px rgba(166, 124, 0, 0.3);
+    border-bottom: none;
+    border: none !important;
+}
+
+/* 오늘 날짜 표시 */
+.reservation-page .react-calendar__tile--now {
+    background: transparent !important;
+    color: #a67c00 !important;
+    font-weight: 800;
+    border: 2px solid #f5e6cc !important;
+    border-radius: 50% !important;
+}
+
+.reservation-page .react-calendar__tile--now:enabled:hover,
+.reservation-page .react-calendar__tile--now:enabled:focus {
+    background: #fdfaf3 !important;
+}
+
+/* 비활성화된 날짜 */
+.reservation-page .react-calendar__tile:disabled {
+    background-color: transparent !important;
+    color: #d1d1d1 !important;
+    border-color: transparent !important;
+    cursor: default;
+}
+
+/* Color Sat/Sun properly using nth-child */
+.reservation-page .react-calendar__month-view__days__day--weekend {
+    color: #d10000;
+}
+
+/* Sunday (1st) */
+.reservation-page .react-calendar__tile:nth-child(7n+1) {
+    color: #e57373 !important;
+}
+
+/* Saturday (7th) */
+.reservation-page .react-calendar__tile:nth-child(7n) {
+    color: #64b5f6 !important;
+}
+
+/* Active overrides color */
+.reservation-page .react-calendar__tile--active:nth-child(7n+1),
+.reservation-page .react-calendar__tile--active:nth-child(7n) {
+    color: white !important;
+}
+
+/* 시간 버튼 그리드 및 디자인 */
+.time-buttons-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 12px;
+}
+
+.time-btn {
+    padding: 16px 0;
+    background: #fdfaf3;
+    border: 2px solid #f5e6cc;
+    border-radius: 18px;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #a67c00;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.time-btn:hover {
+    background: #a67c00;
+    color: #fff;
+    border-color: #a67c00;
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(166, 124, 0, 0.2);
+}
+
+/* 안내 메시지 */
+.no-time-msg {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: #bbb;
+    padding: 60px 20px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}

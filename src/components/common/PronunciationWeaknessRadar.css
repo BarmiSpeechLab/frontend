@@ -1,0 +1,398 @@
+/* === HOST CONTAINER (Glass Effect Moved Here) === */
+.weakness-radar-card {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.6);
+    /* Standardized Opacity 0.6 */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 30px;
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+}
+
+.weakness-radar-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.weakness-radar-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.weakness-radar-title {
+    margin: 0;
+    font-size: 1.6rem;
+    /* Slightly larger */
+    color: #4a3b32;
+    /* Darker Brown as requested */
+    font-weight: 800;
+}
+
+.weakness-radar-subtitle {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #8d8265;
+    font-weight: 600;
+}
+
+/* === RESTORED RADAR CHART LAYOUT (Split View) === */
+.weakness-radar-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 3rem;
+    align-items: center;
+}
+
+.weakness-radar-svg {
+    width: 100%;
+    max-width: 380px;
+    margin: 0 auto;
+}
+
+/* === CHART VISIBILITY UPORADE === */
+.radar-grid {
+    fill: none;
+    stroke: rgba(196, 169, 104, 0.4);
+    /* Much Lighter Gold for spider web */
+    stroke-width: 1;
+    /* Thinner lines */
+}
+
+.radar-axis {
+    stroke: #e3d7b7;
+    /* Lighter Axis too */
+    stroke-width: 1;
+}
+
+.radar-axis {
+    stroke: #c4a968;
+    /* Darker Gold */
+    stroke-width: 1.5;
+}
+
+.radar-area {
+    fill: rgba(166, 124, 0, 0.4);
+    /* Darker/More Opaque Fill */
+    stroke: #8a6500;
+    /* Darker Border */
+    stroke-width: 3;
+    /* Thicker Border */
+    filter: drop-shadow(0 4px 6px rgba(166, 124, 0, 0.2));
+}
+
+.radar-value-point {
+    fill: #8a6500;
+    /* Darker Point */
+}
+
+.radar-label {
+    fill: #5d4a19;
+    /* High Contrast Label */
+    font-size: 14px;
+    /* Larger Font */
+    font-weight: 800;
+}
+
+/* === RIGHT SIDE: CARD GRID List === */
+.weakness-radar-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+/* Card Item Design */
+.weakness-radar-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    background: rgba(255, 255, 255, 0.6);
+    /* Standardized Opacity */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(240, 229, 203, 0.6);
+    border-radius: 16px;
+    padding: 1rem 1.2rem;
+    color: #6f633f;
+    width: 100%;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    position: relative;
+    overflow: hidden;
+}
+
+.weakness-radar-item:hover {
+    transform: translateY(-3px);
+    border-color: #ddc27f;
+    box-shadow: 0 8px 20px rgba(166, 124, 0, 0.12);
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.weakness-radar-item.selected {
+    border: 2px solid #a67c00;
+    background: rgba(255, 248, 232, 0.8);
+    box-shadow: 0 6px 15px rgba(166, 124, 0, 0.15);
+}
+
+/* Card Header Row */
+.card-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+.weakness-radar-item span {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #4a3b32;
+}
+
+.weakness-radar-item strong {
+    color: #a67c00;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+/* Progress Bar in Card */
+.card-progress-bg {
+    width: 100%;
+    height: 6px;
+    background: rgba(166, 124, 0, 0.1);
+    border-radius: 10px;
+    margin-top: 0.5rem;
+    overflow: hidden;
+}
+
+.card-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #dbb33e 0%, #a67c00 100%);
+    border-radius: 10px;
+}
+
+.radar-value-point.selected {
+    fill: #8a6500;
+    stroke: #fff8e6;
+    stroke-width: 1.5;
+}
+
+.weakness-detail-panel {
+    border-top: 1px solid #eddcb2;
+    padding-top: 0.85rem;
+}
+
+.weakness-detail-title {
+    color: #8a6a10;
+    font-weight: 700;
+    font-size: 0.93rem;
+    margin-bottom: 0.55rem;
+}
+
+.weakness-detail-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    justify-content: flex-start;
+}
+
+.weakness-detail-item {
+    display: inline-flex;
+    justify-content: space-between;
+    align-items: center;
+    min-width: 130px;
+    flex: 0 0 180px;
+    max-width: 180px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid #f0e5cb;
+    border-radius: 10px;
+    padding: 0.5rem 0.65rem;
+}
+
+.ipa-symbol {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color: #5d4a19;
+    font-weight: 700;
+}
+
+.ipa-metrics {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.9rem;
+}
+
+.ipa-wrong-count {
+    color: #8a6d1f;
+    font-size: 0.84rem;
+}
+
+.ipa-rate {
+    color: #a67c00;
+    font-size: 0.84rem;
+    font-weight: 700;
+}
+
+.weakness-detail-empty {
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px dashed #e8d9b2;
+    border-radius: 10px;
+    padding: 0.65rem;
+    color: #8a7c57;
+    font-size: 0.84rem;
+}
+
+/* === MODAL STYLE: LEARNING PAGE CARD STYLE === */
+.weakness-info-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    /* Darker backdrop */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 9999;
+    /* Max z-index */
+    backdrop-filter: blur(5px);
+    /* Add blur to background */
+}
+
+.weakness-info-modal {
+    width: min(500px, 90%);
+    height: auto;
+    max-height: 80vh;
+    overflow: auto;
+
+    /* Learning Card Style */
+    background: rgba(255, 255, 255, 0.9);
+    /* Slightly more opaque for readability */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 20px;
+    /* Rounded corners */
+    box-shadow: 0 20px 50px rgba(166, 124, 0, 0.15);
+    /* Soft Gold Shadow */
+
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Header centered and larger */
+.weakness-info-modal-header {
+    display: flex;
+    justify-content: center;
+    /* Center title */
+    align-items: center;
+    width: 100%;
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.weakness-info-modal-header h4 {
+    margin: 0;
+    font-size: 1.8rem;
+    /* Larger Title */
+    color: #4a3b32;
+    font-weight: 800;
+}
+
+/* Close button positioned absolutely to top-right */
+.weakness-info-close {
+    position: absolute;
+    right: -10px;
+    top: -10px;
+    border: none;
+    background: rgba(166, 124, 0, 0.1);
+    color: #a67c00;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.weakness-info-close:hover {
+    background: #a67c00;
+    color: #fff;
+}
+
+/* Content centered and styled like description */
+.weakness-info-content {
+    background: transparent !important;
+    /* Remove inner box background */
+    padding: 0 !important;
+    width: 100%;
+}
+
+.weakness-info-content p {
+    font-size: 1.1rem;
+    color: #6b5b4e;
+    line-height: 1.6;
+    margin: 0;
+    font-weight: 500;
+    word-break: keep-all;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 900px) {
+    .weakness-radar-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .weakness-radar-list {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .weakness-detail-item {
+        flex-basis: 170px;
+        max-width: 170px;
+    }
+}
+
+@media (max-width: 600px) {
+    .weakness-radar-list {
+        grid-template-columns: 1fr;
+    }
+
+    .weakness-info-list {
+        grid-template-columns: 1fr;
+    }
+
+    .weakness-detail-item {
+        flex-basis: 100%;
+        max-width: 100%;
+    }
+}

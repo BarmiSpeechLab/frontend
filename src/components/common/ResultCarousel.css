@@ -1,0 +1,182 @@
+.result-carousel-container {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    margin: 10px auto;
+    padding: 10px 45px;
+    /* Increased horizontal padding to clear arrows */
+    background: transparent;
+    border-radius: 16px;
+    overflow: hidden;
+    min-height: 250px;
+    display: flex;
+    flex-direction: column;
+}
+
+.carousel-header {
+    position: relative;
+    /* For absolute pagination positioning */
+    display: flex;
+    justify-content: center;
+    /* Center the title */
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 0 10px;
+}
+
+.carousel-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #a67c00;
+    margin: 0;
+    text-align: center;
+}
+
+.carousel-pagination {
+    position: absolute;
+    right: 10px;
+    font-size: 0.9rem;
+    /* Slightly smaller for the corner */
+    font-weight: 600;
+    color: #666;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 4px 12px;
+    border-radius: 20px;
+}
+
+.carousel-pagination .current {
+    color: #a67c00;
+}
+
+.carousel-viewport {
+    flex: 1;
+    overflow: hidden;
+    border-radius: 16px;
+    position: relative;
+}
+
+.carousel-track {
+    display: flex;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    height: 100%;
+}
+
+.carousel-slide {
+    min-width: 100%;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+}
+
+.carousel-card-wrapper {
+    width: 100%;
+    height: 100%;
+    animation: fadeInSlide 0.5s ease-out;
+}
+
+@keyframes fadeInSlide {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.carousel-nav-btn {
+    position: absolute;
+    top: 50%;
+    /* Changed to 50% for better centering */
+    transform: translateY(-50%);
+    width: 36px;
+    /* Slightly smaller for nested context */
+    height: 36px;
+    border-radius: 50%;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    z-index: 10;
+    color: #a67c00;
+}
+
+.carousel-nav-btn:hover:not(:disabled) {
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    background: #fef8e7;
+}
+
+.carousel-nav-btn:disabled {
+    opacity: 0.1;
+    /* More transparent when disabled */
+    cursor: not-allowed;
+    background: #f5f5f5;
+}
+
+.carousel-nav-btn.prev {
+    left: 8px;
+    /* Move closer to edge */
+}
+
+.carousel-nav-btn.next {
+    right: 8px;
+}
+
+.carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ddd;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.dot.active {
+    width: 24px;
+    border-radius: 4px;
+    background: #a67c00;
+}
+
+/* 스타일 조정: 내부 컴포넌트들이 캐러셀 안에서 잘 보이도록 */
+.carousel-card-wrapper>div {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* 구체적인 내부 컴포넌트 스타일 덮어쓰기 */
+.result-carousel-container .pa-result {
+    padding: 0 !important;
+}
+
+.result-carousel-container .graph-card {
+    padding: 0 !important;
+}
+
+.result-carousel-container .feedback-card-container {
+    padding: 0 !important;
+}
+
+.result-carousel-container .visual-card {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+}

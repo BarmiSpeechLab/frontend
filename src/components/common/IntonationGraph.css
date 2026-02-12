@@ -1,0 +1,44 @@
+.graph-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    background: #fffdf7;
+    /* Slightly lighter than #fff7ea */
+    border: 1px solid #f5eee6;
+    border-radius: 16px;
+    padding: 1.2rem 2rem 2rem;
+    box-shadow: 0 6px 16px rgba(166, 124, 0, 0.12);
+}
+
+.graph-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.2rem;
+}
+
+.graph-title-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.graph-header-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #8a6d3b;
+    letter-spacing: -0.5px;
+}
+
+.graph-legend {
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+canvas.intonation-canvas-display {
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    background: #fafafa;
+    width: 100%;
+    height: auto;
+}

@@ -1,0 +1,162 @@
+.tutor-selection-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding-top: 1rem !important;
+    padding-bottom: 5rem;
+    box-sizing: border-box;
+    animation: fadeIn 0.5s ease-out;
+    margin: 0 auto;
+}
+
+.tutor-selection-container h2 {
+    margin-top: 0;
+    margin-bottom: 3rem;
+    font-size: 2.2rem;
+    color: #a67c00;
+    font-weight: 800;
+    text-align: center;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.tutor-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    max-width: 1100px;
+    width: 90%;
+}
+
+.tutor-card-detail {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+    border-radius: 20px;
+    padding: 2.5rem 1.5rem !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    cursor: pointer;
+    height: auto;
+    min-height: 400px;
+    position: relative;
+}
+
+.tutor-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(166, 124, 0, 0.12);
+    border-color: #f5e6cc;
+}
+
+.tutor-img-wrapper {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.tutor-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid #fdfaf3;
+}
+
+.tutor-card:hover .tutor-img-wrapper {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.tutor-info {
+    width: 100%;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.tutor-name {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.tutor-email {
+    font-size: 0.89rem;
+    color: #999;
+    margin-bottom: 0.8rem;
+}
+
+.tutor-org {
+    font-size: 0.85rem;
+    color: #d4af37;
+    font-weight: 800;
+    background: #fdfaf3;
+    padding: 4px 12px;
+    border-radius: 12px;
+    display: inline-block;
+    margin-bottom: 1rem;
+    border: 1px solid #f2dfb6;
+}
+
+.tutor-desc {
+    font-size: 0.95rem;
+    color: #777;
+    line-height: 1.5;
+    margin: 0;
+    word-break: keep-all;
+    font-style: italic;
+    min-height: 3rem;
+}
+
+.select-btn {
+    background: #f5f0e6;
+    color: #a67c00;
+    border: none;
+    padding: 0.7rem 2rem;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(166, 124, 0, 0.1);
+    width: 80%;
+    margin-top: auto;
+}
+
+.tutor-card-detail:hover {
+    transform: translateY(-12px);
+    box-shadow: 0 20px 40px rgba(166, 124, 0, 0.15);
+    border-color: #f5e6cc;
+}
+
+.tutor-card-detail:hover .tutor-img-wrapper {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.tutor-card-detail:hover .select-btn {
+    background: #a67c00;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(166, 124, 0, 0.3);
+}

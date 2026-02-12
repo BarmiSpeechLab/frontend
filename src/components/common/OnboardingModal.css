@@ -1,0 +1,198 @@
+/* Full Screen Container with Glassmorphism */
+.onboarding-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.85);
+    /* Darker semi-transparent black */
+    backdrop-filter: blur(10px);
+    /* Glass effect */
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* ----- Fixed Character Layer (Anchor) ----- */
+.onboarding-character-layer {
+    position: absolute;
+    top: 50%;
+    /* Center vertical or adjust to preferred anchor */
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    /* Fixed anchor size */
+    height: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 5;
+    /* This ensures both tunnel and tutorial character occupy EXACT same pixel space */
+    margin-top: 50px;
+    /* Shift lower as requested */
+}
+
+.character-img {
+    width: 100%;
+    /* Fill the 300px container */
+    max-width: 300px;
+    /* Explicit constraint */
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.1));
+}
+
+/* ----- Fixed Text Layer ----- */
+.onboarding-text-layer {
+    position: absolute;
+    top: 20%;
+    /* Fixed top position for text */
+    left: 0;
+    width: 100%;
+    text-align: center;
+    /* Center text horizontally */
+    display: flex;
+    /* Flexbox to ensure alignment */
+    flex-direction: column;
+    align-items: center;
+    /* Center children */
+    color: white;
+    z-index: 10;
+    gap: 20px;
+}
+
+/* Shake Animation (Rubbing effect) */
+.rub-animation {
+    animation: shake 0.5s cubic-bezier(.36, .07, .19, .97) both infinite;
+    transform: translate3d(0, 0, 0);
+}
+
+@keyframes shake {
+
+    10%,
+    90% {
+        transform: translate3d(-1px, 0, 0) rotate(-1deg);
+    }
+
+    20%,
+    80% {
+        transform: translate3d(2px, 0, 0) rotate(2deg);
+    }
+
+    30%,
+    50%,
+    70% {
+        transform: translate3d(-4px, 0, 0) rotate(-4deg);
+    }
+
+    40%,
+    60% {
+        transform: translate3d(4px, 0, 0) rotate(4deg);
+    }
+}
+
+/* Fade In Animation */
+.fade-in {
+    animation: fadeIn 0.8s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Typography Overrides */
+.tutorial-text-container {
+    width: 100%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.tutorial-desc-lg {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    margin: 0;
+    font-weight: 500;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.tutorial-text-container h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #fff;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.tutorial-text-container p {
+    font-size: 1.3rem;
+    line-height: 1.6;
+    color: #eee;
+    text-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* ----- Navigation Arrows ----- */
+.nav-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 3rem;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: all 0.2s;
+    padding: 20px;
+    z-index: 20;
+}
+
+.nav-arrow:hover {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.left-arrow {
+    left: 40px;
+}
+
+.right-arrow {
+    right: 40px;
+}
+
+/* ----- Skip Button ----- */
+.skip-btn-container {
+    position: absolute;
+    bottom: 50px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    z-index: 20;
+}
+
+.skip-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.8);
+    padding: 10px 30px;
+    border-radius: 30px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.skip-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #fff;
+    color: #fff;
+}

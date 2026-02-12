@@ -1,0 +1,332 @@
+/* ProfilePage.css - Matches ReportPage Design */
+
+/* 1. Global Container */
+.profile-dashboard-container {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    width: 100%;
+    height: calc(100vh - 50px);
+    overflow-y: auto;
+    scroll-snap-type: y mandatory;
+    padding-top: 0;
+    padding-bottom: 2rem;
+    color: #4a3b32;
+    background: transparent;
+    scrollbar-width: none;
+}
+
+.profile-dashboard-container::-webkit-scrollbar {
+    display: none;
+}
+
+/* 2. Group Container (Left Aligned, Max Width) */
+.profile-content-group {
+    max-width: 1100px;
+    width: 90%;
+    margin: 0 auto;
+    margin-bottom: 3rem;
+    scroll-snap-align: start;
+    scroll-margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-top: 0;
+}
+
+/* 3. Section Title */
+.section-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    /* Fixed from 900 */
+    color: #a67c00;
+    margin: 0 0 1.5rem 0;
+    line-height: 1.2;
+    text-shadow: 0 2px 4px rgba(166, 124, 0, 0.1);
+}
+
+/* 4. Layout Grid (Profile Specific) */
+.profile-top-layout {
+    display: grid;
+    grid-template-columns: 1.8fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+    align-items: stretch;
+    /* Cards will match height */
+}
+
+/* 5. Glass Cards (Matches ReportPage Items) */
+.profile-card {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: none;
+    border-radius: 24px;
+    padding: 1rem 2rem 2rem 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    /* Ensure card fills the stretched grid cell */
+}
+
+/* Hover effect removed */
+
+.card-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    color: #4a3b32;
+    border-bottom: 2px solid rgba(166, 124, 0, 0.1);
+    padding-bottom: 0.8rem;
+}
+
+/* 6. Profile Info Styles */
+.info-content {
+    display: flex;
+    gap: 2.5rem;
+    align-items: center;
+}
+
+.avatar-circle {
+    width: 120px;
+    height: 120px;
+    background: #fdfaf3;
+    border: 3px solid #fff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #a67c00;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.avatar-circle.editable {
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.avatar-circle.editable:hover {
+    transform: scale(1.05);
+    border-color: #a67c00;
+}
+
+.avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.avatar-overlay span {
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.info-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    flex: 1;
+}
+
+.field label {
+    display: block;
+    font-size: 0.9rem;
+    color: #888;
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+}
+
+.field .value {
+    font-size: 1.2rem;
+    color: #4a3b32;
+    font-weight: 700;
+}
+
+/* Edit Inputs */
+.edit-input {
+    width: 100%;
+    max-width: 300px;
+    padding: 10px 15px;
+    border: 2px solid #e0dabf;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    outline: none;
+    background: rgba(255, 255, 255, 0.8);
+    color: #4a3b32;
+    transition: border-color 0.2s;
+}
+
+.edit-input:focus {
+    border-color: #a67c00;
+    background: #fff;
+}
+
+/* Buttons */
+.button-group {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+    align-items: center;
+    /* Ensure vertical alignment */
+}
+
+/* Common Layout + Glass Base */
+.edit-btn,
+.save-btn,
+.cancel-btn {
+    flex: 1;
+    height: 52px;
+    padding: 0 1rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1.05rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+    /* Force row direction */
+    white-space: nowrap !important;
+    /* Force single line */
+    box-sizing: border-box;
+    /* Include padding/border in height */
+    min-width: 100px;
+    margin: 0;
+    /* Remove default margins */
+
+    /* Glass Style (Topic Category Design) */
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #4a3b32;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.edit-btn:hover,
+.save-btn:hover,
+.cancel-btn:hover {
+    background: rgba(255, 255, 255, 0.6);
+    color: #a67c00;
+    border-color: #f5e6cc;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(166, 124, 0, 0.1);
+}
+
+/* 7. Stats Card Styles */
+.stats-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    height: 100%;
+    justify-content: center;
+}
+
+.main-stat {
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 20px;
+    padding: 1.5rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(166, 124, 0, 0.1);
+}
+
+.stat-value {
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: #a67c00;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #6b5b4e;
+    font-weight: 600;
+}
+
+.sub-stats {
+    display: flex;
+    gap: 1rem;
+}
+
+.sub-stat {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 16px;
+    padding: 1.2rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.sub-value {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #a67c00;
+    margin-bottom: 0.3rem;
+}
+
+.sub-label {
+    font-size: 0.8rem;
+    color: #888;
+    font-weight: 600;
+}
+
+/* 8. Withdraw Section */
+.withdraw-section {
+    margin-top: 3rem;
+    text-align: right;
+    opacity: 0.8;
+}
+
+.withdraw-btn {
+    background: #ff525215;
+    color: #ff5252;
+    border: 1px solid #ff525230;
+    padding: 10px 24px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.withdraw-btn:hover {
+    background: #ff5252;
+    color: #fff;
+}
+
+/* Responsive */
+@media (max-width: 968px) {
+    .profile-top-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-content-group {
+        margin-left: 2rem;
+        width: 90%;
+    }
+}

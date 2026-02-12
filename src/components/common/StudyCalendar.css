@@ -1,0 +1,286 @@
+/* ============= Study Calendar (Monthly) ============= */
+
+.study-calendar {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Wrapper for External Buttons */
+.study-calendar-wrapper {
+    display: flex;
+    align-items: center;
+    /* Center buttons vertically with calendar */
+    gap: 1.5rem;
+    /* Space between buttons and calendar */
+    width: 100%;
+}
+
+.study-calendar {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Split Header: Left Month, Right Year */
+.calendar-header-split {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 0 0.5rem 1rem 0.5rem;
+    /* Padding inside the calendar area */
+    border-bottom: 2px solid rgba(166, 124, 0, 0.1);
+    /* Optional separator line like reference */
+    margin-bottom: 1rem;
+}
+
+/* Split Header: Left Month, Right Year - MATCHING STYLES */
+.header-month,
+.header-year {
+    font-size: 2.5rem !important;
+    /* Large Font for BOTH */
+    font-weight: 800 !important;
+    /* Extra Bold for BOTH */
+    color: #a67c00 !important;
+    /* Gold Color for BOTH */
+    line-height: 1 !important;
+}
+
+/* External Navigation Buttons */
+.calendar-nav-btn-outside {
+    background: rgba(255, 255, 255, 0.5);
+    /* Semi-transparent button background */
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: #a67c00;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.calendar-nav-btn-outside:hover {
+    background: #fff;
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    color: #e57373;
+}
+
+.calendar-month {
+    display: none;
+    /* Hide old title if present */
+}
+
+.calendar-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    background: #fdfaf3;
+    border: 1px solid #f2dfb6;
+    border-radius: 18px;
+    padding: 1rem 0.5rem 0.5rem 0.5rem;
+    /* Top padding 1rem, Bottom minimal */
+    max-width: 500px;
+    box-shadow: 0 8px 20px rgba(166, 124, 0, 0.08);
+    /* Removed min-height to eliminate bottom whitespace */
+    height: auto;
+}
+
+.calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.25rem;
+    margin-bottom: 0.25rem;
+    flex-shrink: 0;
+}
+
+.calendar-week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.25rem;
+}
+
+.calendar-cell {
+    aspect-ratio: 1;
+    /* Restore square ratio */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #666;
+    background: #ffffff;
+    border: 1px solid #e8e0d0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: visible;
+}
+
+.calendar-cell.other {
+    background: #f5f5f5;
+    color: #ccc;
+    cursor: default;
+}
+
+.calendar-cell.current:hover {
+    border-color: #a67c00;
+}
+
+.calendar-cell.current.study {
+    background: #ffffff;
+    color: #666;
+    border-color: #e8e0d0;
+}
+
+.calendar-cell.current.study:hover {
+    border-color: #a67c00;
+}
+
+.calendar-day-number {
+    position: relative;
+    z-index: 1;
+}
+
+.study-stamp {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70%;
+    height: 70%;
+    object-fit: contain;
+    opacity: 0.7;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.study-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #a67c00;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.study-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #a67c00;
+}
+
+.calendar-cell:hover .study-tooltip {
+    opacity: 1;
+}
+
+/* ============= Weekly Chart ============= */
+
+.weekly-chart {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.chart-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.chart-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #a67c00;
+    margin: 0;
+}
+
+.chart-container-compact {
+    display: flex;
+    gap: 1rem;
+    height: 120px;
+    background: #fdfaf3;
+    border: 1px solid #f5e6cc;
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.chart-bars-compact {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    flex: 1;
+    gap: 0.5rem;
+}
+
+.bar-wrapper-compact {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 1;
+    height: 100%;
+    gap: 0.4rem;
+}
+
+.bar-compact {
+    width: 100%;
+    background: linear-gradient(to top, #a67c00, #c99a1a);
+    border-radius: 4px 4px 0 0;
+    min-height: 4px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(166, 124, 0, 0.1);
+}
+
+.bar-compact:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 4px 8px rgba(166, 124, 0, 0.2);
+}
+
+.day-name-compact {
+    font-size: 0.75rem;
+    color: #888;
+    font-weight: 600;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .chart-container-compact {
+        height: 150px;
+    }
+
+    .calendar-cell {
+        width: 14px;
+        height: 14px;
+    }
+
+    .day-label {
+        font-size: 0.65rem;
+        width: 18px;
+    }
+}
