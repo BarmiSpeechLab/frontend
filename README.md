@@ -1,6 +1,6 @@
 # Barmi Frontend Developer Guide
 
-## 🏗 아키텍처 및 디렉토리 구조 (Architecture)
+## 아키텍처 및 디렉토리 구조 (Architecture)
 
 프로젝트는 기능 단위(Feature-based)가 아닌 **계층 단위(Layer-based)**로 구조화되어 있으며, 각 디렉토리는 명확한 역할을 가집니다.
 
@@ -19,7 +19,7 @@ frontend/src/
 
 ---
 
-## 🔧 주요 구현 내용 (Key Implementations)
+## 주요 구현 내용 (Key Implementations)
 
 ### 1. 오디오 처리 및 변환 (`utils/audioConverter.js`)
 브라우저의 `MediaRecorder` API는 주로 WebM 형식을 지원하지만, AI 모델 호환성을 위해 **WAV (PCM 16bit)** 포맷으로 변환이 필요합니다.
@@ -73,7 +73,7 @@ frontend/src/
 
 ---
 
-## 📡 API 통신 전략 (`api/`)
+## API 통신 전략 (`api/`)
 - **Axios 인스턴스**: `axios.create()`를 사용하여 기본 URL 및 타임아웃을 설정한 인스턴스를 생성해 사용합니다.
 - **모듈화**: 기능별로 파일을 분리하여 관리합니다.
   - `auth.js`: 로그인, 회원가입 관련 (JWT 토큰 처리)
@@ -83,7 +83,7 @@ frontend/src/
 
 ---
 
-## � 주요 라이브러리 (Dependencies)
+## 주요 라이브러리 (Dependencies)
 - **react-router-dom**: SPA(Single Page Application) 라우팅 처리 (`useNavigate`, `useLocation` 훅 활용)
 - **zustand**: 전역 상태 관리 (필요 시 도입, 현재는 로컬 상태 위주)
 - **lucide-react**: 경량화된 아이콘 라이브러리 사용
